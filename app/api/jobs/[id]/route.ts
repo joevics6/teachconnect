@@ -5,7 +5,6 @@
  
 // Create this separately at app/api/jobs/[id]/route.ts:
  
-/*
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
  
