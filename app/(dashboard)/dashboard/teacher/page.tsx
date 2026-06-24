@@ -247,8 +247,8 @@ export default function TeacherDashboardPage() {
           talent_pool:             (data.profile as unknown as Record<string,unknown>).talent_pool as boolean ?? null,
           years_of_teaching_experience: (data.profile as unknown as Record<string,unknown>).years_of_teaching_experience as number ?? null,
           experience_level:        (data.profile as unknown as Record<string,unknown>).experience_level as string ?? null,
-          preferred_states:        data.profile.preferred_states ?? [],
-          accommodation_needed:    data.profile.willing_to_relocate ?? null,
+          preferred_states:        (data.profile as unknown as Record<string,unknown>).preferred_states as string[] ?? [],
+          accommodation_needed:    (data.profile as unknown as Record<string,unknown>).willing_to_relocate as boolean ?? null,
           sector:                  null,
           job_type:                null,
         })
