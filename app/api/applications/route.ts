@@ -72,7 +72,7 @@ export async function POST(request: Request) {
       .single()
 
     if (job) {
-      const school = job.school_profiles as { user_id: string; school_name: string }
+      const school = (Array.isArray(job.school_profiles) ? job.school_profiles[0] : job.school_profiles) as unknown as { user_id: string; school_name: string }
       const { data: teacherProfile } = await supabase
         .from("teacher_profiles")
         .select("full_name")
