@@ -230,6 +230,7 @@ export default function TeacherDashboardPage() {
         setProfile(data.profile)
         // Extract onboarding fields from merged profile
         setOnboarding({
+          cv_name:                 (data.profile as unknown as Record<string,unknown>).cv_name as string ?? null,
           cv_summary:              (data.profile as unknown as Record<string,unknown>).cv_summary as string ?? null,
           cv_skills:               (data.profile as unknown as Record<string,unknown>).cv_skills as string[] ?? [],
           cv_roles:                (data.profile as unknown as Record<string,unknown>).cv_roles as string[] ?? [],
