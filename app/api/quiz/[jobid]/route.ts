@@ -114,7 +114,7 @@ export async function GET(
     return NextResponse.json({
       job_id: job.id,
       job_title: job.title,
-      school_name: (job.school_profiles as { school_name: string }).school_name,
+      school_name: ((Array.isArray(job.school_profiles) ? job.school_profiles[0] : job.school_profiles) as unknown as { school_name: string })?.school_name,
       subject: job.subject,
       mode: job.quiz_mode || "standard",
       duration_minutes: job.quiz_duration || 20,
