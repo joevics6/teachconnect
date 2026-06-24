@@ -3,21 +3,17 @@
 // GET — public teacher profile (school or guest viewing)
 // ============================================================
 
-// Create at: app/api/teacher/profile/[id]/route.ts
-
-
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 
 export async function GET(
-  request: Request,
-  { params }: { params: { id: string } }
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const supabase = await createClient()
-    const { id } = params
 
-    // Get viewer role
     let viewerRole: "teacher" | "school" | "guest" = "guest"
     const { data: { user } } = await supabase.auth.getUser()
 
@@ -30,7 +26,6 @@ export async function GET(
       viewerRole = (userRecord?.role as "teacher" | "school") || "guest"
     }
 
-    // Fetch public profile
     const { data: profile, error } = await supabase
       .from("teacher_profiles")
       .select(
@@ -53,7 +48,6 @@ export async function GET(
       )
     }
 
-    // Only schools can see quiz results
     let quizResults: unknown[] = []
     if (viewerRole === "school") {
       const { data: results } = await supabase

@@ -1,22 +1,19 @@
 // ============================================================
-// app/api/schools/[id]/route.ts
+// app/api/school/[id]/route.ts
 // GET — public school profile with active jobs + stats
 // ============================================================
 
-// Create at: app/api/schools/[id]/route.ts
-
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 
 export async function GET(
-  request: Request,
-  { params }: { params: { id: string } }
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const supabase = await createClient()
-    const { id } = params
 
-    // Fetch school profile
     const { data: school, error } = await supabase
       .from("school_profiles")
       .select(
@@ -34,7 +31,6 @@ export async function GET(
       )
     }
 
-    // Fetch active jobs
     const { data: activeJobs } = await supabase
       .from("jobs")
       .select(
@@ -48,7 +44,6 @@ export async function GET(
       .gte("deadline", new Date().toISOString().split("T")[0])
       .order("created_at", { ascending: false })
 
-    // Fetch stats
     const { count: totalJobs } = await supabase
       .from("jobs")
       .select("id", { count: "exact" })
