@@ -104,7 +104,7 @@ export async function GET(
 
     if (questionsError) throw questionsError
 
-    const shuffled = (questions || []).sort(() => Math.random() - 0.5)
+    const shuffled = ((questions || []) as any[]).sort(() => Math.random() - 0.5)
 
     const safeQuestions =
       job.quiz_mode === "written"
