@@ -14,10 +14,8 @@ export async function GET(
     const { id: jobId } = await params
     const supabase = await createClient()
 
-    // Get current user (optional — affects is_saved and has_applied)
     const { data: { user } } = await supabase.auth.getUser()
 
-    // Fetch the job with school info
     const { data: job, error } = await supabase
       .from("jobs_with_school")
       .select("*")
@@ -31,15 +29,12 @@ export async function GET(
       )
     }
 
-    // Increment view count
     await supabase.rpc("increment_job_views", { job_id: jobId })
 
-    // Check if current user has saved or applied (if logged in)
     let is_saved = false
     let has_applied = false
 
     if (user) {
-      // Get teacher profile id
       const { data: teacherProfile } = await supabase
         .from("teacher_profiles")
         .select("id")
@@ -47,7 +42,6 @@ export async function GET(
         .single()
 
       if (teacherProfile) {
-        // Check saved
         const { data: saved } = await supabase
           .from("saved_jobs")
           .select("id")
@@ -57,7 +51,6 @@ export async function GET(
 
         is_saved = !!saved
 
-        // Check applied
         const { data: application } = await supabase
           .from("applications")
           .select("id")
@@ -69,7 +62,6 @@ export async function GET(
       }
     }
 
-    // Fetch related jobs (same subject, different job)
     const { data: related } = await supabase
       .from("jobs_with_school")
       .select("id, title, school_name, school_state, salary_min, salary_max, employment_type")
