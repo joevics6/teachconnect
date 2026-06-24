@@ -45,7 +45,7 @@ export async function GET() {
     if (error) throw error
 
     // Check which saved jobs teacher has already applied to
-    const jobIds = (saved || []).map((s) => (s.jobs as { id: string }).id)
+    const jobIds = (saved || []).map((s) => ((Array.isArray(s.jobs) ? s.jobs[0] : s.jobs) as unknown as { id: string })?.id)
     const { data: appliedJobs } = await supabase
       .from("applications")
       .select("job_id")
@@ -55,7 +55,7 @@ export async function GET() {
     const appliedSet = new Set((appliedJobs || []).map((a) => a.job_id))
 
     const formatted = (saved || []).map((s) => {
-      const job = s.jobs as {
+      const job = (Array.isArray(s.jobs) ? s.jobs[0] : s.jobs) as unknown as {
         id: string
         title: string
         subject: string

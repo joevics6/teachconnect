@@ -53,7 +53,7 @@ export async function GET() {
 
     const formattedResults = (quizRes.data || []).map((r) => ({
       id: r.id,
-      subject: (r.jobs as { subject: string } | null)?.subject || "Unknown",
+      subject: ((Array.isArray(r.jobs) ? r.jobs[0] : r.jobs) as unknown as { subject: string } | null)?.subject || "Unknown",
       score: r.score,
       passed: r.passed,
       mode: r.mode,

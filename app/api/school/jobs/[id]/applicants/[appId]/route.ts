@@ -73,7 +73,7 @@ export async function PATCH(
         .single()
 
       if (application?.teacher_profiles) {
-        const teacherProfile = application.teacher_profiles as { user_id: string }
+        const teacherProfile = (Array.isArray(application.teacher_profiles) ? application.teacher_profiles[0] : application.teacher_profiles) as unknown as { user_id: string }
         await supabase.from("notifications").insert({
           user_id: teacherProfile.user_id,
           type: "application_hired",
@@ -92,8 +92,8 @@ export async function PATCH(
         .single()
 
       if (application?.teacher_profiles) {
-        const teacherProfile = application.teacher_profiles as { user_id: string }
-        const jobData = application.jobs as { title: string; school_profiles: { school_name: string } }
+        const teacherProfile = (Array.isArray(application.teacher_profiles) ? application.teacher_profiles[0] : application.teacher_profiles) as unknown as { user_id: string }
+        const jobData = (Array.isArray(application.jobs) ? application.jobs[0] : application.jobs) as unknown as { title: string; school_profiles: { school_name: string } }
         await supabase.from("notifications").insert({
           user_id: teacherProfile.user_id,
           type: "application_shortlisted",
