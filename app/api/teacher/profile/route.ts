@@ -62,7 +62,7 @@ export async function GET() {
 
     // Merge onboarding fields into profile so dashboard gets everything in one call
     // Fields in teacher_profiles take priority; onboarding fills the gaps
-    const onboarding = onboardingRes.data || {}
+    const onboarding = (onboardingRes.data || {}) as Record<string, unknown>
     const mergedProfile = {
       ...profile,
       // Fill from onboarding if not set on profile
