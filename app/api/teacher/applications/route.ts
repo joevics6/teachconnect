@@ -59,7 +59,7 @@ export async function GET() {
     if (error) throw error
 
     const formatted = (applications || []).map((app) => {
-      const job = app.jobs as {
+      const job = (Array.isArray(app.jobs) ? app.jobs[0] : app.jobs) as unknown as {
         id: string
         title: string
         subject: string
@@ -74,7 +74,7 @@ export async function GET() {
           state: string
         }
       }
-      const attempt = app.quiz_attempts as {
+      const attempt = (Array.isArray(app.quiz_attempts) ? app.quiz_attempts[0] : app.quiz_attempts) as unknown as {
         score: number
         passed: boolean
         mode: string

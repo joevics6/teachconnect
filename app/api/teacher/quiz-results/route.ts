@@ -36,7 +36,7 @@ export async function GET() {
     if (error) throw error
 
     const formatted = (results || []).map((r) => {
-      const job = r.jobs as {
+      const job = (Array.isArray(r.jobs) ? r.jobs[0] : r.jobs) as unknown as {
         id: string
         title: string
         subject: string
