@@ -213,7 +213,7 @@ function MCQQuiz({
   const [timeLeft, setTimeLeft] = useState(meta.duration_minutes * 60)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const startTime = useRef(Date.now())
-  const timerRef = useRef<NodeJS.Timeout>()
+  const timerRef = useRef<NodeJS.Timeout | undefined>(undefined)
 
   const questions = meta.questions
   const current = questions[currentIndex]
