@@ -232,7 +232,7 @@ function PlanCard({
         ) : (
           <div>
             <span className="text-4xl font-black text-gray-900">
-              ₦{plan.price.toLocaleString()}
+              ₦{plan.price?.toLocaleString() ?? '—'}
             </span>
             <span className="text-gray-400 text-sm ml-2">{plan.period}</span>
           </div>
