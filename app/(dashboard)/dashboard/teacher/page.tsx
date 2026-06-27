@@ -187,255 +187,112 @@ export default function TeacherDashboardPage() {
   const [onboarding, setOnboarding] = useState<OnboardingData | null>(null)
   const [isTogglingVisibility, setIsTogglingVisibility] = useState(false)
 
-  // ── Step 1: Check auth from client session (instant, no API) ──
+  // ── Load all dashboard data via API routes (same pattern as profile page) ──
   useEffect(() => {
-    const supabase = createClient()
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!session?.user) {
-        router.push("/login")
-        return
-      }
-      setUserId(session.user.id)
-      setUserName(
-        session.user.user_metadata?.full_name ||
-        session.user.email?.split("@")[0] ||
-        "Teacher"
-      )
-      setAuthChecked(true)
-    })
-  }, [router])
-
-  // ── Step 2: Load data lazily after auth is confirmed ──────────
-  useEffect(() => {
-    if (!authChecked || !userId) return
-
-    const supabase = createClient()
-
-    // Profile + Onboarding — query Supabase directly from client
-    // This avoids server-side auth cookie issues that cause API routes to return 401/404
+    // Profile — call the API route exactly like the profile page does
+    // The server handles auth via cookies; no client-side session gate needed
     setLoadingProfile(true)
-    const loadProfileAndOnboarding = async () => {
-      try {
-        // Fetch teacher_profiles and onboarding_data in parallel
-        // Use limit(1) not single() — single() throws if there are duplicate rows
-        const [profileRes, onboardingRes] = await Promise.all([
-          supabase
-            .from("teacher_profiles")
-            .select("*")
-            .eq("user_id", userId)
-            .order("created_at", { ascending: false })
-            .limit(1),
-          supabase
-            .from("onboarding_data")
-            .select(`
-              cv_name, cv_summary, cv_skills, cv_roles, cv_languages,
-              cv_certifications, cv_linkedin, cv_work_experience,
-              cv_education, cv_awards, cv_interests,
-              curriculum_experience, teaching_style, lesson_delivery_mode,
-              talent_pool, years_of_teaching_experience, experience_level,
-              preferred_states, accommodation_needed, sector, job_type,
-              willing_to_relocate, availability, salary_min
-            `)
-            .eq("user_id", userId)
-            .order("created_at", { ascending: false })
-            .limit(1),
-        ])
-
-        // limit(1) returns an array — take the first element
-        const profileData = (profileRes.data ?? [])[0] ?? null
-        const onboardingData = (onboardingRes.data ?? [])[0] ?? null
-
-        if (profileData) {
-          const p = profileData
-          const ob = onboardingData || {}
-
-          // Merge: teacher_profiles fields take priority, onboarding fills gaps
-          setProfile({
-            id: p.id,
-            full_name: p.full_name,
-            state: p.state,
-            lga: p.lga ?? null,
-            subjects: p.subjects ?? [],
-            teaching_levels: p.teaching_levels ?? [],
-            photo_url: p.photo_url ?? null,
-            profile_completion: p.profile_completion ?? 0,
-            is_visible: p.is_visible ?? true,
-            trcn_status: p.trcn_status ?? "",
-            bio: p.bio ?? null,
-            cv_url: p.cv_url ?? null,
-            phone: p.phone ?? "",
-            trcn_number: p.trcn_number ?? null,
-            years_experience: p.years_experience ?? 0,
-            availability: p.availability ?? (ob as Record<string,unknown>).availability as string ?? null,
-            salary_min: p.salary_min ?? (ob as Record<string,unknown>).salary_min as number ?? null,
-            willing_to_relocate: p.willing_to_relocate ?? (ob as Record<string,unknown>).willing_to_relocate as boolean ?? null,
-          })
-
-          // Populate onboarding state from onboarding_data table
-          setOnboarding({
-            cv_name:                      (ob as Record<string,unknown>).cv_name as string ?? null,
-            cv_summary:                   (ob as Record<string,unknown>).cv_summary as string ?? null,
-            cv_skills:                    (ob as Record<string,unknown>).cv_skills as string[] ?? [],
-            cv_roles:                     (ob as Record<string,unknown>).cv_roles as string[] ?? [],
-            cv_languages:                 (ob as Record<string,unknown>).cv_languages as string[] ?? [],
-            cv_certifications:            (ob as Record<string,unknown>).cv_certifications as string[] ?? [],
-            cv_linkedin:                  (ob as Record<string,unknown>).cv_linkedin as string ?? null,
-            cv_work_experience:           (ob as Record<string,unknown>).cv_work_experience as OnboardingData["cv_work_experience"] ?? [],
-            cv_education:                 (ob as Record<string,unknown>).cv_education as OnboardingData["cv_education"] ?? [],
-            cv_awards:                    (ob as Record<string,unknown>).cv_awards as string[] ?? [],
-            cv_interests:                 (ob as Record<string,unknown>).cv_interests as string[] ?? [],
-            curriculum_experience:        (ob as Record<string,unknown>).curriculum_experience as string[] ?? [],
-            teaching_style:               (ob as Record<string,unknown>).teaching_style as string[] ?? [],
-            lesson_delivery_mode:         (ob as Record<string,unknown>).lesson_delivery_mode as string[] ?? [],
-            talent_pool:                  (ob as Record<string,unknown>).talent_pool as boolean ?? null,
-            years_of_teaching_experience: (ob as Record<string,unknown>).years_of_teaching_experience as number ?? null,
-            experience_level:             (ob as Record<string,unknown>).experience_level as string ?? null,
-            preferred_states:             (ob as Record<string,unknown>).preferred_states as string[] ?? [],
-            accommodation_needed:         (ob as Record<string,unknown>).accommodation_needed as boolean ?? null,
-            sector:                       (ob as Record<string,unknown>).sector as string ?? null,
-            job_type:                     (ob as Record<string,unknown>).job_type as string ?? null,
-          })
-        } else {
-          // No teacher_profiles row — still load onboarding data so dashboard isn't blank
-          const ob = onboardingData || {}
-          if (onboardingData) {
-            setOnboarding({
-              cv_name:                      (ob as Record<string,unknown>).cv_name as string ?? null,
-              cv_summary:                   (ob as Record<string,unknown>).cv_summary as string ?? null,
-              cv_skills:                    (ob as Record<string,unknown>).cv_skills as string[] ?? [],
-              cv_roles:                     (ob as Record<string,unknown>).cv_roles as string[] ?? [],
-              cv_languages:                 (ob as Record<string,unknown>).cv_languages as string[] ?? [],
-              cv_certifications:            (ob as Record<string,unknown>).cv_certifications as string[] ?? [],
-              cv_linkedin:                  (ob as Record<string,unknown>).cv_linkedin as string ?? null,
-              cv_work_experience:           (ob as Record<string,unknown>).cv_work_experience as OnboardingData["cv_work_experience"] ?? [],
-              cv_education:                 (ob as Record<string,unknown>).cv_education as OnboardingData["cv_education"] ?? [],
-              cv_awards:                    (ob as Record<string,unknown>).cv_awards as string[] ?? [],
-              cv_interests:                 (ob as Record<string,unknown>).cv_interests as string[] ?? [],
-              curriculum_experience:        (ob as Record<string,unknown>).curriculum_experience as string[] ?? [],
-              teaching_style:              (ob as Record<string,unknown>).teaching_style as string[] ?? [],
-              lesson_delivery_mode:         (ob as Record<string,unknown>).lesson_delivery_mode as string[] ?? [],
-              talent_pool:                  (ob as Record<string,unknown>).talent_pool as boolean ?? null,
-              years_of_teaching_experience: (ob as Record<string,unknown>).years_of_teaching_experience as number ?? null,
-              experience_level:             (ob as Record<string,unknown>).experience_level as string ?? null,
-              preferred_states:             (ob as Record<string,unknown>).preferred_states as string[] ?? [],
-              accommodation_needed:         (ob as Record<string,unknown>).accommodation_needed as boolean ?? null,
-              sector:                       (ob as Record<string,unknown>).sector as string ?? null,
-              job_type:                     (ob as Record<string,unknown>).job_type as string ?? null,
-            })
-          }
-        }
-      } catch (err) {
-        console.error("Profile load error:", err)
-      } finally {
-        setLoadingProfile(false)
-      }
-    }
-    loadProfileAndOnboarding()
-
-    // Applications — query Supabase directly
-    setLoadingApplications(true)
-    const loadApplications = async () => {
-      try {
-        // First get the teacher profile id
-        const { data: teacherRows } = await supabase
-          .from("teacher_profiles")
-          .select("id")
-          .eq("user_id", userId)
-          .order("created_at", { ascending: false })
-          .limit(1)
-        const teacherRow = (teacherRows ?? [])[0] ?? null
-
-        if (!teacherRow) {
-          setLoadingApplications(false)
+    fetch("/api/teacher/profile")
+      .then(async (res) => {
+        if (res.status === 401) {
+          router.push("/login")
           return
         }
+        if (!res.ok) return
+        const data = await res.json()
+        const p = data.profile
+        if (!p) return
 
-        const { data: apps } = await supabase
-          .from("applications")
-          .select(`
-            id, pipeline_stage, created_at,
-            jobs (
-              id, title,
-              school_profiles ( school_name, state )
-            ),
-            quiz_attempts ( score, passed )
-          `)
-          .eq("teacher_id", teacherRow.id)
-          .order("created_at", { ascending: false })
+        // Set user name from profile
+        setUserName(p.full_name || "Teacher")
+        setUserId(p.id)
+        setAuthChecked(true)
 
-        const formatted: Application[] = (apps || []).map((app) => {
-          const job = (Array.isArray(app.jobs) ? app.jobs[0] : app.jobs) as unknown as {
-            id: string; title: string;
-            school_profiles: { school_name: string; state: string }
-          }
-          const attempt = (Array.isArray(app.quiz_attempts) ? app.quiz_attempts[0] : app.quiz_attempts) as unknown as {
-            score: number; passed: boolean
-          } | null
-          return {
-            id: app.id,
-            job_id: job?.id ?? "",
-            job_title: job?.title ?? "",
-            school_name: job?.school_profiles?.school_name ?? "",
-            school_state: job?.school_profiles?.state ?? "",
-            quiz_score: attempt?.score ?? null,
-            quiz_passed: attempt?.passed ?? null,
-            pipeline_stage: app.pipeline_stage,
-            applied_at: app.created_at,
-          }
+        setProfile({
+          id: p.id,
+          full_name: p.full_name,
+          state: p.state,
+          lga: p.lga ?? null,
+          subjects: p.subjects ?? [],
+          teaching_levels: p.teaching_levels ?? [],
+          photo_url: p.photo_url ?? null,
+          profile_completion: p.profile_completion ?? 0,
+          is_visible: p.is_visible ?? true,
+          trcn_status: p.trcn_status ?? "",
+          bio: p.bio ?? null,
+          cv_url: p.cv_url ?? null,
+          phone: p.phone ?? "",
+          trcn_number: p.trcn_number ?? null,
+          years_experience: p.years_experience ?? 0,
+          availability: p.availability ?? null,
+          salary_min: p.salary_min ?? null,
+          willing_to_relocate: p.willing_to_relocate ?? null,
         })
 
-        setTotalApplicationsCount(formatted.length)
-        setApplications(formatted.slice(0, 3))
-      } catch (err) {
-        console.error("Applications load error:", err)
-      } finally {
-        setLoadingApplications(false)
-      }
-    }
-    loadApplications()
+        // The API already merges onboarding fields into the profile object
+        setOnboarding({
+          cv_name:                      p.cv_name ?? null,
+          cv_summary:                   p.cv_summary ?? null,
+          cv_skills:                    p.cv_skills ?? [],
+          cv_roles:                     p.cv_roles ?? [],
+          cv_languages:                 p.cv_languages ?? [],
+          cv_certifications:            p.cv_certifications ?? [],
+          cv_linkedin:                  p.cv_linkedin ?? null,
+          cv_work_experience:           p.cv_work_experience ?? [],
+          cv_education:                 p.cv_education ?? [],
+          cv_awards:                    p.cv_awards ?? [],
+          cv_interests:                 p.cv_interests ?? [],
+          curriculum_experience:        p.curriculum_experience ?? [],
+          teaching_style:               p.teaching_style ?? [],
+          lesson_delivery_mode:         p.lesson_delivery_mode ?? [],
+          talent_pool:                  p.talent_pool ?? null,
+          years_of_teaching_experience: p.years_of_teaching_experience ?? null,
+          experience_level:             p.experience_level ?? null,
+          preferred_states:             p.preferred_states ?? [],
+          accommodation_needed:         p.accommodation_needed ?? null,
+          sector:                       p.sector ?? null,
+          job_type:                     p.job_type ?? null,
+        })
+      })
+      .catch((err) => console.error("Profile load error:", err))
+      .finally(() => setLoadingProfile(false))
 
-    // Notifications — query Supabase directly
+    // Applications
+    setLoadingApplications(true)
+    fetch("/api/teacher/applications")
+      .then(async (res) => {
+        if (!res.ok) return
+        const data = await res.json()
+        const all = data.applications || []
+        setTotalApplicationsCount(all.length)
+        setApplications(all.slice(0, 3))
+      })
+      .catch((err) => console.error("Applications load error:", err))
+      .finally(() => setLoadingApplications(false))
+
+    // Notifications
     setLoadingNotifications(true)
-    const loadNotifications = async () => {
-      try {
-        const { data: notifData } = await supabase
-          .from("notifications")
-          .select("id, title, message, is_read, created_at")
-          .eq("user_id", userId)
-          .order("created_at", { ascending: false })
-          .limit(5)
-        setNotifications(notifData || [])
-      } catch (err) {
-        console.error("Notifications load error:", err)
-      } finally {
-        setLoadingNotifications(false)
-      }
-    }
-    loadNotifications()
+    fetch("/api/teacher/notifications")
+      .then(async (res) => {
+        if (!res.ok) return
+        const data = await res.json()
+        setNotifications(data.notifications || [])
+      })
+      .catch(() => {
+        // Notifications API may not exist yet — silently ignore
+      })
+      .finally(() => setLoadingNotifications(false))
 
-    // Saved jobs count — query Supabase directly
-    const loadSavedJobs = async () => {
-      try {
-        const { data: savedJobsRows } = await supabase
-          .from("teacher_profiles")
-          .select("id")
-          .eq("user_id", userId)
-          .order("created_at", { ascending: false })
-          .limit(1)
-        const teacherRow = (savedJobsRows ?? [])[0] ?? null
-        if (!teacherRow) return
-        const { count } = await supabase
-          .from("saved_jobs")
-          .select("id", { count: "exact", head: true })
-          .eq("teacher_id", teacherRow.id)
-        setSavedJobsCount(count ?? 0)
-      } catch (err) {
-        console.error("Saved jobs count error:", err)
-      }
-    }
-    loadSavedJobs()
+    // Saved jobs count
+    fetch("/api/teacher/saved-jobs")
+      .then(async (res) => {
+        if (!res.ok) return
+        const data = await res.json()
+        setSavedJobsCount(data.saved_jobs?.length || 0)
+      })
+      .catch((err) => console.error("Saved jobs error:", err))
 
-  }, [authChecked, userId])
+  }, [router])
 
   const handleToggleVisibility = async () => {
     if (!profile) return
