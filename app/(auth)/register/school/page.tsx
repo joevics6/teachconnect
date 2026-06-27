@@ -13,6 +13,7 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { NIGERIAN_STATES, TEACHING_LEVELS } from "@/lib/constants"
+import { createClient } from "@/lib/supabase/client"
 
 const STEPS = [
   { number: 1, title: "School Details" },
@@ -184,6 +185,15 @@ export default function SchoolRegisterPage() {
       const data = await response.json()
       if (!response.ok)
         throw new Error(data.error || "Registration failed")
+
+      // ── Sign in client-side so the browser gets an auth session ──
+      const supabase = createClient()
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: formData.contact_email,
+        password: formData.password,
+      })
+      if (signInError) throw new Error("Account created but sign-in failed. Please log in manually.")
+
       window.location.href = "/dashboard/school"
     } catch (err: unknown) {
       setErrors({

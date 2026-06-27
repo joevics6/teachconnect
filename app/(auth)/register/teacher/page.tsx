@@ -10,6 +10,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { SUBJECTS, TEACHING_LEVELS } from "@/lib/constants"
 import { StateLgaSelect, NIGERIAN_STATES } from "@/components/ui/StateLgaSelect"
+import { createClient } from "@/lib/supabase/client"
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const STEPS = [
@@ -360,6 +361,16 @@ export default function TeacherRegisterPage() {
       const res = await fetch("/api/auth/register/teacher", { method: "POST", body: payload })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || "Registration failed")
+
+      // ── Sign in client-side so the browser gets an auth session ──
+      // The server-side signUp doesn't set a cookie in the browser,
+      // so we must sign in explicitly before redirecting to the dashboard.
+      const supabase = createClient()
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: formData.email,
+        password: formData.password,
+      })
+      if (signInError) throw new Error("Account created but sign-in failed. Please log in manually.")
 
       window.location.href = "/dashboard/teacher"
     } catch (err: unknown) {
