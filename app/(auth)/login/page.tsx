@@ -4,6 +4,7 @@ import { useState } from "react"
 import Link from "next/link"
 import { GraduationCap, Eye, EyeOff, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { createClient } from "@/lib/supabase/client"
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
@@ -25,14 +26,31 @@ export default function LoginPage() {
 
     setIsLoading(true)
     try {
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+      // Sign in directly from the browser client so the session cookie
+      // is properly set in the browser. The API route approach signs in
+      // server-side and the cookie never reaches the browser.
+      const supabase = createClient()
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
+        email: formData.email,
+        password: formData.password,
       })
-      const data = await response.json()
-      if (!response.ok) throw new Error(data.error || "Login failed")
-      window.location.href = data.redirectTo
+
+      if (signInError) {
+        throw new Error("Invalid email or password")
+      }
+
+      // Determine redirect by role
+      const role = data.user?.user_metadata?.role
+      const { data: userRecord } = await supabase
+        .from("users")
+        .select("role")
+        .eq("id", data.user.id)
+        .single()
+
+      const resolvedRole = userRecord?.role || role || "teacher"
+      const redirectTo = resolvedRole === "school" ? "/dashboard/school" : "/dashboard/teacher"
+
+      window.location.href = redirectTo
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Login failed")
     } finally {
