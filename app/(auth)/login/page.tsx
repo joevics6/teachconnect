@@ -39,16 +39,10 @@ export default function LoginPage() {
         throw new Error("Invalid email or password")
       }
 
-      // Determine redirect by role
-      const role = data.user?.user_metadata?.role
-      const { data: userRecord } = await supabase
-        .from("users")
-        .select("role")
-        .eq("id", data.user.id)
-        .single()
-
-      const resolvedRole = userRecord?.role || role || "teacher"
-      const redirectTo = resolvedRole === "school" ? "/dashboard/school" : "/dashboard/teacher"
+      // Use role from user metadata — avoids a DB query that can hang
+      // due to RLS or duplicate rows in the users table
+      const role = data.user?.user_metadata?.role || "teacher"
+      const redirectTo = role === "school" ? "/dashboard/school" : "/dashboard/teacher"
 
       window.location.href = redirectTo
     } catch (err: unknown) {
