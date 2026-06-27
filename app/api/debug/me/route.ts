@@ -8,17 +8,19 @@ export async function GET() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: "Not authenticated" }, { status: 401 })
 
-  const [{ data: profile, error: pErr }, { data: onboarding, error: oErr }] = await Promise.all([
-    supabase.from("teacher_profiles").select("id, user_id, full_name, state, profile_completion").eq("user_id", user.id).single(),
-    supabase.from("onboarding_data").select("user_id, cv_name, cv_skills").eq("user_id", user.id).single(),
+  const [{ data: profiles, error: pErr }, { data: onboardings, error: oErr }] = await Promise.all([
+    supabase.from("teacher_profiles").select("id, user_id, full_name, state, profile_completion, created_at").eq("user_id", user.id).order("created_at", { ascending: false }),
+    supabase.from("onboarding_data").select("user_id, cv_name, cv_skills, created_at").eq("user_id", user.id).order("created_at", { ascending: false }),
   ])
 
   return NextResponse.json({
     auth_user_id: user.id,
     auth_email: user.email,
-    teacher_profile: profile ?? null,
+    teacher_profiles_count: profiles?.length ?? 0,
+    teacher_profiles: profiles ?? [],
     teacher_profile_error: pErr?.message ?? null,
-    onboarding: onboarding ?? null,
+    onboarding_count: onboardings?.length ?? 0,
+    onboarding: onboardings ?? [],
     onboarding_error: oErr?.message ?? null,
   })
 }

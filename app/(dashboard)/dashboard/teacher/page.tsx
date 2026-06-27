@@ -217,12 +217,14 @@ export default function TeacherDashboardPage() {
     const loadProfileAndOnboarding = async () => {
       try {
         // Fetch teacher_profiles and onboarding_data in parallel
+        // Use limit(1) not single() — single() throws if there are duplicate rows
         const [profileRes, onboardingRes] = await Promise.all([
           supabase
             .from("teacher_profiles")
             .select("*")
             .eq("user_id", userId)
-            .single(),
+            .order("created_at", { ascending: false })
+            .limit(1),
           supabase
             .from("onboarding_data")
             .select(`
@@ -235,12 +237,17 @@ export default function TeacherDashboardPage() {
               willing_to_relocate, availability, salary_min
             `)
             .eq("user_id", userId)
-            .single(),
+            .order("created_at", { ascending: false })
+            .limit(1),
         ])
 
-        if (profileRes.data) {
-          const p = profileRes.data
-          const ob = onboardingRes.data || {}
+        // limit(1) returns an array — take the first element
+        const profileData = (profileRes.data ?? [])[0] ?? null
+        const onboardingData = (onboardingRes.data ?? [])[0] ?? null
+
+        if (profileData) {
+          const p = profileData
+          const ob = onboardingData || {}
 
           // Merge: teacher_profiles fields take priority, onboarding fills gaps
           setProfile({
@@ -290,8 +297,8 @@ export default function TeacherDashboardPage() {
           })
         } else {
           // No teacher_profiles row — still load onboarding data so dashboard isn't blank
-          const ob = onboardingRes.data || {}
-          if (onboardingRes.data) {
+          const ob = onboardingData || {}
+          if (onboardingData) {
             setOnboarding({
               cv_name:                      (ob as Record<string,unknown>).cv_name as string ?? null,
               cv_summary:                   (ob as Record<string,unknown>).cv_summary as string ?? null,
@@ -330,11 +337,13 @@ export default function TeacherDashboardPage() {
     const loadApplications = async () => {
       try {
         // First get the teacher profile id
-        const { data: teacherRow } = await supabase
+        const { data: teacherRows } = await supabase
           .from("teacher_profiles")
           .select("id")
           .eq("user_id", userId)
-          .single()
+          .order("created_at", { ascending: false })
+          .limit(1)
+        const teacherRow = (teacherRows ?? [])[0] ?? null
 
         if (!teacherRow) {
           setLoadingApplications(false)
@@ -407,11 +416,13 @@ export default function TeacherDashboardPage() {
     // Saved jobs count — query Supabase directly
     const loadSavedJobs = async () => {
       try {
-        const { data: teacherRow } = await supabase
+        const { data: savedJobsRows } = await supabase
           .from("teacher_profiles")
           .select("id")
           .eq("user_id", userId)
-          .single()
+          .order("created_at", { ascending: false })
+          .limit(1)
+        const teacherRow = (savedJobsRows ?? [])[0] ?? null
         if (!teacherRow) return
         const { count } = await supabase
           .from("saved_jobs")
