@@ -1,9 +1,5 @@
 "use client"
 
-// ============================================================
-// components/layout/Navbar.tsx — with auth state
-// ============================================================
-
 import Link from "next/link"
 import { useState, useEffect } from "react"
 import { Menu, X, GraduationCap, ChevronDown, LogOut, User, LayoutDashboard } from "lucide-react"
@@ -26,70 +22,67 @@ export default function Navbar() {
   useEffect(() => {
     const supabase = createClient()
 
-    // Get initial session
-    const getUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (session?.user) {
-        const { data: userRecord } = await supabase
-          .from("users")
-          .select("role")
-          .eq("id", session.user.id)
-          .single()
+    const loadUser = async (userId: string, email: string, metadata: Record<string, unknown>) => {
+      // Use metadata role — avoids users table query which can hang
+      const role = (metadata?.role as string) || "teacher"
 
-        const role = userRecord?.role || session.user.user_metadata?.role || "teacher"
-
-        // Get display name from appropriate profile
-        let display_name = session.user.email || ""
+      // Fetch display name from the right profile table
+      let display_name = (metadata?.full_name as string) || email
+      try {
         if (role === "teacher") {
-          const { data: profile } = await supabase
+          const { data } = await supabase
             .from("teacher_profiles")
             .select("full_name")
-            .eq("user_id", session.user.id)
-            .single()
-          display_name = profile?.full_name || display_name
+            .eq("user_id", userId)
+            .order("created_at", { ascending: false })
+            .limit(1)
+          if (data?.[0]?.full_name) display_name = data[0].full_name
         } else {
-          const { data: profile } = await supabase
+          const { data } = await supabase
             .from("school_profiles")
             .select("school_name")
-            .eq("user_id", session.user.id)
-            .single()
-          display_name = profile?.school_name || display_name
+            .eq("user_id", userId)
+            .order("created_at", { ascending: false })
+            .limit(1)
+          if (data?.[0]?.school_name) display_name = data[0].school_name
         }
-
-        setUser({
-          id: session.user.id,
-          email: session.user.email || "",
-          role,
-          display_name,
-        })
+      } catch {
+        // Silently fall back to metadata name
       }
-      setIsLoading(false)
+
+      return { id: userId, email, role: role as "teacher" | "school", display_name }
     }
 
-    getUser()
-
-    // Listen for auth changes
+    // Listen for auth changes — this fires immediately with current state
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (event === "SIGNED_OUT" || !session) {
           setUser(null)
+          setIsLoading(false)
         } else if (session?.user) {
-          const { data: userRecord } = await supabase
-            .from("users")
-            .select("role")
-            .eq("id", session.user.id)
-            .single()
-
-          const role = userRecord?.role || session.user.user_metadata?.role || "teacher"
-          setUser({
-            id: session.user.id,
-            email: session.user.email || "",
-            role,
-            display_name: session.user.user_metadata?.full_name || session.user.email || "",
-          })
+          const u = await loadUser(
+            session.user.id,
+            session.user.email || "",
+            session.user.user_metadata || {}
+          )
+          setUser(u)
+          setIsLoading(false)
         }
       }
     )
+
+    // Also get the initial session in case onAuthStateChange fires late
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (session?.user) {
+        const u = await loadUser(
+          session.user.id,
+          session.user.email || "",
+          session.user.user_metadata || {}
+        )
+        setUser(u)
+      }
+      setIsLoading(false)
+    })
 
     return () => subscription.unsubscribe()
   }, [])
@@ -102,10 +95,7 @@ export default function Navbar() {
     window.location.href = "/"
   }
 
-  const dashboardLink = user?.role === "school"
-    ? "/dashboard/school"
-    : "/dashboard/teacher"
-
+  const dashboardLink = user?.role === "school" ? "/dashboard/school" : "/dashboard/teacher"
   const getInitials = (name: string) =>
     name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
 
@@ -138,10 +128,8 @@ export default function Navbar() {
             {isLoading ? (
               <div className="w-8 h-8 rounded-full bg-gray-100 animate-pulse" />
             ) : user ? (
-              // Logged in state
               <div className="relative">
                 <div className="flex items-center">
-                  {/* Avatar + name — direct link to dashboard */}
                   <Link
                     href={dashboardLink}
                     className="flex items-center gap-2 pl-3 pr-1 py-2 rounded-l-xl hover:bg-gray-50 transition"
@@ -158,7 +146,6 @@ export default function Navbar() {
                       <p className="text-xs text-gray-400 capitalize">{user.role}</p>
                     </div>
                   </Link>
-                  {/* Chevron — toggles dropdown only */}
                   <button
                     onClick={() => setUserMenuOpen(!userMenuOpen)}
                     className="p-2 rounded-r-xl hover:bg-gray-50 transition"
@@ -185,7 +172,7 @@ export default function Navbar() {
                         Dashboard
                       </Link>
                       <Link
-                        href={user.role === "school" ? "/dashboard/school/settings" : "/dashboard/teacher/profile"}
+                        href={user.role === "school" ? "/dashboard/school/settings" : `/profile/teacher/me`}
                         className="flex items-center gap-2 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition"
                         onClick={() => setUserMenuOpen(false)}
                       >
@@ -204,7 +191,6 @@ export default function Navbar() {
                 )}
               </div>
             ) : (
-              // Logged out state
               <>
                 <Link href="/login">
                   <Button variant="ghost" size="sm">Log in</Button>
@@ -237,8 +223,19 @@ export default function Navbar() {
             <Link href="/pricing" className="text-sm text-gray-600" onClick={() => setIsOpen(false)}>Pricing</Link>
             <Link href="/resources" className="text-sm text-gray-600" onClick={() => setIsOpen(false)}>Resources</Link>
             <div className="flex flex-col gap-2 pt-2 border-t">
-              {user ? (
+              {isLoading ? (
+                <div className="h-9 bg-gray-100 rounded-lg animate-pulse" />
+              ) : user ? (
                 <>
+                  <div className="flex items-center gap-3 px-1 py-2">
+                    <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+                      <span className="text-green-700 font-bold text-xs">{getInitials(user.display_name)}</span>
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-gray-900">{user.display_name}</p>
+                      <p className="text-xs text-gray-400 capitalize">{user.role}</p>
+                    </div>
+                  </div>
                   <Link href={dashboardLink} onClick={() => setIsOpen(false)}>
                     <Button variant="outline" size="sm" className="w-full flex items-center gap-2">
                       <LayoutDashboard className="h-4 w-4" />Dashboard
@@ -259,7 +256,7 @@ export default function Navbar() {
                     <Button variant="ghost" size="sm" className="w-full">Log in</Button>
                   </Link>
                   <Link href="/register/teacher" onClick={() => setIsOpen(false)}>
-                    <Button size="sm" className="w-full bg-green-600 hover:bg-green-700 text-white">Find Jobs</Button>
+                    <Button size="sm" className="w-full bg-green-600 hover:bg-green-700 text-white">Find Teaching Jobs</Button>
                   </Link>
                   <Link href="/register/school" onClick={() => setIsOpen(false)}>
                     <Button size="sm" className="w-full bg-blue-700 hover:bg-blue-800 text-white">Hire Teachers</Button>
