@@ -55,11 +55,12 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Fetch questions from the shared quiz_questions table, filtered by subject
+    // Fetch questions from the shared quiz_questions table, filtered by subject and quiz_type
     const { data: questions, error: questionsError } = await supabase
       .from("quiz_questions")
       .select("id, question_text, option_a, option_b, option_c, option_d")
       .eq("subject", subject)
+      .eq("quiz_type", "specialization")
       .eq("is_active", true)
       .limit(QUESTION_COUNT * 3) // fetch more, then shuffle down
 
@@ -113,6 +114,7 @@ export async function POST(request: NextRequest) {
     const { data: questions, error: questionsError } = await supabase
       .from("quiz_questions")
       .select("id, correct_option")
+      .eq("quiz_type", "specialization")
       .in("id", questionIds)
 
     if (questionsError) throw questionsError
