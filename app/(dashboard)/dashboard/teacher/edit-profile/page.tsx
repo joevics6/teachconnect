@@ -1,0 +1,414 @@
+"use client"
+
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
+import Link from "next/link"
+import { ArrowLeft, Save, Loader2, CheckCircle2, AlertCircle } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { StateLgaSelect } from "@/components/ui/StateLgaSelect"
+import { SUBJECTS, TEACHING_LEVELS, NIGERIAN_STATES } from "@/lib/constants"
+
+interface ProfileForm {
+  full_name: string
+  phone: string
+  state: string
+  lga: string
+  bio: string
+  years_experience: number | ""
+  trcn_number: string
+  trcn_status: "registered" | "pending" | "not-registered"
+  subjects: string[]
+  teaching_levels: string[]
+  preferred_states: string[]
+  willing_to_relocate: boolean
+  accommodation_needed: boolean
+  availability: "immediate" | "2-weeks" | "1-month" | "employed"
+  salary_min: number | ""
+}
+
+const AVAILABILITY_OPTIONS = [
+  { value: "immediate", label: "Available Immediately" },
+  { value: "2-weeks",   label: "Available in 2 Weeks" },
+  { value: "1-month",   label: "Available in 1 Month" },
+  { value: "employed",  label: "Currently Employed" },
+]
+
+export default function EditTeacherProfilePage() {
+  const router = useRouter()
+  const [form, setForm] = useState<ProfileForm>({
+    full_name: "", phone: "", state: "", lga: "", bio: "",
+    years_experience: "", trcn_number: "", trcn_status: "not-registered",
+    subjects: [], teaching_levels: [], preferred_states: [],
+    willing_to_relocate: false, accommodation_needed: false,
+    availability: "immediate", salary_min: "",
+  })
+  const [loading, setLoading]   = useState(true)
+  const [saving, setSaving]     = useState(false)
+  const [success, setSuccess]   = useState(false)
+  const [error, setError]       = useState("")
+
+  // Load current profile
+  useEffect(() => {
+    fetch("/api/teacher/profile")
+      .then(async (res) => {
+        if (res.status === 401) { router.push("/login"); return }
+        if (!res.ok) return
+        const data = await res.json()
+        const p = data.profile
+        if (!p) return
+        setForm({
+          full_name:           p.full_name          || "",
+          phone:               p.phone              || "",
+          state:               p.state              || "",
+          lga:                 p.lga                || "",
+          bio:                 p.bio                || "",
+          years_experience:    p.years_experience   ?? "",
+          trcn_number:         p.trcn_number        || "",
+          trcn_status:         p.trcn_status        || "not-registered",
+          subjects:            p.subjects           || [],
+          teaching_levels:     p.teaching_levels    || [],
+          preferred_states:    p.preferred_states   || [],
+          willing_to_relocate: p.willing_to_relocate ?? false,
+          accommodation_needed: p.accommodation_needed ?? false,
+          availability:        p.availability       || "immediate",
+          salary_min:          p.salary_min         ?? "",
+        })
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false))
+  }, [router])
+
+  const toggle = <T extends string>(arr: T[], val: T): T[] =>
+    arr.includes(val) ? arr.filter((x) => x !== val) : [...arr, val]
+
+  const handleSave = async () => {
+    setError("")
+    setSuccess(false)
+    if (!form.full_name.trim()) { setError("Full name is required"); return }
+    if (!form.phone.trim())     { setError("Phone number is required"); return }
+
+    setSaving(true)
+    try {
+      const res = await fetch("/api/teacher/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...form,
+          years_experience: form.years_experience === "" ? 0 : Number(form.years_experience),
+          salary_min:       form.salary_min       === "" ? 0 : Number(form.salary_min),
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || "Save failed")
+      setSuccess(true)
+      setTimeout(() => {
+        router.push("/dashboard/teacher")
+      }, 1200)
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Something went wrong")
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Loader2 className="h-6 w-6 animate-spin text-green-600" />
+      </div>
+    )
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="bg-white border-b sticky top-0 z-10">
+        <div className="max-w-2xl mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Link href="/dashboard/teacher">
+              <button className="p-2 rounded-lg hover:bg-gray-100 transition">
+                <ArrowLeft className="h-5 w-5 text-gray-600" />
+              </button>
+            </Link>
+            <h1 className="text-lg font-bold text-gray-900">Edit Profile</h1>
+          </div>
+          <Button
+            onClick={handleSave}
+            disabled={saving || success}
+            className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-2"
+          >
+            {saving ? (
+              <><Loader2 className="h-4 w-4 animate-spin" />Saving…</>
+            ) : success ? (
+              <><CheckCircle2 className="h-4 w-4" />Saved!</>
+            ) : (
+              <><Save className="h-4 w-4" />Save Changes</>
+            )}
+          </Button>
+        </div>
+      </div>
+
+      <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
+
+        {/* Status messages */}
+        {error && (
+          <div className="flex items-center gap-2 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
+            <AlertCircle className="h-4 w-4 flex-shrink-0" />{error}
+          </div>
+        )}
+        {success && (
+          <div className="flex items-center gap-2 p-4 bg-green-50 border border-green-200 rounded-xl text-green-700 text-sm">
+            <CheckCircle2 className="h-4 w-4 flex-shrink-0" />Profile saved! Redirecting…
+          </div>
+        )}
+
+        {/* Personal Info */}
+        <section className="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
+          <h2 className="font-bold text-gray-900">Personal Information</h2>
+
+          <div>
+            <label className="text-sm font-medium text-gray-700 block mb-1">Full Name *</label>
+            <input
+              type="text"
+              value={form.full_name}
+              onChange={(e) => setForm({ ...form, full_name: e.target.value })}
+              className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+              placeholder="e.g. Amaka Johnson"
+            />
+          </div>
+
+          <div>
+            <label className="text-sm font-medium text-gray-700 block mb-1">Phone Number *</label>
+            <input
+              type="tel"
+              value={form.phone}
+              onChange={(e) => setForm({ ...form, phone: e.target.value })}
+              className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+              placeholder="e.g. 08012345678"
+            />
+          </div>
+
+          <StateLgaSelect
+            state={form.state}
+            lga={form.lga}
+            onStateChange={(s) => setForm({ ...form, state: s, lga: "" })}
+            onLgaChange={(l)   => setForm({ ...form, lga: l })}
+          />
+
+          <div>
+            <label className="text-sm font-medium text-gray-700 block mb-1">Bio</label>
+            <textarea
+              value={form.bio}
+              onChange={(e) => setForm({ ...form, bio: e.target.value })}
+              rows={4}
+              className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 resize-none"
+              placeholder="Tell schools about yourself — your teaching approach, strengths, and goals…"
+            />
+          </div>
+        </section>
+
+        {/* Teaching Info */}
+        <section className="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
+          <h2 className="font-bold text-gray-900">Teaching Information</h2>
+
+          <div>
+            <label className="text-sm font-medium text-gray-700 block mb-2">Teaching Levels</label>
+            <div className="flex flex-wrap gap-2">
+              {TEACHING_LEVELS.map((level) => (
+                <button
+                  key={level.value}
+                  type="button"
+                  onClick={() => setForm({ ...form, teaching_levels: toggle(form.teaching_levels, level.value) })}
+                  className={`px-3 py-1.5 rounded-full text-sm border transition ${
+                    form.teaching_levels.includes(level.value)
+                      ? "bg-green-600 text-white border-green-600"
+                      : "bg-white text-gray-600 border-gray-200 hover:border-green-400"
+                  }`}
+                >
+                  {level.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="text-sm font-medium text-gray-700 block mb-2">Subjects</label>
+            <div className="flex flex-wrap gap-2">
+              {SUBJECTS.map((subject) => (
+                <button
+                  key={subject}
+                  type="button"
+                  onClick={() => setForm({ ...form, subjects: toggle(form.subjects, subject) })}
+                  className={`px-3 py-1.5 rounded-full text-sm border transition ${
+                    form.subjects.includes(subject)
+                      ? "bg-green-600 text-white border-green-600"
+                      : "bg-white text-gray-600 border-gray-200 hover:border-green-400"
+                  }`}
+                >
+                  {subject}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="text-sm font-medium text-gray-700 block mb-1">Years of Experience</label>
+            <input
+              type="number"
+              min={0}
+              max={50}
+              value={form.years_experience}
+              onChange={(e) => setForm({ ...form, years_experience: e.target.value === "" ? "" : Number(e.target.value) })}
+              className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+              placeholder="e.g. 5"
+            />
+          </div>
+        </section>
+
+        {/* TRCN */}
+        <section className="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
+          <h2 className="font-bold text-gray-900">TRCN Registration</h2>
+
+          <div>
+            <label className="text-sm font-medium text-gray-700 block mb-2">TRCN Status</label>
+            <div className="flex flex-col gap-2">
+              {[
+                { value: "registered",     label: "Registered" },
+                { value: "pending",        label: "Registration Pending" },
+                { value: "not-registered", label: "Not Registered" },
+              ].map((opt) => (
+                <label key={opt.value} className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="trcn_status"
+                    value={opt.value}
+                    checked={form.trcn_status === opt.value}
+                    onChange={() => setForm({ ...form, trcn_status: opt.value as ProfileForm["trcn_status"] })}
+                    className="text-green-600"
+                  />
+                  <span className="text-sm text-gray-700">{opt.label}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {form.trcn_status === "registered" && (
+            <div>
+              <label className="text-sm font-medium text-gray-700 block mb-1">TRCN Number</label>
+              <input
+                type="text"
+                value={form.trcn_number}
+                onChange={(e) => setForm({ ...form, trcn_number: e.target.value })}
+                className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                placeholder="e.g. TRCN/2021/123456"
+              />
+            </div>
+          )}
+        </section>
+
+        {/* Job Preferences */}
+        <section className="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
+          <h2 className="font-bold text-gray-900">Job Preferences</h2>
+
+          <div>
+            <label className="text-sm font-medium text-gray-700 block mb-2">Availability</label>
+            <div className="flex flex-col gap-2">
+              {AVAILABILITY_OPTIONS.map((opt) => (
+                <label key={opt.value} className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="availability"
+                    value={opt.value}
+                    checked={form.availability === opt.value}
+                    onChange={() => setForm({ ...form, availability: opt.value as ProfileForm["availability"] })}
+                    className="text-green-600"
+                  />
+                  <span className="text-sm text-gray-700">{opt.label}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="text-sm font-medium text-gray-700 block mb-1">Minimum Monthly Salary (₦)</label>
+            <input
+              type="number"
+              min={0}
+              value={form.salary_min}
+              onChange={(e) => setForm({ ...form, salary_min: e.target.value === "" ? "" : Number(e.target.value) })}
+              className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+              placeholder="e.g. 80000"
+            />
+          </div>
+
+          <div className="flex items-center justify-between py-3 border-t border-gray-100">
+            <div>
+              <p className="text-sm font-medium text-gray-900">Willing to Relocate</p>
+              <p className="text-xs text-gray-500">Open to jobs outside your current state</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setForm({ ...form, willing_to_relocate: !form.willing_to_relocate })}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${form.willing_to_relocate ? "bg-green-600" : "bg-gray-200"}`}
+            >
+              <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${form.willing_to_relocate ? "translate-x-6" : "translate-x-1"}`} />
+            </button>
+          </div>
+
+          <div className="flex items-center justify-between py-3 border-t border-gray-100">
+            <div>
+              <p className="text-sm font-medium text-gray-900">Needs Accommodation</p>
+              <p className="text-xs text-gray-500">Interested in roles that include housing</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setForm({ ...form, accommodation_needed: !form.accommodation_needed })}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${form.accommodation_needed ? "bg-green-600" : "bg-gray-200"}`}
+            >
+              <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${form.accommodation_needed ? "translate-x-6" : "translate-x-1"}`} />
+            </button>
+          </div>
+
+          <div>
+            <label className="text-sm font-medium text-gray-700 block mb-2">Preferred States</label>
+            <p className="text-xs text-gray-500 mb-2">Select states you'd be willing to work in</p>
+            <div className="flex flex-wrap gap-2 max-h-48 overflow-y-auto">
+              {NIGERIAN_STATES.map((state) => (
+                <button
+                  key={state}
+                  type="button"
+                  onClick={() => setForm({ ...form, preferred_states: toggle(form.preferred_states, state) })}
+                  className={`px-3 py-1.5 rounded-full text-sm border transition ${
+                    form.preferred_states.includes(state)
+                      ? "bg-green-600 text-white border-green-600"
+                      : "bg-white text-gray-600 border-gray-200 hover:border-green-400"
+                  }`}
+                >
+                  {state}
+                </button>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Save Button */}
+        <div className="pb-8">
+          <Button
+            onClick={handleSave}
+            disabled={saving || success}
+            className="w-full bg-green-600 hover:bg-green-700 text-white py-6 text-base"
+          >
+            {saving ? (
+              <><Loader2 className="h-5 w-5 animate-spin mr-2" />Saving…</>
+            ) : success ? (
+              <><CheckCircle2 className="h-5 w-5 mr-2" />Profile Saved!</>
+            ) : (
+              <><Save className="h-5 w-5 mr-2" />Save Changes</>
+            )}
+          </Button>
+        </div>
+
+      </div>
+    </div>
+  )
+}

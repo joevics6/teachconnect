@@ -30,7 +30,7 @@ const NAV_ITEMS = [
   { href: "/dashboard/teacher/applications", label: "My Applications", icon: Briefcase },
   { href: "/dashboard/teacher/saved-jobs", label: "Saved Jobs", icon: BookOpen },
   { href: "/dashboard/teacher/quiz-results", label: "Quiz Results", icon: Star },
-  { href: "/profile/teacher/me", label: "My Profile", icon: User },
+  { href: "/dashboard/teacher/edit-profile", label: "Edit Profile", icon: User },
   { href: "/dashboard/teacher/settings", label: "Settings", icon: Settings },
 ]
 
@@ -486,236 +486,7 @@ export default function TeacherDashboardPage() {
             </div>
           )}
 
-          {/* ── Rich Profile Card ────────────────────────────────── */}
-          {loadingProfile ? (
-            <CardSkeleton lines={6} />
-          ) : (
-            <div className="bg-white rounded-xl border border-gray-200 p-6">
-              <div className="flex items-start justify-between mb-5">
-                <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 rounded-full bg-green-100 flex items-center justify-center overflow-hidden flex-shrink-0">
-                    {profile?.photo_url
-                      ? <img src={profile.photo_url} alt={profile.full_name} className="w-14 h-14 object-cover rounded-full" />
-                      : <span className="text-green-700 font-bold text-lg">{profile ? getInitials(profile.full_name) : "?"}</span>
-                    }
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-gray-900 text-base">{profile?.full_name || userName}</h3>
-                    <p className="text-sm text-gray-500">
-                      {[profile?.lga, profile?.state].filter(Boolean).join(", ") || "Location not set"}
-                    </p>
-                    {onboarding?.experience_level && (
-                      <span className="inline-block mt-1 text-xs font-medium px-2 py-0.5 bg-green-100 text-green-700 rounded-full capitalize">
-                        {onboarding.experience_level} level
-                      </span>
-                    )}
-                  </div>
-                </div>
-                <Link href="/profile/teacher/me">
-                  <Button size="sm" variant="outline" className="text-xs">Edit Profile</Button>
-                </Link>
-              </div>
-
-              {/* Bio */}
-              {(profile?.bio || onboarding?.cv_summary) && (
-                <p className="text-sm text-gray-600 mb-5 leading-relaxed border-l-2 border-green-200 pl-3">
-                  {profile?.bio || onboarding?.cv_summary}
-                </p>
-              )}
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-
-                {/* Teaching Info */}
-                <div className="space-y-3">
-                  {(profile?.teaching_levels?.length ?? 0) > 0 && (
-                    <div>
-                      <p className="text-xs font-medium text-gray-400 mb-1.5">Teaching Levels</p>
-                      <div className="flex flex-wrap gap-1">
-                        {profile!.teaching_levels.map((l) => (
-                          <span key={l} className="px-2 py-0.5 bg-blue-50 text-blue-700 text-xs rounded-full capitalize">{l}</span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {(profile?.subjects?.length ?? 0) > 0 && (
-                    <div>
-                      <p className="text-xs font-medium text-gray-400 mb-1.5">Subjects</p>
-                      <div className="flex flex-wrap gap-1">
-                        {profile!.subjects.slice(0, 6).map((s) => (
-                          <span key={s} className="px-2 py-0.5 bg-gray-100 text-gray-700 text-xs rounded-full">{s}</span>
-                        ))}
-                        {profile!.subjects.length > 6 && (
-                          <span className="px-2 py-0.5 bg-gray-100 text-gray-500 text-xs rounded-full">+{profile!.subjects.length - 6} more</span>
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  {(onboarding?.cv_skills?.length ?? 0) > 0 && (
-                    <div>
-                      <p className="text-xs font-medium text-gray-400 mb-1.5">Skills</p>
-                      <div className="flex flex-wrap gap-1">
-                        {onboarding!.cv_skills!.slice(0, 6).map((s) => (
-                          <span key={s} className="px-2 py-0.5 bg-purple-50 text-purple-700 text-xs rounded-full">{s}</span>
-                        ))}
-                        {onboarding!.cv_skills!.length > 6 && (
-                          <span className="px-2 py-0.5 bg-purple-50 text-purple-500 text-xs rounded-full">+{onboarding!.cv_skills!.length - 6} more</span>
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  {(onboarding?.curriculum_experience?.length ?? 0) > 0 && (
-                    <div>
-                      <p className="text-xs font-medium text-gray-400 mb-1.5">Curriculum</p>
-                      <div className="flex flex-wrap gap-1">
-                        {onboarding!.curriculum_experience!.map((c) => (
-                          <span key={c} className="px-2 py-0.5 bg-orange-50 text-orange-700 text-xs rounded-full">{c}</span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Details */}
-                <div className="space-y-2.5 text-sm">
-                  {(profile?.years_experience ?? onboarding?.years_of_teaching_experience) ? (
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-gray-400 w-24 flex-shrink-0">Experience</span>
-                      <span className="text-gray-700 font-medium">
-                        {profile?.years_experience || onboarding?.years_of_teaching_experience} years
-                      </span>
-                    </div>
-                  ) : null}
-
-                  {profile?.trcn_status && (
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-gray-400 w-24 flex-shrink-0">TRCN</span>
-                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                        profile.trcn_status === "registered" ? "bg-green-100 text-green-700"
-                        : profile.trcn_status === "pending" ? "bg-yellow-100 text-yellow-700"
-                        : "bg-gray-100 text-gray-500"
-                      }`}>
-                        {profile.trcn_status === "registered" ? "Registered"
-                          : profile.trcn_status === "pending" ? "Pending"
-                          : "Not Registered"}
-                      </span>
-                    </div>
-                  )}
-
-                  {profile?.availability && (
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-gray-400 w-24 flex-shrink-0">Availability</span>
-                      <span className="text-gray-700 capitalize">{profile.availability.replace("-", " ")}</span>
-                    </div>
-                  )}
-
-                  {profile?.salary_min ? (
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-gray-400 w-24 flex-shrink-0">Min. Salary</span>
-                      <span className="text-gray-700">₦{profile.salary_min.toLocaleString("en-NG")}/mo</span>
-                    </div>
-                  ) : null}
-
-                  {profile?.willing_to_relocate != null && (
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-gray-400 w-24 flex-shrink-0">Relocate</span>
-                      <span className={`text-xs px-2 py-0.5 rounded-full ${profile.willing_to_relocate ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>
-                        {profile.willing_to_relocate ? "Yes" : "No"}
-                      </span>
-                    </div>
-                  )}
-
-                  {(onboarding?.cv_languages?.length ?? 0) > 0 && (
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-gray-400 w-24 flex-shrink-0">Languages</span>
-                      <span className="text-gray-700">{onboarding!.cv_languages!.join(", ")}</span>
-                    </div>
-                  )}
-
-                  {profile?.phone && (
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-gray-400 w-24 flex-shrink-0">Phone</span>
-                      <span className="text-gray-700">{profile.phone}</span>
-                    </div>
-                  )}
-
-                  {onboarding?.cv_linkedin && (
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-gray-400 w-24 flex-shrink-0">LinkedIn</span>
-                      <a href={onboarding.cv_linkedin} target="_blank" rel="noopener noreferrer"
-                        className="text-blue-600 hover:underline text-xs truncate max-w-[160px]">
-                        {onboarding.cv_linkedin.replace(/^https?:\/\/(www\.)?linkedin\.com\/in\//, "")}
-                      </a>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Work Experience */}
-              {(onboarding?.cv_work_experience?.length ?? 0) > 0 && (
-                <div className="mt-5 pt-5 border-t border-gray-100">
-                  <p className="text-xs font-medium text-gray-400 mb-3">Work Experience</p>
-                  <div className="space-y-3">
-                    {onboarding!.cv_work_experience!.slice(0, 3).map((w, i) => (
-                      <div key={i} className="flex gap-3">
-                        <div className="w-1.5 h-1.5 rounded-full bg-green-500 flex-shrink-0 mt-1.5" />
-                        <div>
-                          <p className="text-sm font-semibold text-gray-900">{w.title}</p>
-                          <p className="text-xs text-gray-500">{w.organization}{w.location ? ` · ${w.location}` : ""}</p>
-                          {(w.start_date || w.end_date) && (
-                            <p className="text-xs text-gray-400">{w.start_date} — {w.end_date || "Present"}</p>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Education */}
-              {(onboarding?.cv_education?.length ?? 0) > 0 && (
-                <div className="mt-5 pt-5 border-t border-gray-100">
-                  <p className="text-xs font-medium text-gray-400 mb-3">Education</p>
-                  <div className="space-y-3">
-                    {onboarding!.cv_education!.slice(0, 2).map((e, i) => (
-                      <div key={i} className="flex gap-3">
-                        <div className="w-1.5 h-1.5 rounded-full bg-blue-500 flex-shrink-0 mt-1.5" />
-                        <div>
-                          <p className="text-sm font-semibold text-gray-900">{e.degree}{e.field ? ` in ${e.field}` : ""}</p>
-                          <p className="text-xs text-gray-500">{e.institution}{e.year ? ` · ${e.year}` : ""}</p>
-                          {e.grade && <p className="text-xs text-gray-400">{e.grade}</p>}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Certifications */}
-              {(onboarding?.cv_certifications?.length ?? 0) > 0 && (
-                <div className="mt-5 pt-5 border-t border-gray-100">
-                  <p className="text-xs font-medium text-gray-400 mb-2">Certifications</p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {onboarding!.cv_certifications!.map((c) => (
-                      <span key={c} className="px-2 py-0.5 bg-yellow-50 text-yellow-700 text-xs rounded-full border border-yellow-100">{c}</span>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* CV Download */}
-              {profile?.cv_url && (
-                <div className="mt-5 pt-5 border-t border-gray-100">
-                  <a href={profile.cv_url} target="_blank" rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 text-sm text-green-600 hover:underline font-medium">
-                    <BookOpen className="h-4 w-4" /> View / Download CV
-                  </a>
-                </div>
-              )}
-            </div>
-          )}
+          {/* Profile is on the dedicated /profile/teacher/me page */}
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
@@ -742,7 +513,7 @@ export default function TeacherDashboardPage() {
                     </div>
                   ))}
                 </div>
-                <Link href="/profile/teacher/me">
+                <Link href="/dashboard/teacher/edit-profile">
                   <Button size="sm" variant="outline" className="w-full mt-4 text-xs">Complete Profile</Button>
                 </Link>
               </div>
@@ -786,7 +557,7 @@ export default function TeacherDashboardPage() {
               <div className="space-y-2">
                 {[
                   { label: "Browse new jobs", href: "/jobs", color: "text-green-600" },
-                  { label: "Update my profile", href: "/profile/teacher/me", color: "text-blue-600" },
+                  { label: "Edit my profile", href: "/dashboard/teacher/edit-profile", color: "text-blue-600" },
                   { label: "View saved jobs", href: "/dashboard/teacher/saved-jobs", color: "text-purple-600" },
                   { label: "Check quiz results", href: "/dashboard/teacher/quiz-results", color: "text-orange-600" },
                   { label: "View career resources", href: "/resources", color: "text-gray-600" },

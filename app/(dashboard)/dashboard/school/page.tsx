@@ -3,107 +3,64 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import {
-  GraduationCap,
-  Briefcase,
-  Users,
-  Bell,
-  Settings,
-  LogOut,
-  ChevronRight,
-  Plus,
-  Menu,
-  X,
-  Building2,
-  CreditCard,
-  CheckCircle2,
-  Clock,
-  Eye,
-  Star,
-  Loader2,
+  GraduationCap, Briefcase, Users, Bell, Settings, LogOut,
+  ChevronRight, Plus, Menu, X, Building2, CreditCard,
+  CheckCircle2, Clock, Eye, Star, Loader2,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
 
 const NAV_ITEMS = [
-  { href: "/dashboard/school", label: "Overview", icon: Building2 },
-  { href: "/dashboard/school/jobs", label: "My Jobs", icon: Briefcase },
-  { href: "/dashboard/school/jobs/applicants", label: "Applicants", icon: Users },
-  { href: "/talent", label: "Browse Teachers", icon: GraduationCap },
-  { href: "/dashboard/school/subscription", label: "Subscription", icon: CreditCard },
-  { href: "/schools/me", label: "School Profile", icon: Building2 },
-  { href: "/dashboard/school/settings", label: "Settings", icon: Settings },
+  { href: "/dashboard/school",              label: "Overview",        icon: Building2  },
+  { href: "/dashboard/school/jobs",         label: "My Jobs",         icon: Briefcase  },
+  { href: "/dashboard/school/jobs/applicants", label: "Applicants",  icon: Users      },
+  { href: "/talent",                        label: "Browse Teachers", icon: GraduationCap },
+  { href: "/dashboard/school/subscription", label: "Subscription",   icon: CreditCard },
+  { href: "/dashboard/school/settings",     label: "Settings",       icon: Settings   },
 ]
 
 interface SchoolProfile {
-  id: string
-  school_name: string
-  school_type: string
-  state: string
-  logo_url: string | null
-  is_verified: boolean
+  id: string; school_name: string; school_type: string
+  state: string; logo_url: string | null; is_verified: boolean
 }
-
 interface Job {
-  id: string
-  title: string
-  subject: string
-  applicants_count: number
-  passed_quiz_count: number
-  deadline: string
-  status: string
-  is_featured: boolean
+  id: string; title: string; subject: string
+  applicants_count: number; passed_quiz_count: number
+  deadline: string; status: string; is_featured: boolean
 }
-
 interface Applicant {
-  id: string
-  name: string
-  job_title: string
-  quiz_score: number | null
-  quiz_passed: boolean | null
-  experience: string
-  location: string
-  trcn: boolean
-  stage: string
-  photo_url: string | null
+  id: string; name: string; job_title: string
+  quiz_score: number | null; quiz_passed: boolean | null
+  experience: string; location: string; trcn: boolean
+  stage: string; photo_url: string | null
 }
-
 interface Notification {
-  id: string
-  title: string
-  message: string
-  is_read: boolean
-  created_at: string
+  id: string; title: string; message: string
+  is_read: boolean; created_at: string
 }
 
-// ── Skeleton ──────────────────────────────────────────────────
 function Skeleton({ className = "" }: { className?: string }) {
   return <div className={`animate-pulse bg-gray-100 rounded-lg ${className}`} />
 }
-
 function StatsSkeleton() {
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
       {[...Array(4)].map((_, i) => (
         <div key={i} className="bg-white rounded-xl border border-gray-200 p-4">
-          <Skeleton className="h-8 w-12 mb-2" />
-          <Skeleton className="h-3 w-20" />
+          <Skeleton className="h-8 w-12 mb-2" /><Skeleton className="h-3 w-20" />
         </div>
       ))}
     </div>
   )
 }
-
 function JobsSkeleton() {
   return (
     <div className="space-y-3">
       {[...Array(3)].map((_, i) => (
         <div key={i} className="flex items-center gap-4 p-4 border border-gray-100 rounded-xl">
           <Skeleton className="w-9 h-9 flex-shrink-0" />
-          <div className="flex-1 space-y-2">
-            <Skeleton className="h-4 w-1/3" />
-            <Skeleton className="h-3 w-1/4" />
-          </div>
+          <div className="flex-1 space-y-2"><Skeleton className="h-4 w-1/3" /><Skeleton className="h-3 w-1/4" /></div>
           <Skeleton className="h-6 w-16" />
         </div>
       ))}
@@ -111,32 +68,15 @@ function JobsSkeleton() {
   )
 }
 
-// ── Helpers ───────────────────────────────────────────────────
 function getInitials(name: string) {
   return name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
 }
-
 function getStageBadge(stage: string) {
   switch (stage) {
-    case "shortlisted":
-      return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700"><CheckCircle2 className="h-3 w-3" />Shortlisted</span>
-    case "applied":
-      return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700"><Clock className="h-3 w-3" />Applied</span>
-    case "hired":
-      return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700"><Star className="h-3 w-3" />Hired</span>
-    default:
-      return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">{stage}</span>
-  }
-}
-
-// ── Safe fetch ────────────────────────────────────────────────
-async function safeFetch<T>(url: string, fallback: T): Promise<T> {
-  try {
-    const res = await fetch(url)
-    if (!res.ok) return fallback
-    return await res.json()
-  } catch {
-    return fallback
+    case "shortlisted": return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700"><CheckCircle2 className="h-3 w-3" />Shortlisted</span>
+    case "applied":     return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700"><Clock className="h-3 w-3" />Applied</span>
+    case "hired":       return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700"><Star className="h-3 w-3" />Hired</span>
+    default:            return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">{stage}</span>
   }
 }
 
@@ -144,109 +84,96 @@ export default function SchoolDashboardPage() {
   const router = useRouter()
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
-  // Auth — resolved immediately from client session
-  const [authChecked, setAuthChecked] = useState(false)
-  const [userEmail, setUserEmail] = useState("")
-
-  // Data states
-  const [school, setSchool] = useState<SchoolProfile | null>(null)
-  const [planType, setPlanType] = useState<"free" | "standard" | "term">("free")
-  const [jobs, setJobs] = useState<Job[]>([])
+  const [school, setSchool]                   = useState<SchoolProfile | null>(null)
+  const [planType, setPlanType]               = useState<"free" | "standard" | "term">("free")
+  const [jobs, setJobs]                       = useState<Job[]>([])
   const [recentApplicants, setRecentApplicants] = useState<Applicant[]>([])
-  const [notifications, setNotifications] = useState<Notification[]>([])
+  const [notifications, setNotifications]     = useState<Notification[]>([])
+  const [schoolName, setSchoolName]           = useState("School")
 
-  // Per-section loading flags
-  const [loadingProfile, setLoadingProfile] = useState(false)
-  const [loadingJobs, setLoadingJobs] = useState(false)
-  const [loadingNotifications, setLoadingNotifications] = useState(false)
-  const [loadingApplicants, setLoadingApplicants] = useState(false)
+  const [loadingProfile, setLoadingProfile]         = useState(true)
+  const [loadingJobs, setLoadingJobs]               = useState(true)
+  const [loadingNotifications, setLoadingNotifications] = useState(true)
+  const [loadingApplicants, setLoadingApplicants]   = useState(false)
 
-  // ── Step 1: Auth check from client session (no API call) ──
+  // ── Load all data via API routes (same pattern as teacher dashboard) ──
   useEffect(() => {
-    const supabase = createClient()
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!session?.user) {
-        router.push("/login")
-        return
-      }
-      setUserEmail(session.user.email || "")
-      setAuthChecked(true)
-    })
-  }, [router])
+    // School profile
+    fetch("/api/school/profile")
+      .then(async (res) => {
+        if (res.status === 401) { router.push("/login"); return }
+        if (!res.ok) return
+        const data = await res.json()
+        if (data.school) {
+          setSchool(data.school)
+          setSchoolName(data.school.school_name || "School")
+        }
+      })
+      .catch(console.error)
+      .finally(() => setLoadingProfile(false))
 
-  // ── Step 2: Load each section independently in background ──
-  useEffect(() => {
-    if (!authChecked) return
-
-    // School profile + subscription
-    setLoadingProfile(true)
-    Promise.all([
-      safeFetch<{ school: SchoolProfile | null }>("/api/school/profile", { school: null }),
-      safeFetch<{ subscription: { plan_type: "free" | "standard" | "term" } | null }>(
-        "/api/school/subscription",
-        { subscription: null }
-      ),
-    ]).then(([profileData, subData]) => {
-      setSchool(profileData.school)
-      setPlanType(subData.subscription?.plan_type || "free")
-      setLoadingProfile(false)
-    })
+    // Subscription
+    fetch("/api/school/subscription")
+      .then(async (res) => {
+        if (!res.ok) return
+        const data = await res.json()
+        setPlanType(data.subscription?.plan_type || "free")
+      })
+      .catch(console.error)
 
     // Jobs
-    setLoadingJobs(true)
-    safeFetch<{ jobs: Job[] }>("/api/school/jobs", { jobs: [] }).then((data) => {
-      const jobList = data.jobs?.slice(0, 3) || []
-      setJobs(jobList)
-      setLoadingJobs(false)
+    fetch("/api/school/jobs")
+      .then(async (res) => {
+        if (!res.ok) return
+        const data = await res.json()
+        const jobList: Job[] = (data.jobs || []).slice(0, 3)
+        setJobs(jobList)
 
-      // Applicants — only load after jobs are known
-      const activeJob = jobList.find((j) => j.status === "active")
-      if (activeJob) {
-        setLoadingApplicants(true)
-        safeFetch<{ applicants: Array<{
-          id: string
-          teacher_name: string
-          quiz_score: number | null
-          quiz_passed: boolean | null
-          years_experience: number
-          teacher_state: string
-          trcn_status: string
-          pipeline_stage: string
-          teacher_photo_url: string | null
-        }> }>(
-          `/api/school/jobs/${activeJob.id}/applicants`,
-          { applicants: [] }
-        ).then((appData) => {
-          setRecentApplicants(
-            (appData.applicants || []).slice(0, 3).map((a) => ({
-              id: a.id,
-              name: a.teacher_name,
-              job_title: activeJob.title,
-              quiz_score: a.quiz_score,
-              quiz_passed: a.quiz_passed,
-              experience: `${a.years_experience} yr${a.years_experience !== 1 ? "s" : ""}`,
-              location: a.teacher_state,
-              trcn: a.trcn_status === "registered",
-              stage: a.pipeline_stage,
-              photo_url: a.teacher_photo_url,
-            }))
-          )
-          setLoadingApplicants(false)
-        })
-      }
-    })
+        // Load applicants for first active job
+        const activeJob = jobList.find((j) => j.status === "active")
+        if (activeJob) {
+          setLoadingApplicants(true)
+          fetch(`/api/school/jobs/${activeJob.id}/applicants`)
+            .then(async (r) => {
+              if (!r.ok) return
+              const appData = await r.json()
+              setRecentApplicants(
+                (appData.applicants || []).slice(0, 3).map((a: {
+                  id: string; teacher_name: string; quiz_score: number | null
+                  quiz_passed: boolean | null; years_experience: number
+                  teacher_state: string; trcn_status: string
+                  pipeline_stage: string; teacher_photo_url: string | null
+                }) => ({
+                  id: a.id,
+                  name: a.teacher_name,
+                  job_title: activeJob.title,
+                  quiz_score: a.quiz_score,
+                  quiz_passed: a.quiz_passed,
+                  experience: `${a.years_experience} yr${a.years_experience !== 1 ? "s" : ""}`,
+                  location: a.teacher_state,
+                  trcn: a.trcn_status === "registered",
+                  stage: a.pipeline_stage,
+                  photo_url: a.teacher_photo_url,
+                }))
+              )
+            })
+            .catch(console.error)
+            .finally(() => setLoadingApplicants(false))
+        }
+      })
+      .catch(console.error)
+      .finally(() => setLoadingJobs(false))
 
     // Notifications
-    setLoadingNotifications(true)
-    safeFetch<{ notifications: Notification[] }>(
-      "/api/teacher/notifications",
-      { notifications: [] }
-    ).then((data) => {
-      setNotifications(data.notifications?.slice(0, 3) || [])
-      setLoadingNotifications(false)
-    })
-
-  }, [authChecked])
+    fetch("/api/teacher/notifications")
+      .then(async (res) => {
+        if (!res.ok) return
+        const data = await res.json()
+        setNotifications((data.notifications || []).slice(0, 3))
+      })
+      .catch(() => {})
+      .finally(() => setLoadingNotifications(false))
+  }, [router])
 
   const handleMarkAllRead = async () => {
     const unreadIds = notifications.filter((n) => !n.is_read).map((n) => n.id)
@@ -262,15 +189,10 @@ export default function SchoolDashboardPage() {
     window.location.href = "/"
   }
 
-  // Derived values
-  const unreadCount = notifications.filter((n) => !n.is_read).length
-  const activeJobs = jobs.filter((j) => j.status === "active").length
+  const unreadCount     = notifications.filter((n) => !n.is_read).length
+  const activeJobs      = jobs.filter((j) => j.status === "active").length
   const totalApplicants = jobs.reduce((s, j) => s + (j.applicants_count || 0), 0)
-  const totalPassed = jobs.reduce((s, j) => s + (j.passed_quiz_count || 0), 0)
-  const schoolName =
-  school?.school_name ||
-  userEmail.split("@")[0] ||
-  "School"
+  const totalPassed     = jobs.reduce((s, j) => s + (j.passed_quiz_count || 0), 0)
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
@@ -291,39 +213,30 @@ export default function SchoolDashboardPage() {
         <div className="p-5 border-b border-gray-100">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center flex-shrink-0 overflow-hidden">
-              {school?.logo_url ? (
-                <img src={school.logo_url} alt={school.school_name} className="w-full h-full object-contain p-1" />
-              ) : (
-                <Building2 className="h-5 w-5 text-blue-700" />
-              )}
+              {school?.logo_url
+                ? <img src={school.logo_url} alt={school.school_name} className="w-full h-full object-contain p-1" />
+                : <Building2 className="h-5 w-5 text-blue-700" />
+              }
             </div>
             <div className="min-w-0">
               {loadingProfile ? (
-                <>
-                  <Skeleton className="h-4 w-28 mb-1" />
-                  <Skeleton className="h-3 w-20" />
-                </>
+                <><Skeleton className="h-4 w-28 mb-1" /><Skeleton className="h-3 w-20" /></>
               ) : (
                 <>
-                  <p className="font-semibold text-gray-900 text-sm truncate">
-                    {school?.school_name || userEmail}
-                  </p>
-                  <p className="text-xs text-gray-500 capitalize truncate">
+                  <p className="font-semibold text-gray-900 text-sm truncate">{school?.school_name || "School"}</p>
+                  <p className="text-xs text-gray-500 truncate">
                     {school?.school_type || ""}{school?.state ? ` • ${school.state}` : ""}
                   </p>
                 </>
               )}
             </div>
           </div>
-
           <div className="mt-4 flex items-center justify-between px-3 py-2 bg-yellow-50 border border-yellow-200 rounded-lg">
             <span className="text-xs font-medium text-yellow-700 capitalize">
               {planType === "free" ? "Free Plan" : planType === "term" ? "Term Plan" : "Standard"}
             </span>
             {planType === "free" && (
-              <Link href="/dashboard/school/subscription" className="text-xs text-blue-600 font-semibold hover:underline">
-                Upgrade
-              </Link>
+              <Link href="/dashboard/school/subscription" className="text-xs text-blue-600 font-semibold hover:underline">Upgrade</Link>
             )}
           </div>
         </div>
@@ -345,18 +258,14 @@ export default function SchoolDashboardPage() {
         </div>
       </aside>
 
-      {sidebarOpen && (
-        <div className="fixed inset-0 z-40 bg-black/30 lg:hidden" onClick={() => setSidebarOpen(false)} />
-      )}
+      {sidebarOpen && <div className="fixed inset-0 z-40 bg-black/30 lg:hidden" onClick={() => setSidebarOpen(false)} />}
 
       {/* Main */}
       <div className="flex-1 min-w-0">
-
-        {/* Header — always visible immediately */}
         <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between sticky top-0 z-30">
           <div className="flex items-center gap-3">
             <button className="lg:hidden" onClick={() => setSidebarOpen(true)}><Menu className="h-5 w-5 text-gray-600" /></button>
-            <h1 className="text-lg font-bold text-gray-900">School Dashboard</h1>
+            <h1 className="text-lg font-bold text-gray-900">Dashboard</h1>
           </div>
           <div className="flex items-center gap-3">
             <button className="relative p-2 rounded-lg hover:bg-gray-100 transition">
@@ -375,13 +284,13 @@ export default function SchoolDashboardPage() {
 
         <div className="p-6 space-y-6">
 
-          {/* Welcome Banner — visible immediately */}
+          {/* Welcome */}
           <div className="bg-gradient-to-r from-blue-700 to-blue-800 rounded-2xl p-6 text-white">
             <h2 className="text-xl font-bold mb-1">Welcome back, {schoolName} 👋</h2>
             <p className="text-blue-100 text-sm mb-4">
               {loadingJobs
                 ? "Loading your activity..."
-                : `You have ${totalApplicants} total applicant${totalApplicants !== 1 ? "s" : ""} across ${activeJobs} active job${activeJobs !== 1 ? "s" : ""}.${totalPassed > 0 ? ` ${totalPassed} passed the screening quiz.` : ""}`
+                : `${totalApplicants} applicant${totalApplicants !== 1 ? "s" : ""} across ${activeJobs} active job${activeJobs !== 1 ? "s" : ""}.${totalPassed > 0 ? ` ${totalPassed} passed the quiz.` : ""}`
               }
             </p>
             <Link href="/dashboard/school/post-job">
@@ -395,13 +304,13 @@ export default function SchoolDashboardPage() {
           {loadingJobs ? <StatsSkeleton /> : (
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               {[
-                { label: "Active Jobs", value: activeJobs, color: "text-blue-600" },
-                { label: "Total Applicants", value: totalApplicants, color: "text-green-600" },
-                { label: "Passed Quiz", value: totalPassed, color: "text-purple-600" },
+                { label: "Active Jobs",      value: activeJobs,      color: "text-blue-600"   },
+                { label: "Total Applicants", value: totalApplicants, color: "text-green-600"  },
+                { label: "Passed Quiz",      value: totalPassed,     color: "text-purple-600" },
                 {
                   label: "Pass Rate",
                   value: totalApplicants > 0 ? `${Math.round((totalPassed / totalApplicants) * 100)}%` : "—",
-                  color: "text-orange-600"
+                  color: "text-orange-600",
                 },
               ].map((stat) => (
                 <div key={stat.label} className="bg-white rounded-xl border border-gray-200 p-4">
@@ -414,7 +323,7 @@ export default function SchoolDashboardPage() {
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-            {/* Active Jobs */}
+            {/* Jobs */}
             <div className="lg:col-span-2 bg-white rounded-xl border border-gray-200 p-5">
               <div className="flex items-center justify-between mb-5">
                 <h3 className="font-bold text-gray-900">Active Jobs</h3>
@@ -439,9 +348,7 @@ export default function SchoolDashboardPage() {
                         <div className="min-w-0">
                           <div className="flex items-center gap-2">
                             <p className="font-semibold text-gray-900 text-sm truncate">{job.title}</p>
-                            {job.is_featured && (
-                              <span className="px-1.5 py-0.5 bg-yellow-100 text-yellow-700 text-xs rounded font-medium flex-shrink-0">Featured</span>
-                            )}
+                            {job.is_featured && <span className="px-1.5 py-0.5 bg-yellow-100 text-yellow-700 text-xs rounded font-medium flex-shrink-0">Featured</span>}
                           </div>
                           <p className="text-xs text-gray-500">
                             Deadline: {new Date(job.deadline).toLocaleDateString("en-NG", { day: "numeric", month: "short" })}
@@ -483,8 +390,7 @@ export default function SchoolDashboardPage() {
                 <div className="space-y-3">
                   {[...Array(3)].map((_, i) => (
                     <div key={i} className="p-3 rounded-lg bg-gray-50 space-y-2">
-                      <Skeleton className="h-3 w-3/4" />
-                      <Skeleton className="h-3 w-full" />
+                      <Skeleton className="h-3 w-3/4" /><Skeleton className="h-3 w-full" />
                     </div>
                   ))}
                 </div>
@@ -521,10 +427,7 @@ export default function SchoolDashboardPage() {
                   {[...Array(3)].map((_, i) => (
                     <div key={i} className="flex items-center gap-4 p-4 border border-gray-100 rounded-xl">
                       <Skeleton className="w-10 h-10 rounded-full flex-shrink-0" />
-                      <div className="flex-1 space-y-2">
-                        <Skeleton className="h-4 w-1/3" />
-                        <Skeleton className="h-3 w-1/2" />
-                      </div>
+                      <div className="flex-1 space-y-2"><Skeleton className="h-4 w-1/3" /><Skeleton className="h-3 w-1/2" /></div>
                       <Skeleton className="h-6 w-20" />
                     </div>
                   ))}
@@ -535,31 +438,24 @@ export default function SchoolDashboardPage() {
                     <div key={applicant.id} className="flex items-center justify-between p-4 border border-gray-100 rounded-xl hover:border-gray-200 transition">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0 overflow-hidden">
-                          {applicant.photo_url ? (
-                            <img src={applicant.photo_url} alt={applicant.name} className="w-full h-full object-cover" />
-                          ) : (
-                            <span className="text-sm font-bold text-gray-600">{getInitials(applicant.name)}</span>
-                          )}
+                          {applicant.photo_url
+                            ? <img src={applicant.photo_url} alt={applicant.name} className="w-full h-full object-cover" />
+                            : <span className="text-sm font-bold text-gray-600">{getInitials(applicant.name)}</span>
+                          }
                         </div>
                         <div>
                           <div className="flex items-center gap-2">
                             <p className="font-semibold text-gray-900 text-sm">{applicant.name}</p>
-                            {applicant.trcn && (
-                              <span className="px-1.5 py-0.5 bg-green-100 text-green-700 text-xs rounded font-medium">TRCN</span>
-                            )}
+                            {applicant.trcn && <span className="px-1.5 py-0.5 bg-green-100 text-green-700 text-xs rounded font-medium">TRCN</span>}
                           </div>
-                          <p className="text-xs text-gray-500">
-                            {applicant.job_title} • {applicant.experience} • {applicant.location}
-                          </p>
+                          <p className="text-xs text-gray-500">{applicant.job_title} • {applicant.experience} • {applicant.location}</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-3 flex-shrink-0">
                         {applicant.quiz_score !== null && (
                           <div className="text-right hidden sm:block">
                             <p className="text-xs text-gray-500">Quiz</p>
-                            <p className={`text-sm font-bold ${applicant.quiz_passed ? "text-green-600" : "text-red-500"}`}>
-                              {applicant.quiz_score}%
-                            </p>
+                            <p className={`text-sm font-bold ${applicant.quiz_passed ? "text-green-600" : "text-red-500"}`}>{applicant.quiz_score}%</p>
                           </div>
                         )}
                         {getStageBadge(applicant.stage)}
@@ -574,14 +470,12 @@ export default function SchoolDashboardPage() {
             </div>
           )}
 
-          {/* Upgrade CTA — only show if on free plan and profile loaded */}
+          {/* Upgrade CTA */}
           {!loadingProfile && planType === "free" && (
             <div className="bg-gradient-to-r from-gray-900 to-gray-800 rounded-2xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
               <div className="text-white">
                 <h3 className="font-bold text-lg mb-1">Unlock Full Access</h3>
-                <p className="text-gray-400 text-sm">
-                  Browse all teacher profiles, send direct messages, and post unlimited jobs.
-                </p>
+                <p className="text-gray-400 text-sm">Browse all teacher profiles, send direct messages, and post unlimited jobs.</p>
               </div>
               <Link href="/dashboard/school/subscription" className="flex-shrink-0">
                 <Button className="bg-blue-600 hover:bg-blue-700 text-white px-6">
