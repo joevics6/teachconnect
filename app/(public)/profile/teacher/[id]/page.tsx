@@ -19,6 +19,9 @@ import {
   ChevronRight,
   Eye,
   EyeOff,
+  Zap,
+  Trophy,
+  TrendingUp,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
@@ -55,6 +58,16 @@ interface QuizResult {
   score: number
   passed: boolean
   mode: string
+  created_at: string
+}
+
+interface SpecializationQuizResult {
+  id: string
+  subject: string
+  score: number
+  percentile: number
+  correct_answers: number
+  total_questions: number
   created_at: string
 }
 
@@ -172,6 +185,7 @@ export default function TeacherProfilePage() {
 
   const [profile, setProfile] = useState<TeacherProfile | null>(null)
   const [quizResults, setQuizResults] = useState<QuizResult[]>([])
+  const [specializationResults, setSpecializationResults] = useState<SpecializationQuizResult[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState("")
   const [isInviting, setIsInviting] = useState(false)
@@ -193,6 +207,18 @@ export default function TeacherProfilePage() {
         setProfile(data.profile)
         setQuizResults(data.quiz_results || [])
         setViewerRole(data.viewer_role || "guest")
+
+        // Fetch specialization quiz results separately
+        const specUrl = isOwnProfile
+          ? "/api/teacher/specialization-quiz/results"
+          : "/api/teacher/specialization-quiz/results"
+        try {
+          const specRes = await fetch(specUrl)
+          if (specRes.ok) {
+            const specData = await specRes.json()
+            setSpecializationResults(specData.results || [])
+          }
+        } catch { /* non-critical */ }
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load profile")
       } finally {
@@ -540,6 +566,62 @@ export default function TeacherProfilePage() {
                 )}
             </div>
 
+            {/* Subject Mastery Results */}
+            {specializationResults.length > 0 && (
+              <div className="bg-white rounded-xl border border-gray-200 p-6">
+                <h2 className="font-bold text-gray-900 mb-1 text-lg flex items-center gap-2">
+                  <Trophy className="h-5 w-5 text-green-500" />
+                  Subject Mastery
+                </h2>
+                <p className="text-xs text-gray-400 mb-4">Percentile rank vs all teachers on this platform</p>
+                <div className="space-y-3">
+                  {specializationResults.map((result) => {
+                    const pct = result.percentile
+                    const isTop = pct >= 75
+                    const colorClass = pct >= 95
+                      ? "text-yellow-600 bg-yellow-50 border-yellow-200"
+                      : pct >= 75
+                      ? "text-green-600 bg-green-50 border-green-200"
+                      : pct >= 50
+                      ? "text-blue-600 bg-blue-50 border-blue-200"
+                      : "text-gray-500 bg-gray-50 border-gray-200"
+                    const rankLabel = pct >= 95 ? "Top 5%"
+                      : pct >= 90 ? "Top 10%"
+                      : pct >= 75 ? "Top 25%"
+                      : pct >= 50 ? "Above Average"
+                      : "Below Average"
+                    const scoreColor = pct >= 75 ? "text-green-600" : pct >= 50 ? "text-blue-600" : "text-gray-500"
+                    return (
+                      <div key={result.id} className="flex items-center justify-between p-4 border border-gray-100 rounded-xl">
+                        <div>
+                          <p className="text-sm font-semibold text-gray-900">{result.subject}</p>
+                          <p className="text-xs text-gray-400">{result.score}% score • {result.correct_answers}/{result.total_questions} correct</p>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-bold ${colorClass}`}>
+                            {isTop && <Trophy className="h-3 w-3" />}
+                            {rankLabel}
+                          </div>
+                          <div className="text-right">
+                            <p className={`text-xl font-black ${scoreColor}`}>{pct}th</p>
+                            <p className="text-xs text-gray-400">percentile</p>
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+                {isOwnProfile && (
+                  <Link href="/dashboard/teacher/specialization-quiz" className="block mt-4">
+                    <div className="flex items-center gap-2 text-xs text-green-600 hover:underline">
+                      <Zap className="h-3.5 w-3.5" />
+                      Take quiz for another subject or retake
+                    </div>
+                  </Link>
+                )}
+              </div>
+            )}
+
             {/* Quiz Results */}
             {quizResults.length > 0 && (
               <div className="bg-white rounded-xl border border-gray-200 p-6">
@@ -672,6 +754,69 @@ export default function TeacherProfilePage() {
                       Browse Jobs
                     </Button>
                   </Link>
+                </div>
+              )}
+
+              {/* Subject Mastery sidebar widget */}
+              {isOwnProfile && (
+                <div className="mb-5 p-4 bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 rounded-xl">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Zap className="h-4 w-4 text-green-600" />
+                    <p className="text-sm font-bold text-gray-900">Subject Mastery</p>
+                  </div>
+                  {specializationResults.length > 0 ? (
+                    <>
+                      <div className="space-y-1.5 mb-3">
+                        {specializationResults.slice(0, 2).map((r) => (
+                          <div key={r.id} className="flex items-center justify-between text-xs">
+                            <span className="text-gray-600 truncate">{r.subject}</span>
+                            <span className="font-bold text-green-600 flex-shrink-0 ml-2">{r.percentile}th %ile</span>
+                          </div>
+                        ))}
+                      </div>
+                      <Link href="/dashboard/teacher/specialization-quiz">
+                        <Button size="sm" variant="outline" className="w-full text-xs border-green-300 text-green-700 hover:bg-green-50">
+                          <TrendingUp className="h-3.5 w-3.5 mr-1.5" />
+                          Take Another Subject
+                        </Button>
+                      </Link>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-xs text-gray-500 mb-3">
+                        Take a 5-min quiz to show your rank vs other teachers.
+                      </p>
+                      <Link href="/dashboard/teacher/specialization-quiz">
+                        <Button size="sm" className="w-full bg-green-600 hover:bg-green-700 text-white text-xs">
+                          <Zap className="h-3.5 w-3.5 mr-1.5" />
+                          Take Mastery Quiz
+                        </Button>
+                      </Link>
+                    </>
+                  )}
+                </div>
+              )}
+
+              {/* Subject mastery results visible to schools */}
+              {viewerRole === "school" && specializationResults.length > 0 && (
+                <div className="mb-5 p-4 bg-green-50 border border-green-200 rounded-xl">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Trophy className="h-4 w-4 text-green-600" />
+                    <p className="text-sm font-bold text-gray-900">Subject Mastery</p>
+                  </div>
+                  <div className="space-y-2">
+                    {specializationResults.map((r) => {
+                      const pct = r.percentile
+                      const color = pct >= 75 ? "text-green-600" : pct >= 50 ? "text-blue-600" : "text-gray-500"
+                      const label = pct >= 95 ? "Top 5%" : pct >= 90 ? "Top 10%" : pct >= 75 ? "Top 25%" : pct >= 50 ? "Above Avg" : "Below Avg"
+                      return (
+                        <div key={r.id} className="flex items-center justify-between text-xs">
+                          <span className="text-gray-700 font-medium">{r.subject}</span>
+                          <span className={`font-bold ${color}`}>{label} ({pct}th %ile)</span>
+                        </div>
+                      )
+                    })}
+                  </div>
                 </div>
               )}
 

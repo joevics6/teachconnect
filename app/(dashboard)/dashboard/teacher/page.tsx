@@ -20,6 +20,8 @@ import {
   Menu,
   X,
   Loader2,
+  Zap,
+  TrendingUp,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { createClient } from "@/lib/supabase/client"
@@ -30,6 +32,7 @@ const NAV_ITEMS = [
   { href: "/dashboard/teacher/applications", label: "My Applications", icon: Briefcase },
   { href: "/dashboard/teacher/saved-jobs", label: "Saved Jobs", icon: BookOpen },
   { href: "/dashboard/teacher/quiz-results", label: "Quiz Results", icon: Star },
+  { href: "/dashboard/teacher/specialization-quiz", label: "Subject Mastery", icon: Zap },
   { href: "/dashboard/teacher/edit-profile", label: "Edit Profile", icon: User },
   { href: "/dashboard/teacher/settings", label: "Settings", icon: Settings },
 ]
@@ -345,6 +348,7 @@ export default function TeacherDashboardPage() {
     { label: "Location",       done: !!profile?.state },
     { label: "Availability",   done: !!profile?.availability },
     { label: "Skills",         done: (onboarding?.cv_skills?.length || 0) > 0 },
+    { label: "Subject Mastery Quiz", done: false, href: "/dashboard/teacher/specialization-quiz", isQuiz: true },
   ]
   const completedFields = completionItems.filter((i) => i.done).length
   const profileCompletion = Math.round((completedFields / completionItems.length) * 100)
@@ -509,15 +513,51 @@ export default function TeacherDashboardPage() {
                       <div className={`w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 ${item.done ? "bg-green-100" : "bg-gray-100"}`}>
                         {item.done ? <CheckCircle2 className="h-3 w-3 text-green-600" /> : <div className="w-1.5 h-1.5 rounded-full bg-gray-400" />}
                       </div>
-                      <span className={item.done ? "text-gray-400 line-through" : "text-gray-600"}>{item.label}</span>
+                      {"href" in item && !item.done ? (
+                        <Link href={item.href!} className="text-green-600 hover:underline font-medium flex items-center gap-1">
+                          <Zap className="h-3 w-3" />
+                          {item.label}
+                        </Link>
+                      ) : (
+                        <span className={item.done ? "text-gray-400 line-through" : "text-gray-600"}>{item.label}</span>
+                      )}
                     </div>
                   ))}
+                </div>
                 </div>
                 <Link href="/dashboard/teacher/edit-profile">
                   <Button size="sm" variant="outline" className="w-full mt-4 text-xs">Complete Profile</Button>
                 </Link>
+                <Link href="/dashboard/teacher/specialization-quiz">
+                  <Button size="sm" className="w-full mt-2 text-xs bg-green-600 hover:bg-green-700 text-white flex items-center justify-center gap-1.5">
+                    <Zap className="h-3.5 w-3.5" />
+                    Take Subject Mastery Quiz
+                  </Button>
+                </Link>
               </div>
             )}
+
+            {/* Subject Mastery Prompt */}
+            <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border border-green-200 p-5">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="p-1.5 bg-green-100 rounded-lg">
+                  <Zap className="h-4 w-4 text-green-600" />
+                </div>
+                <h3 className="font-bold text-gray-900 text-sm">Subject Mastery</h3>
+              </div>
+              <p className="text-xs text-gray-600 leading-relaxed mb-4">
+                Take a 5-minute quiz on your subject. Your percentile rank appears on your profile and signals expertise to schools.
+              </p>
+              <div className="flex items-center gap-2 mb-4">
+                <TrendingUp className="h-4 w-4 text-green-600 flex-shrink-0" />
+                <span className="text-xs text-green-700 font-medium">Stand out from other applicants</span>
+              </div>
+              <Link href="/dashboard/teacher/specialization-quiz">
+                <Button size="sm" className="w-full bg-green-600 hover:bg-green-700 text-white text-xs">
+                  Start Quiz
+                </Button>
+              </Link>
+            </div>
 
             {/* Notifications */}
             {loadingNotifications ? (
