@@ -55,14 +55,13 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Fetch questions from the shared quiz_questions table, filtered by subject and quiz_type
+    // Fetch questions from the shared quiz_questions table, filtered by subject
     const { data: questions, error: questionsError } = await supabase
       .from("quiz_questions")
       .select("id, question_text, option_a, option_b, option_c, option_d")
       .eq("subject", subject)
-      .eq("quiz_type", "specialization")
       .eq("is_active", true)
-      .limit(QUESTION_COUNT * 3) // fetch more, then shuffle down
+      .limit(QUESTION_COUNT * 3)
 
     if (questionsError) throw questionsError
 
@@ -109,12 +108,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
     }
 
-    // Fetch the correct answers for the submitted question IDs
     const questionIds = Object.keys(answers)
     const { data: questions, error: questionsError } = await supabase
       .from("quiz_questions")
       .select("id, correct_option")
-      .eq("quiz_type", "specialization")
       .in("id", questionIds)
 
     if (questionsError) throw questionsError

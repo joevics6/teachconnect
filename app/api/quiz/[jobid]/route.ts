@@ -99,7 +99,6 @@ export async function GET(
       )
       .eq("subject", job.quiz_subject || job.subject)
       .eq("difficulty_level", job.quiz_difficulty || "sss")
-      .eq("quiz_type", "job")
       .eq("is_active", true)
       .limit(questionCount)
 
