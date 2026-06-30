@@ -121,46 +121,49 @@ VALUES
 
 -- ─── 3. JOB QUIZ — Biology JSS Theory (10 Written) ──────────
 -- Fetched by subject + difficulty_level. Mode = written.
--- Options are NULL — only question_text is sent to teacher; AI grades the answer.
+-- Options are set to '' (empty string) since columns are NOT NULL.
+-- The written quiz API only ever selects question_text, so the
+-- empty option values are never sent to the teacher or used.
+-- correct_option is left NULL since theory answers are AI-graded, not matched.
 
 INSERT INTO quiz_questions (subject, difficulty_level, question_text, option_a, option_b, option_c, option_d, correct_option, is_active)
 VALUES
 
 ('Biology', 'jss',
  'Explain the process of photosynthesis. State the raw materials needed, the products formed, and where the process takes place in the plant.',
- NULL, NULL, NULL, NULL, NULL, true),
+ '', '', '', '', NULL, true),
 
 ('Biology', 'jss',
  'What are the five characteristics of all living things? Give one example to illustrate each characteristic.',
- NULL, NULL, NULL, NULL, NULL, true),
+ '', '', '', '', NULL, true),
 
 ('Biology', 'jss',
  'Describe the structure of a cell and explain the function of any three cell organelles.',
- NULL, NULL, NULL, NULL, NULL, true),
+ '', '', '', '', NULL, true),
 
 ('Biology', 'jss',
  'What is the difference between sexual and asexual reproduction? Give one advantage of each type.',
- NULL, NULL, NULL, NULL, NULL, true),
+ '', '', '', '', NULL, true),
 
 ('Biology', 'jss',
  'Explain how the human digestive system breaks down food. Name the organs involved and state what happens at each stage.',
- NULL, NULL, NULL, NULL, NULL, true),
+ '', '', '', '', NULL, true),
 
 ('Biology', 'jss',
  'Describe the process of respiration in humans. How is it different from breathing?',
- NULL, NULL, NULL, NULL, NULL, true),
+ '', '', '', '', NULL, true),
 
 ('Biology', 'jss',
  'What is the importance of the skeleton in the human body? Name three bones and state their functions.',
- NULL, NULL, NULL, NULL, NULL, true),
+ '', '', '', '', NULL, true),
 
 ('Biology', 'jss',
  'Explain the food chain with an example from a Nigerian ecosystem. Identify the producer, primary consumer, and secondary consumer.',
- NULL, NULL, NULL, NULL, NULL, true),
+ '', '', '', '', NULL, true),
 
 ('Biology', 'jss',
  'What is fertilisation in flowering plants? Describe the events that occur from pollination to the formation of a seed.',
- NULL, NULL, NULL, NULL, NULL, true),
+ '', '', '', '', NULL, true),
 
 ('Biology', 'jss',
  'Explain three ways in which human activities affect the environment. Suggest one way to reduce each negative effect.',
