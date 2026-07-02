@@ -1,11 +1,12 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import {
   Building2, Briefcase, Users, GraduationCap, CreditCard,
   Settings, LogOut, Menu, X, CheckCircle2, Loader2, AlertCircle,
+  Camera, Upload,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { createClient } from "@/lib/supabase/client"
@@ -44,6 +45,11 @@ export default function SchoolEditProfilePage() {
   const router  = useRouter()
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
+  const [logoPreview,   setLogoPreview]   = useState<string | null>(null)
+  const [uploadingLogo, setUploadingLogo] = useState(false)
+  const [logoError,     setLogoError]     = useState("")
+  const logoInputRef = useRef<HTMLInputElement>(null)
+
   const [form,    setForm]    = useState<ProfileForm>({
     school_name: "", school_type: "", school_levels: [],
     state: "", lga: "", address: "", website: "",
@@ -61,6 +67,7 @@ export default function SchoolEditProfilePage() {
       .then((data) => {
         if (data.school) {
           const s = data.school
+          if (s.logo_url) setLogoPreview(s.logo_url)
           setForm({
             school_name:       s.school_name       || "",
             school_type:       s.school_type       || "",
@@ -87,6 +94,32 @@ export default function SchoolEditProfilePage() {
         ? prev.school_levels.filter((l) => l !== value)
         : [...prev.school_levels, value],
     }))
+  }
+
+  const handleLogoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setLogoError("")
+
+    const reader = new FileReader()
+    reader.onload = (ev) => setLogoPreview(ev.target?.result as string)
+    reader.readAsDataURL(file)
+
+    setUploadingLogo(true)
+    try {
+      const fd = new FormData()
+      fd.append("logo", file)
+      const res = await fetch("/api/school/profile/logo", { method: "POST", body: fd })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || "Upload failed")
+      setLogoPreview(data.logo_url)
+    } catch (err: unknown) {
+      setLogoError(err instanceof Error ? err.message : "Upload failed")
+      setLogoPreview(null)
+    } finally {
+      setUploadingLogo(false)
+      if (logoInputRef.current) logoInputRef.current.value = ""
+    }
   }
 
   const handleSave = async () => {
@@ -211,6 +244,47 @@ export default function SchoolEditProfilePage() {
           )}
 
           <div className="space-y-5">
+            {/* ── Logo Upload ── */}
+            <div className="bg-white rounded-xl border border-gray-200 p-6">
+              <h2 className="font-bold text-gray-900 mb-1">School Logo</h2>
+              <p className="text-xs text-gray-500 mb-4">JPG, PNG or WebP · Max 5MB · Shown on your profile and job listings</p>
+              <div className="flex items-center gap-5">
+                <div className="relative flex-shrink-0">
+                  <div className="w-20 h-20 rounded-xl overflow-hidden bg-gray-100 border border-gray-200 flex items-center justify-center">
+                    {logoPreview ? (
+                      <img src={logoPreview} alt="School logo" className="w-full h-full object-cover" />
+                    ) : (
+                      <Building2 className="h-8 w-8 text-gray-400" />
+                    )}
+                  </div>
+                  {uploadingLogo && (
+                    <div className="absolute inset-0 rounded-xl bg-black/40 flex items-center justify-center">
+                      <Loader2 className="h-5 w-5 text-white animate-spin" />
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1">
+                  <input
+                    ref={logoInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    className="hidden"
+                    onChange={handleLogoChange}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => logoInputRef.current?.click()}
+                    disabled={uploadingLogo}
+                    className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg text-sm text-gray-700 hover:border-green-400 hover:text-green-700 transition disabled:opacity-50"
+                  >
+                    <Camera className="h-4 w-4" />
+                    {uploadingLogo ? "Uploading…" : logoPreview ? "Change Logo" : "Upload Logo"}
+                  </button>
+                  {logoError && <p className="text-xs text-red-500 mt-2">{logoError}</p>}
+                </div>
+              </div>
+            </div>
+
             {/* ── School Info ── */}
             <div className="bg-white rounded-xl border border-gray-200 p-6">
               <h2 className="font-bold text-gray-900 mb-4">School Information</h2>
