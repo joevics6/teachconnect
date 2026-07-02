@@ -11,6 +11,7 @@ interface AuthUser {
   email: string
   role: "teacher" | "school"
   display_name: string
+  photo_url: string | null
 }
 
 export default function Navbar() {
@@ -23,62 +24,51 @@ export default function Navbar() {
     const supabase = createClient()
 
     const loadUser = async (userId: string, email: string, metadata: Record<string, unknown>) => {
-      // Use metadata role — avoids users table query which can hang
       const role = (metadata?.role as string) || "teacher"
-
-      // Fetch display name from the right profile table
       let display_name = (metadata?.full_name as string) || email
+      let photo_url: string | null = null
+
       try {
         if (role === "teacher") {
           const { data } = await supabase
             .from("teacher_profiles")
-            .select("full_name")
+            .select("full_name, photo_url")
             .eq("user_id", userId)
             .order("created_at", { ascending: false })
             .limit(1)
           if (data?.[0]?.full_name) display_name = data[0].full_name
+          if (data?.[0]?.photo_url) photo_url = data[0].photo_url
         } else {
           const { data } = await supabase
             .from("school_profiles")
-            .select("school_name")
+            .select("school_name, logo_url")
             .eq("user_id", userId)
             .order("created_at", { ascending: false })
             .limit(1)
           if (data?.[0]?.school_name) display_name = data[0].school_name
+          if (data?.[0]?.logo_url) photo_url = data[0].logo_url
         }
-      } catch {
-        // Silently fall back to metadata name
-      }
+      } catch { /* silently fall back */ }
 
-      return { id: userId, email, role: role as "teacher" | "school", display_name }
+      return { id: userId, email, role: role as "teacher" | "school", display_name, photo_url }
     }
 
-    // Listen for auth changes — this fires immediately with current state
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (event === "SIGNED_OUT" || !session) {
           setUser(null)
           setIsLoading(false)
         } else if (session?.user) {
-          const u = await loadUser(
-            session.user.id,
-            session.user.email || "",
-            session.user.user_metadata || {}
-          )
+          const u = await loadUser(session.user.id, session.user.email || "", session.user.user_metadata || {})
           setUser(u)
           setIsLoading(false)
         }
       }
     )
 
-    // Also get the initial session in case onAuthStateChange fires late
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session?.user) {
-        const u = await loadUser(
-          session.user.id,
-          session.user.email || "",
-          session.user.user_metadata || {}
-        )
+        const u = await loadUser(session.user.id, session.user.email || "", session.user.user_metadata || {})
         setUser(u)
       }
       setIsLoading(false)
@@ -89,15 +79,32 @@ export default function Navbar() {
 
   const handleLogout = async () => {
     const supabase = createClient()
-    await supabase.auth.signOut()
-    setUser(null)
+    setUser(null)        // clear UI immediately
     setUserMenuOpen(false)
+    setIsOpen(false)
+    await supabase.auth.signOut()
     window.location.href = "/"
   }
 
   const dashboardLink = user?.role === "school" ? "/dashboard/school" : "/dashboard/teacher"
   const getInitials = (name: string) =>
     name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
+
+  const Avatar = ({ size = "sm" }: { size?: "sm" | "lg" }) => {
+    const dim = size === "sm" ? "w-8 h-8" : "w-10 h-10"
+    const txt = size === "sm" ? "text-xs" : "text-sm"
+    return user?.photo_url ? (
+      <img
+        src={user.photo_url}
+        alt={user.display_name}
+        className={`${dim} rounded-full object-cover flex-shrink-0`}
+      />
+    ) : (
+      <div className={`${dim} rounded-full bg-green-100 flex items-center justify-center flex-shrink-0`}>
+        <span className={`text-green-700 font-bold ${txt}`}>{getInitials(user?.display_name || "U")}</span>
+      </div>
+    )
+  }
 
   return (
     <nav className="border-b bg-white sticky top-0 z-50">
@@ -117,9 +124,9 @@ export default function Navbar() {
 
           {/* Desktop Nav */}
           <div className="hidden md:flex items-center gap-6">
-            <Link href="/jobs" className="text-sm text-gray-600 hover:text-gray-900">Browse Jobs</Link>
-            <Link href="/talent" className="text-sm text-gray-600 hover:text-gray-900">Find Teachers</Link>
-            <Link href="/pricing" className="text-sm text-gray-600 hover:text-gray-900">Pricing</Link>
+            <Link href="/jobs"      className="text-sm text-gray-600 hover:text-gray-900">Browse Jobs</Link>
+            <Link href="/talent"    className="text-sm text-gray-600 hover:text-gray-900">Find Teachers</Link>
+            <Link href="/pricing"   className="text-sm text-gray-600 hover:text-gray-900">Pricing</Link>
             <Link href="/resources" className="text-sm text-gray-600 hover:text-gray-900">Resources</Link>
           </div>
 
@@ -130,26 +137,16 @@ export default function Navbar() {
             ) : user ? (
               <div className="relative">
                 <div className="flex items-center">
-                  <Link
-                    href={dashboardLink}
-                    className="flex items-center gap-2 pl-3 pr-1 py-2 rounded-l-xl hover:bg-gray-50 transition"
-                  >
-                    <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
-                      <span className="text-green-700 font-bold text-xs">
-                        {getInitials(user.display_name)}
-                      </span>
-                    </div>
+                  <Link href={dashboardLink} className="flex items-center gap-2 pl-2 pr-1 py-1.5 rounded-l-xl hover:bg-gray-50 transition">
+                    <Avatar size="sm" />
                     <div className="text-left hidden lg:block">
-                      <p className="text-xs font-semibold text-gray-900 max-w-32 truncate">
-                        {user.display_name}
-                      </p>
+                      <p className="text-xs font-semibold text-gray-900 max-w-32 truncate">{user.display_name}</p>
                       <p className="text-xs text-gray-400 capitalize">{user.role}</p>
                     </div>
                   </Link>
                   <button
                     onClick={() => setUserMenuOpen(!userMenuOpen)}
                     className="p-2 rounded-r-xl hover:bg-gray-50 transition"
-                    aria-label="Open user menu"
                   >
                     <ChevronDown className={`h-3.5 w-3.5 text-gray-400 transition-transform ${userMenuOpen ? "rotate-180" : ""}`} />
                   </button>
@@ -159,32 +156,29 @@ export default function Navbar() {
                   <>
                     <div className="fixed inset-0 z-10" onClick={() => setUserMenuOpen(false)} />
                     <div className="absolute right-0 top-full mt-1 w-48 bg-white border border-gray-200 rounded-xl shadow-lg z-20 overflow-hidden">
-                      <div className="px-3 py-2.5 border-b border-gray-100">
-                        <p className="text-xs font-semibold text-gray-900 truncate">{user.display_name}</p>
-                        <p className="text-xs text-gray-400 truncate">{user.email}</p>
+                      <div className="px-3 py-2.5 border-b border-gray-100 flex items-center gap-2">
+                        <Avatar size="sm" />
+                        <div className="min-w-0">
+                          <p className="text-xs font-semibold text-gray-900 truncate">{user.display_name}</p>
+                          <p className="text-xs text-gray-400 truncate">{user.email}</p>
+                        </div>
                       </div>
-                      <Link
-                        href={dashboardLink}
-                        className="flex items-center gap-2 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition"
-                        onClick={() => setUserMenuOpen(false)}
-                      >
-                        <LayoutDashboard className="h-4 w-4 text-gray-400" />
-                        Dashboard
+                      <Link href={dashboardLink} className="flex items-center gap-2 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition" onClick={() => setUserMenuOpen(false)}>
+                        <LayoutDashboard className="h-4 w-4 text-gray-400" />Dashboard
                       </Link>
                       <Link
-                        href={user.role === "school" ? "/dashboard/school/settings" : `/profile/teacher/me`}
+                        href={user.role === "school" ? "/dashboard/school/settings" : "/dashboard/teacher/edit-profile"}
                         className="flex items-center gap-2 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition"
                         onClick={() => setUserMenuOpen(false)}
                       >
                         <User className="h-4 w-4 text-gray-400" />
-                        {user.role === "school" ? "School Settings" : "My Profile"}
+                        {user.role === "school" ? "School Settings" : "Edit Profile"}
                       </Link>
                       <button
                         onClick={handleLogout}
                         className="flex items-center gap-2 px-3 py-2.5 text-sm text-red-600 hover:bg-red-50 transition w-full border-t border-gray-100"
                       >
-                        <LogOut className="h-4 w-4" />
-                        Log Out
+                        <LogOut className="h-4 w-4" />Log Out
                       </button>
                     </div>
                   </>
@@ -196,14 +190,10 @@ export default function Navbar() {
                   <Button variant="ghost" size="sm">Log in</Button>
                 </Link>
                 <Link href="/register/teacher">
-                  <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white">
-                    Find Jobs
-                  </Button>
+                  <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white">Find Jobs</Button>
                 </Link>
                 <Link href="/register/school">
-                  <Button size="sm" className="bg-blue-700 hover:bg-blue-800 text-white">
-                    Hire Teachers
-                  </Button>
+                  <Button size="sm" className="bg-blue-700 hover:bg-blue-800 text-white">Hire Teachers</Button>
                 </Link>
               </>
             )}
@@ -218,9 +208,9 @@ export default function Navbar() {
         {/* Mobile Menu */}
         {isOpen && (
           <div className="md:hidden py-4 border-t flex flex-col gap-4">
-            <Link href="/jobs" className="text-sm text-gray-600" onClick={() => setIsOpen(false)}>Browse Jobs</Link>
-            <Link href="/talent" className="text-sm text-gray-600" onClick={() => setIsOpen(false)}>Find Teachers</Link>
-            <Link href="/pricing" className="text-sm text-gray-600" onClick={() => setIsOpen(false)}>Pricing</Link>
+            <Link href="/jobs"      className="text-sm text-gray-600" onClick={() => setIsOpen(false)}>Browse Jobs</Link>
+            <Link href="/talent"    className="text-sm text-gray-600" onClick={() => setIsOpen(false)}>Find Teachers</Link>
+            <Link href="/pricing"   className="text-sm text-gray-600" onClick={() => setIsOpen(false)}>Pricing</Link>
             <Link href="/resources" className="text-sm text-gray-600" onClick={() => setIsOpen(false)}>Resources</Link>
             <div className="flex flex-col gap-2 pt-2 border-t">
               {isLoading ? (
@@ -228,9 +218,7 @@ export default function Navbar() {
               ) : user ? (
                 <>
                   <div className="flex items-center gap-3 px-1 py-2">
-                    <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
-                      <span className="text-green-700 font-bold text-xs">{getInitials(user.display_name)}</span>
-                    </div>
+                    <Avatar size="lg" />
                     <div>
                       <p className="text-sm font-semibold text-gray-900">{user.display_name}</p>
                       <p className="text-xs text-gray-400 capitalize">{user.role}</p>
@@ -241,12 +229,7 @@ export default function Navbar() {
                       <LayoutDashboard className="h-4 w-4" />Dashboard
                     </Button>
                   </Link>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="w-full text-red-500"
-                    onClick={handleLogout}
-                  >
+                  <Button size="sm" variant="ghost" className="w-full text-red-500" onClick={handleLogout}>
                     <LogOut className="h-4 w-4 mr-2" />Log Out
                   </Button>
                 </>

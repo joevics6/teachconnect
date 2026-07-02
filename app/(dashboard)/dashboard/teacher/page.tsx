@@ -327,6 +327,9 @@ export default function TeacherDashboardPage() {
 
   const handleLogout = async () => {
     const supabase = createClient()
+    // Clear local state immediately so UI updates before redirect
+    setProfile(null)
+    setUserName("Teacher")
     await supabase.auth.signOut()
     window.location.href = "/"
   }

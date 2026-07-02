@@ -1,9 +1,9 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { ArrowLeft, Save, Loader2, CheckCircle2, AlertCircle } from "lucide-react"
+import { ArrowLeft, Save, Loader2, CheckCircle2, AlertCircle, Camera, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { StateLgaSelect } from "@/components/ui/StateLgaSelect"
 import { SUBJECTS, TEACHING_LEVELS, NIGERIAN_STATES } from "@/lib/constants"
@@ -42,10 +42,14 @@ export default function EditTeacherProfilePage() {
     willing_to_relocate: false, accommodation_needed: false,
     availability: "immediate", salary_min: "",
   })
-  const [loading, setLoading]   = useState(true)
-  const [saving, setSaving]     = useState(false)
-  const [success, setSuccess]   = useState(false)
-  const [error, setError]       = useState("")
+  const [loading, setLoading]       = useState(true)
+  const [saving, setSaving]         = useState(false)
+  const [success, setSuccess]       = useState(false)
+  const [error, setError]           = useState("")
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null)
+  const [uploadingPhoto, setUploadingPhoto] = useState(false)
+  const [photoError, setPhotoError] = useState("")
+  const photoInputRef = useRef<HTMLInputElement>(null)
 
   // Load current profile
   useEffect(() => {
@@ -56,6 +60,7 @@ export default function EditTeacherProfilePage() {
         const data = await res.json()
         const p = data.profile
         if (!p) return
+        if (p.photo_url) setPhotoPreview(p.photo_url)
         setForm({
           full_name:           p.full_name          || "",
           phone:               p.phone              || "",
@@ -80,6 +85,35 @@ export default function EditTeacherProfilePage() {
 
   const toggle = <T extends string>(arr: T[], val: T): T[] =>
     arr.includes(val) ? arr.filter((x) => x !== val) : [...arr, val]
+
+  const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setPhotoError("")
+
+    // Show local preview immediately
+    const reader = new FileReader()
+    reader.onload = (ev) => setPhotoPreview(ev.target?.result as string)
+    reader.readAsDataURL(file)
+
+    // Upload to server
+    setUploadingPhoto(true)
+    try {
+      const fd = new FormData()
+      fd.append("photo", file)
+      const res = await fetch("/api/teacher/profile/photo", { method: "POST", body: fd })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || "Upload failed")
+      setPhotoPreview(data.photo_url)
+    } catch (err: unknown) {
+      setPhotoError(err instanceof Error ? err.message : "Upload failed")
+      setPhotoPreview(null)
+    } finally {
+      setUploadingPhoto(false)
+      // Reset input so same file can be re-selected
+      if (photoInputRef.current) photoInputRef.current.value = ""
+    }
+  }
 
   const handleSave = async () => {
     setError("")
@@ -161,6 +195,61 @@ export default function EditTeacherProfilePage() {
             <CheckCircle2 className="h-4 w-4 flex-shrink-0" />Profile saved! Redirecting…
           </div>
         )}
+
+        {/* Photo Upload */}
+        <section className="bg-white rounded-xl border border-gray-200 p-5">
+          <h2 className="font-bold text-gray-900 mb-4">Profile Photo</h2>
+          <div className="flex items-center gap-5">
+            {/* Avatar preview */}
+            <div className="relative flex-shrink-0">
+              <div className="w-20 h-20 rounded-full overflow-hidden bg-green-100 flex items-center justify-center">
+                {photoPreview ? (
+                  <img src={photoPreview} alt="Profile" className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-2xl font-bold text-green-700">
+                    {form.full_name ? form.full_name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2) : "?"}
+                  </span>
+                )}
+              </div>
+              {uploadingPhoto && (
+                <div className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center">
+                  <Loader2 className="h-5 w-5 text-white animate-spin" />
+                </div>
+              )}
+            </div>
+
+            {/* Upload controls */}
+            <div className="flex-1">
+              <input
+                ref={photoInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                className="hidden"
+                onChange={handlePhotoChange}
+              />
+              <button
+                type="button"
+                onClick={() => photoInputRef.current?.click()}
+                disabled={uploadingPhoto}
+                className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg text-sm text-gray-700 hover:border-green-400 hover:text-green-700 transition disabled:opacity-50"
+              >
+                <Camera className="h-4 w-4" />
+                {uploadingPhoto ? "Uploading…" : photoPreview ? "Change Photo" : "Upload Photo"}
+              </button>
+              {photoPreview && !uploadingPhoto && (
+                <button
+                  type="button"
+                  onClick={() => setPhotoPreview(null)}
+                  className="flex items-center gap-1.5 mt-2 text-xs text-red-500 hover:text-red-600 transition"
+                >
+                  <X className="h-3 w-3" />Remove photo
+                </button>
+              )}
+              <p className="text-xs text-gray-400 mt-2">JPG, PNG or WebP · Max 5MB · Uploads immediately</p>
+              {photoError && <p className="text-xs text-red-500 mt-1">{photoError}</p>}
+            </div>
+          </div>
+        </section>
 
         {/* Personal Info */}
         <section className="bg-white rounded-xl border border-gray-200 p-5 space-y-4">

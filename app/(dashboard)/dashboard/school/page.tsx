@@ -185,6 +185,8 @@ export default function SchoolDashboardPage() {
 
   const handleLogout = async () => {
     const supabase = createClient()
+    setSchool(null)
+    setSchoolName("School")
     await supabase.auth.signOut()
     window.location.href = "/"
   }
