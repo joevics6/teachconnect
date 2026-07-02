@@ -524,7 +524,6 @@ export default function TeacherDashboardPage() {
                     </div>
                   ))}
                 </div>
-                </div>
                 <Link href="/dashboard/teacher/edit-profile">
                   <Button size="sm" variant="outline" className="w-full mt-4 text-xs">Complete Profile</Button>
                 </Link>
