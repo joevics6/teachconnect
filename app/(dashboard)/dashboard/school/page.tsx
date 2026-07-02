@@ -17,6 +17,7 @@ const NAV_ITEMS = [
   { href: "/dashboard/school/jobs/applicants", label: "Applicants",  icon: Users      },
   { href: "/talent",                        label: "Browse Teachers", icon: GraduationCap },
   { href: "/dashboard/school/subscription", label: "Subscription",   icon: CreditCard },
+  { href: "/dashboard/school/edit-profile", label: "Edit Profile",   icon: Building2  },
   { href: "/dashboard/school/settings",     label: "Settings",       icon: Settings   },
 ]
 
