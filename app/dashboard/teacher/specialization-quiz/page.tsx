@@ -568,7 +568,7 @@ function ResultsScreen({
 
 // ─── Main Page ────────────────────────────────────────────────
 
-export default function SpecializationQuizPage() {
+function SpecializationQuizPage() {
   const searchParams = useSearchParams()
   const router = useRouter()
 
@@ -696,4 +696,18 @@ export default function SpecializationQuizPage() {
   }
 
   return null
+}
+
+import { Suspense } from "react"
+
+export default function SpecializationQuizPageWrapper() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Loader2 className="h-8 w-8 text-green-600 animate-spin" />
+      </div>
+    }>
+      <SpecializationQuizPage />
+    </Suspense>
+  )
 }
