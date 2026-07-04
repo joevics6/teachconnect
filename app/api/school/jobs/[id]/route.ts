@@ -17,8 +17,11 @@ export async function PATCH(
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
-    const { data: school } = await supabase
-      .from("school_profiles").select("id").eq("user_id", user.id).single()
+    const { data: schoolRows } = await supabase
+      .from("school_profiles").select("id").eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(1)
+    const school = (schoolRows ?? [])[0] ?? null
     if (!school) return NextResponse.json({ error: "Forbidden" }, { status: 403 })
 
     const body = await request.json()

@@ -18,12 +18,14 @@ export async function GET() {
     }
 
     // Get school_id from school_profiles
-    const { data: schoolProfile, error: schoolError } = await supabase
+    const { data: schoolRows, error: schoolError } = await supabase
       .from("school_profiles")
       .select("id")
       .eq("user_id", session.user.id)
-      .single()
+      .order("created_at", { ascending: false })
+      .limit(1)
 
+    const schoolProfile = (schoolRows ?? [])[0] ?? null
     if (schoolError || !schoolProfile) {
       return NextResponse.json({ error: "School profile not found" }, { status: 404 })
     }
@@ -54,12 +56,14 @@ export async function POST(request: Request) {
     }
 
     // Fetch school_id — jobs link to school_profiles.id, not auth user id
-    const { data: schoolProfile, error: schoolError } = await supabase
+    const { data: schoolRows, error: schoolError } = await supabase
       .from("school_profiles")
       .select("id")
       .eq("user_id", session.user.id)
-      .single()
+      .order("created_at", { ascending: false })
+      .limit(1)
 
+    const schoolProfile = (schoolRows ?? [])[0] ?? null
     if (schoolError || !schoolProfile) {
       return NextResponse.json(
         { error: "School profile not found. Please complete your school profile first." },

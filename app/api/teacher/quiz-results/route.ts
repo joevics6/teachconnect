@@ -15,8 +15,11 @@ export async function GET() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
-    const { data: teacher } = await supabase
-      .from("teacher_profiles").select("id").eq("user_id", user.id).single()
+    const { data: teacherRows } = await supabase
+      .from("teacher_profiles").select("id").eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(1)
+    const teacher = (teacherRows ?? [])[0] ?? null
 
     if (!teacher) return NextResponse.json({ error: "Not found" }, { status: 404 })
 

@@ -17,6 +17,7 @@ import {
   Menu,
   X,
   Star,
+  Zap,
   CheckCircle2,
   Clock,
   XCircle,

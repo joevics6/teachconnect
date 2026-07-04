@@ -17,8 +17,11 @@ export async function POST(request: Request) {
 
     const { job_id, mode, answers, score, passed, time_taken, written_feedback } = await request.json()
 
-    const { data: teacher } = await supabase
-      .from("teacher_profiles").select("id").eq("user_id", user.id).single()
+    const { data: teacherRows } = await supabase
+      .from("teacher_profiles").select("id").eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(1)
+    const teacher = (teacherRows ?? [])[0] ?? null
 
     if (!teacher) return NextResponse.json({ error: "Teacher profile not found" }, { status: 404 })
 

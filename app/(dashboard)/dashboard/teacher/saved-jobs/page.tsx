@@ -16,6 +16,7 @@ import {
   Menu,
   X,
   Star,
+  Zap,
   MapPin,
   Clock,
   Home,

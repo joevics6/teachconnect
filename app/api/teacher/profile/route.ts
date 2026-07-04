@@ -15,12 +15,14 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { data: profile, error } = await supabase
+    const { data: profileRows, error } = await supabase
       .from("teacher_profiles")
       .select("*")
       .eq("user_id", user.id)
-      .single()
+      .order("created_at", { ascending: false })
+      .limit(1)
 
+    const profile = (profileRows ?? [])[0] ?? null
     if (error || !profile) {
       return NextResponse.json(
         { error: "Profile not found" },
@@ -48,7 +50,8 @@ export async function GET() {
           sector, job_type, willing_to_relocate, availability, salary_min
         `)
         .eq("user_id", user.id)
-        .single()
+        .order("created_at", { ascending: false })
+        .limit(1)
     ])
 
     const formattedResults = (quizRes.data || []).map((r) => ({
@@ -62,7 +65,7 @@ export async function GET() {
 
     // Merge onboarding fields into profile so dashboard gets everything in one call
     // Fields in teacher_profiles take priority; onboarding fills the gaps
-    const onboarding = (onboardingRes.data || {}) as Record<string, unknown>
+    const onboarding = ((onboardingRes.data ?? [])[0] || {}) as Record<string, unknown>
     const mergedProfile = {
       ...profile,
       // Fill from onboarding if not set on profile
