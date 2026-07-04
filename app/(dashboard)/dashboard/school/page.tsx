@@ -170,7 +170,7 @@ export default function SchoolDashboardPage() {
       .then(async (res) => {
         if (!res.ok) return
         const data = await res.json()
-        setNotifications((data.notifications || []).slice(0, 3))
+        setNotifications(data.notifications || [])
       })
       .catch(() => {})
       .finally(() => setLoadingNotifications(false))
