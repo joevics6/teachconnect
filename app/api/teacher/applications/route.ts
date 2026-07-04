@@ -15,11 +15,13 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { data: teacher } = await supabase
+    const { data: teacherRows } = await supabase
       .from("teacher_profiles")
       .select("id")
       .eq("user_id", user.id)
-      .single()
+      .order("created_at", { ascending: false })
+      .limit(1)
+    const teacher = (teacherRows ?? [])[0] ?? null
 
     if (!teacher) {
       return NextResponse.json({ error: "Teacher profile not found" }, { status: 404 })

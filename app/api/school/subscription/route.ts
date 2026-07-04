@@ -15,25 +15,27 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { data: school } = await supabase
+    const { data: schoolRows } = await supabase
       .from("school_profiles")
       .select("id")
       .eq("user_id", user.id)
-      .single()
+      .order("created_at", { ascending: false })
+      .limit(1)
+    const school = (schoolRows ?? [])[0] ?? null
 
     if (!school) {
       return NextResponse.json({ error: "School not found" }, { status: 404 })
     }
 
     // Get active subscription
-    const { data: subscription } = await supabase
+    const { data: subRows } = await supabase
       .from("subscriptions")
       .select("*")
       .eq("school_id", school.id)
       .eq("is_active", true)
       .order("created_at", { ascending: false })
       .limit(1)
-      .single()
+    const subscription = (subRows ?? [])[0] ?? null
 
     // Get all subscription history
     const { data: history } = await supabase

@@ -32,14 +32,16 @@ export async function GET(request: Request) {
       .from("school_profiles")
       .select("id")
       .eq("user_id", user.id)
-      .single()
+      .order("created_at", { ascending: false })
+      .limit(1)
 
     let isPremium = false
-    if (school) {
+    const schoolObj = (school as unknown as {id:string}[] ?? [])[0] ?? null
+    if (schoolObj) {
       const { data: subscription } = await supabase
         .from("subscriptions")
         .select("id, plan_type, expires_at")
-        .eq("school_id", school.id)
+        .eq("school_id", schoolObj.id)
         .eq("is_active", true)
         .in("plan_type", ["standard", "term"])
         .gte("expires_at", new Date().toISOString())

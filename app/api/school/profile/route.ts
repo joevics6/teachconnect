@@ -18,11 +18,14 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { data: school, error } = await supabase
+    const { data: schoolRows, error } = await supabase
       .from("school_profiles")
       .select("*")
       .eq("user_id", user.id)
-      .single()
+      .order("created_at", { ascending: false })
+      .limit(1)
+
+    const school = (schoolRows ?? [])[0] ?? null
 
     if (error || !school) {
       return NextResponse.json(
@@ -102,11 +105,10 @@ export async function PATCH(request: Request) {
       .update(updates)
       .eq("user_id", user.id)
       .select()
-      .single()
 
     if (error) throw error
 
-    return NextResponse.json({ school: data })
+    return NextResponse.json({ school: (data ?? [])[0] ?? null })
   } catch (err) {
     console.error("PATCH school profile error:", err)
     return NextResponse.json(

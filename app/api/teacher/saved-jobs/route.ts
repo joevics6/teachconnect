@@ -17,11 +17,13 @@ export async function GET() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
-    const { data: teacher } = await supabase
+    const { data: teacherRows } = await supabase
       .from("teacher_profiles")
       .select("id")
       .eq("user_id", user.id)
-      .single()
+      .order("created_at", { ascending: false })
+      .limit(1)
+    const teacher = (teacherRows ?? [])[0] ?? null
 
     if (!teacher) return NextResponse.json({ error: "Not found" }, { status: 404 })
 
@@ -102,8 +104,11 @@ export async function POST(request: Request) {
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
     const { job_id } = await request.json()
-    const { data: teacher } = await supabase
-      .from("teacher_profiles").select("id").eq("user_id", user.id).single()
+    const { data: teacherRows } = await supabase
+      .from("teacher_profiles").select("id").eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(1)
+    const teacher = (teacherRows ?? [])[0] ?? null
 
     if (!teacher) return NextResponse.json({ error: "Not found" }, { status: 404 })
 
@@ -127,15 +132,18 @@ export async function DELETE(request: Request) {
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
     const { job_id } = await request.json()
-    const { data: teacher } = await supabase
-      .from("teacher_profiles").select("id").eq("user_id", user.id).single()
+    const { data: teacherRows3 } = await supabase
+      .from("teacher_profiles").select("id").eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(1)
+    const teacher3 = (teacherRows3 ?? [])[0] ?? null
 
-    if (!teacher) return NextResponse.json({ error: "Not found" }, { status: 404 })
+    if (!teacher3) return NextResponse.json({ error: "Not found" }, { status: 404 })
 
     const { error } = await supabase
       .from("saved_jobs")
       .delete()
-      .eq("teacher_id", teacher.id)
+      .eq("teacher_id", teacher3.id)
       .eq("job_id", job_id)
 
     if (error) throw error

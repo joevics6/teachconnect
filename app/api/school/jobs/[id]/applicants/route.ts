@@ -19,11 +19,13 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { data: school } = await supabase
+    const { data: schoolRows } = await supabase
       .from("school_profiles")
       .select("id")
       .eq("user_id", user.id)
-      .single()
+      .order("created_at", { ascending: false })
+      .limit(1)
+    const school = (schoolRows ?? [])[0] ?? null
 
     if (!school) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
