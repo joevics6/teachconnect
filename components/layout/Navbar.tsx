@@ -116,14 +116,14 @@ export default function Navbar() {
             <div className="bg-green-600 text-white p-1.5 rounded-lg">
               <GraduationCap className="h-5 w-5" />
             </div>
-            <div className="flex flex-col leading-none">
-              <span className="font-bold text-sm text-gray-900">JobMeter</span>
-              <span className="font-bold text-sm text-green-600">TeachConnect</span>
-            </div>
+            <span className="font-bold text-base text-gray-900">Teach<span className="text-green-600">Connect</span></span>
           </Link>
 
           {/* Desktop Nav */}
           <div className="hidden md:flex items-center gap-6">
+            {user && (
+              <Link href={dashboardLink} className="text-sm font-medium text-green-700 hover:text-green-800">Dashboard</Link>
+            )}
             <Link href="/jobs"      className="text-sm text-gray-600 hover:text-gray-900">Browse Jobs</Link>
             <Link href="/talent"    className="text-sm text-gray-600 hover:text-gray-900">Find Teachers</Link>
             <Link href="/pricing"   className="text-sm text-gray-600 hover:text-gray-900">Pricing</Link>
@@ -208,6 +208,9 @@ export default function Navbar() {
         {/* Mobile Menu */}
         {isOpen && (
           <div className="md:hidden py-4 border-t flex flex-col gap-4">
+            {user && (
+              <Link href={dashboardLink} className="text-sm font-medium text-green-700" onClick={() => setIsOpen(false)}>Dashboard</Link>
+            )}
             <Link href="/jobs"      className="text-sm text-gray-600" onClick={() => setIsOpen(false)}>Browse Jobs</Link>
             <Link href="/talent"    className="text-sm text-gray-600" onClick={() => setIsOpen(false)}>Find Teachers</Link>
             <Link href="/pricing"   className="text-sm text-gray-600" onClick={() => setIsOpen(false)}>Pricing</Link>

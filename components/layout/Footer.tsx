@@ -131,6 +131,9 @@ export default function Footer() {
             All rights reserved.
           </p>
           <div className="flex gap-4">
+            <Link href="/contact" className="hover:text-white transition">
+              Contact
+            </Link>
             <Link href="/privacy" className="hover:text-white transition">
               Privacy Policy
             </Link>
