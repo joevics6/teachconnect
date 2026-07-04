@@ -7,11 +7,11 @@ import Footer from "@/components/layout/Footer"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "JobMeter TeachConnect — Nigeria's Teacher Recruitment Platform",
+  title: "TeachConnect — Nigeria's Teacher Recruitment Platform",
   description:
     "Find teaching jobs across Nigeria or hire pre-screened, qualified teachers for your school. Nigeria's only dedicated teacher recruitment platform.",
   keywords:
-    "teacher jobs nigeria, school recruitment, teaching jobs lagos, hire teachers nigeria",
+    "teacher jobs nigeria, school recruitment, teaching jobs lagos, hire teachers nigeria, teachconnect",
 }
 
 export default function RootLayout({
