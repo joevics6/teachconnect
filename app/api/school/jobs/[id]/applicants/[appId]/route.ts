@@ -84,7 +84,32 @@ export async function PATCH(
       }
     }
 
-    if (updates.pipeline_stage === "shortlisted") {
+    // Notify teacher on any meaningful stage change
+    const notifiableStages: Record<string, { type: string; title: string; message: (school: string, job: string) => string }> = {
+      shortlisted: {
+        type: "application_shortlisted",
+        title: "Your application has been shortlisted",
+        message: (school, job) => `${school} has shortlisted you for ${job}. They may be in touch soon.`,
+      },
+      interviewed: {
+        type: "application_interviewed",
+        title: "Interview stage reached",
+        message: (school, job) => `${school} has moved you to the interview stage for ${job}.`,
+      },
+      offered: {
+        type: "application_offered",
+        title: "You have received a job offer!",
+        message: (school, job) => `${school} has made you an offer for ${job}. Log in to review the details.`,
+      },
+      rejected: {
+        type: "application_rejected",
+        title: "Application update",
+        message: (school, job) => `Your application for ${job} at ${school} was not successful this time.`,
+      },
+    }
+
+    if (updates.pipeline_stage && notifiableStages[updates.pipeline_stage as string]) {
+      const stageInfo = notifiableStages[updates.pipeline_stage as string]
       const { data: application } = await supabase
         .from("applications")
         .select("teacher_id, teacher_profiles(user_id), jobs(title, school_profiles(school_name))")
@@ -92,13 +117,20 @@ export async function PATCH(
         .single()
 
       if (application?.teacher_profiles) {
-        const teacherProfile = (Array.isArray(application.teacher_profiles) ? application.teacher_profiles[0] : application.teacher_profiles) as unknown as { user_id: string }
-        const jobData = (Array.isArray(application.jobs) ? application.jobs[0] : application.jobs) as unknown as { title: string; school_profiles: { school_name: string } }
+        const teacherProfile = (Array.isArray(application.teacher_profiles)
+          ? application.teacher_profiles[0]
+          : application.teacher_profiles) as unknown as { user_id: string }
+        const jobData = (Array.isArray(application.jobs)
+          ? application.jobs[0]
+          : application.jobs) as unknown as { title: string; school_profiles: { school_name: string } }
+        const schoolName = jobData?.school_profiles?.school_name || "The school"
+        const jobTitle = jobData?.title || "the position"
+
         await supabase.from("notifications").insert({
           user_id: teacherProfile.user_id,
-          type: "application_shortlisted",
-          title: "Your application has been shortlisted",
-          message: `${jobData?.school_profiles?.school_name} has shortlisted you for ${jobData?.title}.`,
+          type: stageInfo.type,
+          title: stageInfo.title,
+          message: stageInfo.message(schoolName, jobTitle),
           metadata: { job_id: jobId, application_id: appId },
         })
       }

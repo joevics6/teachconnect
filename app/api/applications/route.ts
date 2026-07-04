@@ -88,6 +88,28 @@ export async function POST(request: Request) {
       })
     }
 
+    // Notify teacher of their quiz result
+    const { data: job2 } = await supabase
+      .from("jobs")
+      .select("title, school_profiles(school_name)")
+      .eq("id", job_id)
+      .single()
+
+    const jobTitle2 = (job2 as unknown as { title: string })?.title || "the position"
+    const schoolName2 = ((Array.isArray((job2 as unknown as { school_profiles: unknown })?.school_profiles)
+      ? ((job2 as unknown as { school_profiles: { school_name: string }[] })?.school_profiles)[0]
+      : (job2 as unknown as { school_profiles: { school_name: string } })?.school_profiles) as { school_name: string })?.school_name || "The school"
+
+    await supabase.from("notifications").insert({
+      user_id: user.id,
+      type: passed ? "quiz_passed" : "quiz_failed",
+      title: passed ? "Quiz passed — application submitted!" : "Quiz not passed",
+      message: passed
+        ? `You scored ${score}% on the ${jobTitle2} quiz at ${schoolName2}. Your application has been submitted.`
+        : `You scored ${score}% on the ${jobTitle2} quiz at ${schoolName2}. The required pass mark was not met.`,
+      metadata: { job_id, application_id: application?.id, quiz_score: score },
+    })
+
     return NextResponse.json({ application, attempt })
   } catch (err) {
     console.error("POST application error:", err)

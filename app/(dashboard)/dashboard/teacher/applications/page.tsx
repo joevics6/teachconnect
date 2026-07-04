@@ -35,6 +35,7 @@ const NAV_ITEMS = [
   { href: "/dashboard/teacher/applications", label: "My Applications", icon: Briefcase },
   { href: "/dashboard/teacher/saved-jobs", label: "Saved Jobs", icon: BookOpen },
   { href: "/dashboard/teacher/quiz-results", label: "Quiz Results", icon: Star },
+  { href: "/dashboard/teacher/specialization-quiz", label: "Subject Mastery", icon: Zap },
   { href: "/profile/teacher/me", label: "My Profile", icon: User },
   { href: "/dashboard/teacher/settings", label: "Settings", icon: Settings },
 ]
