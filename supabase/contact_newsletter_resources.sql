@@ -23,7 +23,27 @@ CREATE POLICY "Anyone can submit contact form"
   WITH CHECK (true);
 
 
--- ─── 2. Resource Posts ───────────────────────────────────────
+-- ─── 2. Newsletter Subscribers ───────────────────────────────
+
+CREATE TABLE newsletter_subscribers (
+  id            uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  email         text UNIQUE NOT NULL,
+  is_active     boolean DEFAULT true,
+  subscribed_at timestamptz DEFAULT now()
+);
+
+ALTER TABLE newsletter_subscribers ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Anyone can subscribe"
+  ON newsletter_subscribers FOR INSERT
+  WITH CHECK (true);
+
+CREATE POLICY "Can check own subscription"
+  ON newsletter_subscribers FOR SELECT
+  USING (true);
+
+
+-- ─── 3. Resource Posts ───────────────────────────────────────
 -- Supports: articles, PDFs, documents, videos, YouTube links
 -- Each row is a full SEO page at /resources/[slug]
 
