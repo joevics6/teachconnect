@@ -26,7 +26,11 @@ interface Post {
   slug: string
   excerpt: string
   category: string
+  resource_type: string
   cover_image_url: string | null
+  read_time_minutes: number | null
+  tags: string[]
+  download_count: number
   published_at: string
 }
 
@@ -47,6 +51,7 @@ const CATEGORIES = [
   { value: "School Management", label: "School Management" },
   { value: "TRCN Guide", label: "TRCN Guide" },
   { value: "Salary Insights", label: "Salary Insights" },
+  { value: "Curriculum Guide", label: "Curriculum Guide" },
 ]
 
 const CATEGORY_ICONS: Record<string, React.ElementType> = {
@@ -102,13 +107,23 @@ function PostCard({ post }: { post: Post }) {
             {post.excerpt}
           </p>
           <div className="flex items-center justify-between">
-            <p className="text-xs text-gray-400">
-              {new Date(post.published_at).toLocaleDateString("en-NG", {
-                day: "numeric",
-                month: "short",
-                year: "numeric",
-              })}
-            </p>
+            <div className="flex items-center gap-2">
+              {post.resource_type && post.resource_type !== "article" && (
+                <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 capitalize">
+                  {post.resource_type === "youtube" ? "video" : post.resource_type}
+                </span>
+              )}
+              {post.read_time_minutes && (
+                <span className="text-xs text-gray-400">{post.read_time_minutes} min</span>
+              )}
+              {!post.read_time_minutes && (
+                <p className="text-xs text-gray-400">
+                  {new Date(post.published_at).toLocaleDateString("en-NG", {
+                    day: "numeric", month: "short", year: "numeric",
+                  })}
+                </p>
+              )}
+            </div>
             <span className="text-xs text-green-600 font-medium flex items-center gap-1 group-hover:gap-2 transition-all">
               Read more <ArrowRight className="h-3 w-3" />
             </span>

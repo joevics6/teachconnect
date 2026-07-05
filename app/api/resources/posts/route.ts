@@ -12,7 +12,7 @@ export async function GET() {
  
     const { data: posts, error } = await supabase
       .from("resource_posts")
-      .select("id, title, slug, excerpt, category, cover_image_url, published_at")
+      .select("id, title, slug, excerpt, category, resource_type, cover_image_url, read_time_minutes, tags, download_count, published_at")
       .eq("is_published", true)
       .order("published_at", { ascending: false })
  
