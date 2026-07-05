@@ -8,13 +8,9 @@ export async function POST(
   try {
     const { slug } = await params
     const supabase = await createClient()
-    const { slug } = await params
-
     await supabase.rpc("increment_resource_count", { resource_slug: slug })
-
     return NextResponse.json({ success: true })
   } catch {
-    // Non-critical — don't fail the user action
     return NextResponse.json({ success: true })
   }
 }
