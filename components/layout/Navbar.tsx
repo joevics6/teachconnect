@@ -124,8 +124,12 @@ export default function Navbar() {
             {user && (
               <Link href={dashboardLink} className="text-sm font-medium text-green-700 hover:text-green-800">Dashboard</Link>
             )}
-            <Link href="/jobs"      className="text-sm text-gray-600 hover:text-gray-900">Browse Jobs</Link>
-            <Link href="/talent"    className="text-sm text-gray-600 hover:text-gray-900">Find Teachers</Link>
+            {(!user || user.role === "teacher") && (
+              <Link href="/jobs" className="text-sm text-gray-600 hover:text-gray-900">Browse Jobs</Link>
+            )}
+            {(!user || user.role === "school") && (
+              <Link href="/talent" className="text-sm text-gray-600 hover:text-gray-900">Find Teachers</Link>
+            )}
             <Link href="/pricing"   className="text-sm text-gray-600 hover:text-gray-900">Pricing</Link>
             <Link href="/resources" className="text-sm text-gray-600 hover:text-gray-900">Resources</Link>
           </div>
@@ -209,10 +213,14 @@ export default function Navbar() {
         {isOpen && (
           <div className="md:hidden py-4 border-t flex flex-col gap-4">
             {user && (
-              <Link href={dashboardLink} className="text-sm font-medium text-green-700" onClick={() => setIsOpen(false)}>Dashboard</Link>
+              <Link href={dashboardLink} className="text-sm font-bold text-green-700" onClick={() => setIsOpen(false)}>Dashboard</Link>
             )}
-            <Link href="/jobs"      className="text-sm text-gray-600" onClick={() => setIsOpen(false)}>Browse Jobs</Link>
-            <Link href="/talent"    className="text-sm text-gray-600" onClick={() => setIsOpen(false)}>Find Teachers</Link>
+            {(!user || user.role === "teacher") && (
+              <Link href="/jobs" className="text-sm text-gray-600" onClick={() => setIsOpen(false)}>Browse Jobs</Link>
+            )}
+            {(!user || user.role === "school") && (
+              <Link href="/talent" className="text-sm text-gray-600" onClick={() => setIsOpen(false)}>Find Teachers</Link>
+            )}
             <Link href="/pricing"   className="text-sm text-gray-600" onClick={() => setIsOpen(false)}>Pricing</Link>
             <Link href="/resources" className="text-sm text-gray-600" onClick={() => setIsOpen(false)}>Resources</Link>
             <div className="flex flex-col gap-2 pt-2 border-t">
