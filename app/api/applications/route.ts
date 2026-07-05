@@ -58,19 +58,36 @@ export async function POST(request: Request) {
     }
 
     // Create application
+    const applicationData: Record<string, unknown> = {
+      teacher_id: teacher.id,
+      job_id,
+      quiz_attempt_id: attemptId,
+      pipeline_stage: "applied",
+    }
+    // Only include cover_letter if provided (column may not exist in older DBs)
+    if (cover_letter) applicationData.cover_letter = cover_letter
+
     const { data: application, error: appError } = await supabase
       .from("applications")
-      .insert({
-        teacher_id: teacher.id,
-        job_id,
-        quiz_attempt_id: attemptId,
-        pipeline_stage: "applied",
-        cover_letter: cover_letter || null,
-      })
+      .insert(applicationData)
       .select()
       .single()
 
-    if (appError) throw appError
+    if (appError) {
+      // If cover_letter column doesn't exist, retry without it
+      if (appError.code === "42703" && cover_letter) {
+        delete applicationData.cover_letter
+        const { data: app2, error: app2Error } = await supabase
+          .from("applications")
+          .insert(applicationData)
+          .select()
+          .single()
+        if (app2Error) throw app2Error
+        Object.assign(application ?? {}, app2)
+      } else {
+        throw appError
+      }
+    }
 
     // Notify school
     const { data: job } = await supabase

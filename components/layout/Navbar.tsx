@@ -212,8 +212,10 @@ export default function Navbar() {
         {/* Mobile Menu */}
         {isOpen && (
           <div className="md:hidden py-4 border-t flex flex-col gap-4">
-            {user && (
-              <Link href={dashboardLink} className="text-sm font-bold text-green-700" onClick={() => setIsOpen(false)}>Dashboard</Link>
+            {(user || isLoading) && (
+              isLoading
+                ? <div className="h-5 w-24 bg-gray-100 rounded animate-pulse" />
+                : <Link href={dashboardLink} className="text-base font-bold text-green-700" onClick={() => setIsOpen(false)}>Dashboard</Link>
             )}
             {(!user || user.role === "teacher") && (
               <Link href="/jobs" className="text-sm text-gray-600" onClick={() => setIsOpen(false)}>Browse Jobs</Link>
