@@ -6,43 +6,26 @@ export async function GET() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: "Not authenticated" }, { status: 401 })
 
-  const { data: schoolProfiles, error: spErr } = await supabase
+  // Get the full column list with NOT NULL info from information_schema
+  const { data: columns } = await supabase
+    .from("information_schema.columns" as never)
+    .select("column_name, data_type, is_nullable, column_default")
+    .eq("table_name", "school_profiles")
+    .eq("table_schema", "public")
+    .order("ordinal_position")
+
+  const { data: schoolProfiles } = await supabase
     .from("school_profiles")
     .select("*")
     .eq("user_id", user.id)
 
-  // Try to auto-create if missing
-  let autoCreated = null
-  let autoCreateError = null
-  if (!schoolProfiles?.length) {
-    const meta = user.user_metadata || {}
-    const { data: created, error: cErr } = await supabase
-      .from("school_profiles")
-      .insert({
-        user_id:       user.id,
-        school_name:   (meta.school_name as string) || (meta.full_name as string) || "My School",
-        school_type:   "private",
-        state:         "",
-        lga:           "",
-        contact_name:  (meta.full_name as string) || "",
-        contact_email: user.email || "",
-        contact_phone: (meta.phone as string) || "",
-        address:       "",
-        is_verified:   false,
-      })
-      .select("*")
-    autoCreated = created
-    autoCreateError = cErr?.message || null
-  }
-
   return NextResponse.json({
-    user_id:             user.id,
-    email:               user.email,
-    role:                user.user_metadata?.role,
-    school_profiles:     schoolProfiles ?? [],
-    school_profiles_err: spErr?.message ?? null,
-    auto_create_attempt: !schoolProfiles?.length,
-    auto_created:        autoCreated,
-    auto_create_error:   autoCreateError,
+    user_id: user.id,
+    email:   user.email,
+    role:    user.user_metadata?.role,
+    school_profiles_count: schoolProfiles?.length ?? 0,
+    school_profiles: schoolProfiles ?? [],
+    not_null_columns: (columns ?? []).filter((c: {is_nullable: string}) => c.is_nullable === "NO"),
+    all_columns: columns ?? [],
   })
 }
