@@ -156,8 +156,9 @@ export async function POST(request: Request) {
       })
  
     if (profileError) {
-      // Cleanup: delete the auth user if profile creation fails
-      await supabase.auth.admin.deleteUser(userId)
+      // Don't call admin.deleteUser — requires service role key and crashes the server
+      // The auth user exists but has no profile — auto-create will handle it on login
+      console.error("Teacher profile insert failed:", profileError)
       throw profileError
     }
 

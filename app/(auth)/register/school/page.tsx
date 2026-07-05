@@ -138,8 +138,9 @@ export default function SchoolRegisterPage() {
       // Build payload
       const payload = new FormData()
       Object.entries(formData).forEach(([key, value]) => {
-        if (value instanceof File) {
-          payload.append(key, value)
+        if (key === "logo_file") {
+          // Only append if it's actually a File — skip null/undefined
+          if (value instanceof File) payload.append(key, value)
         } else if (Array.isArray(value)) {
           payload.append(key, JSON.stringify(value))
         } else if (value !== null && value !== undefined) {
@@ -154,7 +155,9 @@ export default function SchoolRegisterPage() {
 
       let data: { error?: string } = {}
       try { data = await res.json() } catch { /* empty response */ }
-      if (!res.ok) throw new Error(data.error || "Registration failed")
+
+      // 207 means auth user created but profile setup failed — still sign in
+      if (!res.ok && res.status !== 207) throw new Error(data.error || "Registration failed")
 
       // Sign in client-side so browser gets auth session
       const supabase = createClient()

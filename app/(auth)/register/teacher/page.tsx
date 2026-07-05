@@ -351,9 +351,10 @@ export default function TeacherRegisterPage() {
     try {
       const payload = new FormData()
       Object.entries(formData).forEach(([key, value]) => {
-        if (value instanceof File)   payload.append(key, value)
+        if (value instanceof File)    payload.append(key, value)
+        else if (value === null || value === undefined) { /* skip nulls */ }
         else if (Array.isArray(value)) payload.append(key, JSON.stringify(value))
-        else                         payload.append(key, String(value ?? ""))
+        else                           payload.append(key, String(value))
       })
       payload.append("onboarding_cache", JSON.stringify(onboardingCache.current))
       if (cvFile) payload.append("cv_file", cvFile)
