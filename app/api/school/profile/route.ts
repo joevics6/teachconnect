@@ -30,6 +30,7 @@ export async function GET() {
         school_type:   (meta.school_type as string)  || "private",
         state:         (meta.state as string)        || "",
         lga:           (meta.lga as string)          || "",
+        address:       (meta.address as string)      || "",
         contact_name:  (meta.full_name as string)    || "",
         contact_email: user.email                    || "",
         contact_phone: (meta.phone as string)        || "",

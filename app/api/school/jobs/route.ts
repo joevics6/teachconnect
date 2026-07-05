@@ -28,6 +28,7 @@ async function getSchoolProfile(supabase: Awaited<ReturnType<typeof createClient
       contact_name:  (meta.full_name as string) || "",
       contact_email: user?.email || "",
       contact_phone: (meta.phone as string) || "",
+      address:       "",
       is_verified:   false,
     })
     .select("id, school_name")

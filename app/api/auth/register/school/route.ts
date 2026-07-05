@@ -92,6 +92,7 @@ export async function POST(request: Request) {
       school_type,
       state,
       lga,
+      address:      address || "",   // NOT NULL — always include
       contact_name,
       contact_email,
       contact_phone,
@@ -99,7 +100,6 @@ export async function POST(request: Request) {
     }
     // Optional fields — add only if non-empty to avoid column-not-found errors
     if (school_levels?.length)  profilePayload.school_levels    = school_levels
-    if (address)                profilePayload.address           = address
     if (website)                profilePayload.website           = website
     if (contact_role)           profilePayload.contact_role      = contact_role
     if (contact_phone_alt)      profilePayload.contact_phone_alt = contact_phone_alt
@@ -122,6 +122,7 @@ export async function POST(request: Request) {
           school_type,
           state,
           lga,
+          address:      address || "",
           contact_name,
           contact_email,
           contact_phone,

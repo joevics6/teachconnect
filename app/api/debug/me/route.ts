@@ -27,6 +27,7 @@ export async function GET() {
         contact_name:  (meta.full_name as string) || "",
         contact_email: user.email || "",
         contact_phone: (meta.phone as string) || "",
+        address:       "",
         is_verified:   false,
       })
       .select("*")
