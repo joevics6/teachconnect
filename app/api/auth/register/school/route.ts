@@ -87,25 +87,25 @@ export async function POST(request: Request) {
     // ── Insert school profile ───────────────────────────────────
     // Only include columns we know exist; use a safe subset
     const profilePayload: Record<string, unknown> = {
-      user_id:      userId,
+      user_id:           userId,
       school_name,
       school_type,
       state,
       lga,
-      address:      address || "",   // NOT NULL — always include
+      address:           address || "",
       contact_name,
       contact_email,
       contact_phone,
-      is_verified:  false,
+      contact_role:      contact_role || "",
+      contact_phone_alt: contact_phone_alt || "",
+      website:           website || "",
+      school_levels:     school_levels || [],
+      logo_url:          logo_url || null,
+      cac_number:        cac_number || "",
+      is_verified:       false,
+      is_registered:     is_registered === "yes",
     }
     // Optional fields — add only if non-empty to avoid column-not-found errors
-    if (school_levels?.length)  profilePayload.school_levels    = school_levels
-    if (website)                profilePayload.website           = website
-    if (contact_role)           profilePayload.contact_role      = contact_role
-    if (contact_phone_alt)      profilePayload.contact_phone_alt = contact_phone_alt
-    if (cac_number)             profilePayload.cac_number        = cac_number
-    if (logo_url)               profilePayload.logo_url          = logo_url
-    if (is_registered)          profilePayload.is_registered     = is_registered === "yes"
 
     const { error: profileError } = await supabase
       .from("school_profiles")
@@ -117,16 +117,22 @@ export async function POST(request: Request) {
       const { error: minimalError } = await supabase
         .from("school_profiles")
         .insert({
-          user_id:      userId,
+          user_id:           userId,
           school_name,
           school_type,
           state,
           lga,
-          address:      address || "",
+          address:           address || "",
           contact_name,
           contact_email,
           contact_phone,
-          is_verified:  false,
+          contact_role:      contact_role || "",
+          contact_phone_alt: contact_phone_alt || "",
+          website:           website || "",
+          school_levels:     school_levels || [],
+          cac_number:        cac_number || "",
+          is_verified:       false,
+          is_registered:     is_registered === "yes",
         })
       if (minimalError) {
         // Clean up the auth user since profile creation failed

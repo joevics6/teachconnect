@@ -25,16 +25,23 @@ export async function GET() {
     if (!school) {
       const meta = user.user_metadata || {}
       const seed = {
-        user_id:       user.id,
-        school_name:   (meta.school_name as string)  || (meta.full_name as string) || "My School",
-        school_type:   (meta.school_type as string)  || "private",
-        state:         (meta.state as string)        || "",
-        lga:           (meta.lga as string)          || "",
-        address:       (meta.address as string)      || "",
-        contact_name:  (meta.full_name as string)    || "",
-        contact_email: user.email                    || "",
-        contact_phone: (meta.phone as string)        || "",
-        is_verified:   false,
+        user_id:           user.id,
+        school_name:       (meta.school_name as string) || (meta.full_name as string) || "My School",
+        school_type:       (meta.school_type as string) || "private",
+        state:             (meta.state as string) || "",
+        lga:               (meta.lga as string) || "",
+        address:           "",
+        contact_name:      (meta.full_name as string) || "",
+        contact_email:     user.email || "",
+        contact_phone:     "",
+        contact_role:      "",
+        contact_phone_alt: "",
+        website:           "",
+        school_levels:     [],
+        logo_url:          null,
+        cac_number:        "",
+        is_verified:       false,
+        is_registered:     false,
       }
 
       const { data: created, error: createError } = await supabase
