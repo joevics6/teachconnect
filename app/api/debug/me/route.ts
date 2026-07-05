@@ -16,27 +16,25 @@ export async function GET() {
 
   if (!schoolProfiles?.length) {
     const meta = user.user_metadata || {}
-    // Insert every column from the schema screenshot with safe defaults
     const { data: created, error: cErr } = await supabase
       .from("school_profiles")
       .insert({
         user_id:           user.id,
         school_name:       (meta.full_name as string) || "My School",
         school_type:       "private",
+        school_levels:     [],
         state:             "",
         lga:               "",
         address:           "",
+        website:           null,
         contact_name:      (meta.full_name as string) || "",
+        contact_role:      "",
         contact_email:     user.email || "",
         contact_phone:     "",
-        contact_role:      "",
-        contact_phone_alt: "",
-        website:           "",
-        school_levels:     [],
-        logo_url:          null,
+        contact_phone_alt: null,
         cac_number:        "",
+        logo_url:          null,
         is_verified:       false,
-        is_registered:     false,
       })
       .select("*")
     autoCreated = created

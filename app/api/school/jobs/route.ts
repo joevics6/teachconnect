@@ -18,24 +18,23 @@ async function getSchoolProfile(supabase: Awaited<ReturnType<typeof createClient
   const { data: created } = await supabase
     .from("school_profiles")
     .insert({
-      user_id:           userId,
-      school_name:       (meta.school_name as string) || (meta.full_name as string) || "My School",
-      school_type:       (meta.school_type as string) || "private",
-      state:             (meta.state as string) || "",
-      lga:               (meta.lga as string) || "",
-      address:           "",
-      contact_name:      (meta.full_name as string) || "",
-      contact_email:     user?.email || "",
-      contact_phone:     "",
-      contact_role:      "",
-      contact_phone_alt: "",
-      website:           "",
-      school_levels:     [],
-      logo_url:          null,
-      cac_number:        "",
-      is_verified:       false,
-      is_registered:     false,
-    })
+        user_id:           userId,
+        school_name:       (meta.school_name as string) || (meta.full_name as string) || "My School",
+        school_type:       (meta.school_type as string) || "private",
+        school_levels:     [],
+        state:             (meta.state as string) || "",
+        lga:               (meta.lga as string) || "",
+        address:           "",
+        website:           null,
+        contact_name:      (meta.full_name as string) || "",
+        contact_role:      "",
+        contact_email:     user?.email || "",
+        contact_phone:     "",
+        contact_phone_alt: null,
+        cac_number:        "",
+        logo_url:          null,
+        is_verified:       false,
+      })
     .select("id, school_name")
 
   return created?.[0] ?? null
