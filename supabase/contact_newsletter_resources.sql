@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS contact_submissions (
 
 ALTER TABLE contact_submissions ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Anyone can submit contact form" ON contact_submissions;
 CREATE POLICY "Anyone can submit contact form"
   ON contact_submissions FOR INSERT
   WITH CHECK (true);
@@ -72,6 +73,7 @@ CREATE TABLE IF NOT EXISTS resource_posts (
 
 ALTER TABLE resource_posts ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Anyone can read published resources" ON resource_posts;
 CREATE POLICY "Anyone can read published resources"
   ON resource_posts FOR SELECT
   USING (is_published = true);
@@ -94,6 +96,7 @@ CREATE TABLE IF NOT EXISTS resource_downloads (
 
 ALTER TABLE resource_downloads ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Anyone can read active downloads" ON resource_downloads;
 CREATE POLICY "Anyone can read active downloads"
   ON resource_downloads FOR SELECT
   USING (is_active = true);
