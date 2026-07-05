@@ -26,9 +26,11 @@ export async function GET(request: NextRequest) {
     if (!teacher) return NextResponse.json({ error: "Teacher profile not found" }, { status: 404 })
 
     const subject = request.nextUrl.searchParams.get("subject")
+    const level   = request.nextUrl.searchParams.get("level")
     if (!subject) return NextResponse.json({ error: "Subject is required" }, { status: 400 })
+    if (!level)   return NextResponse.json({ error: "Level is required" }, { status: 400 })
 
-    // Check if teacher has a recent attempt (within 30 days)
+    // Check if teacher has a recent attempt (within 30 days) for this subject+level
     const thirtyDaysAgo = new Date()
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
 
@@ -37,6 +39,7 @@ export async function GET(request: NextRequest) {
       .select("id, score, percentile, subject, level, created_at")
       .eq("teacher_id", teacher.id)
       .eq("subject", subject)
+      .eq("level", level)
       .gte("created_at", thirtyDaysAgo.toISOString())
       .order("created_at", { ascending: false })
       .limit(1)
@@ -55,11 +58,12 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Fetch questions from the shared quiz_questions table, filtered by subject
+    // Fetch questions filtered by subject + difficulty_level
     const { data: questions, error: questionsError } = await supabase
       .from("quiz_questions")
       .select("id, question_text, option_a, option_b, option_c, option_d")
       .eq("subject", subject)
+      .eq("difficulty_level", level)
       .eq("is_active", true)
       .limit(QUESTION_COUNT * 3)
 
