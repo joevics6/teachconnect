@@ -1,32 +1,25 @@
-// ============================================================
-// app/api/teacher/profile/[id]/route.ts
-// GET — public teacher profile (school or guest viewing)
-// ============================================================
-
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await params
     const supabase = await createClient()
 
+    // Determine viewer role from auth metadata — avoids users table lookup
     let viewerRole: "teacher" | "school" | "guest" = "guest"
     const { data: { user } } = await supabase.auth.getUser()
-
     if (user) {
-      const { data: userRecord } = await supabase
-        .from("users")
-        .select("role")
-        .eq("id", user.id)
-        .single()
-      viewerRole = (userRecord?.role as "teacher" | "school") || "guest"
+      const role = user.user_metadata?.role
+      if (role === "school" || role === "teacher") viewerRole = role
     }
 
-    const { data: profile, error } = await supabase
+    // Fetch profile — use limit(1) not single(), remove is_visible filter
+    // so schools can view profiles even if teacher toggled visibility off
+    const { data: profileRows, error } = await supabase
       .from("teacher_profiles")
       .select(
         `id, full_name, state, lga, subjects, teaching_levels,
@@ -34,20 +27,28 @@ export async function GET(
          willing_to_relocate, accommodation_needed, availability,
          salary_min, salary_max, bio, photo_url, profile_completion,
          is_visible, created_at,
-         ${viewerRole === "school" ? "cv_url, phone," : ""}
-         `
+         cv_url, phone`
       )
       .eq("id", id)
-      .eq("is_visible", true)
-      .single()
+      .order("created_at", { ascending: false })
+      .limit(1)
+
+    const profile = (profileRows ?? [])[0] ?? null
 
     if (error || !profile) {
       return NextResponse.json(
-        { error: "Profile not found or not visible" },
+        { error: "Profile not found" },
         { status: 404 }
       )
     }
 
+    // Hide phone/cv from non-school viewers
+    if (viewerRole !== "school") {
+      delete (profile as Record<string, unknown>).cv_url
+      delete (profile as Record<string, unknown>).phone
+    }
+
+    // Quiz results — show to schools
     let quizResults: unknown[] = []
     if (viewerRole === "school") {
       const { data: results } = await supabase
@@ -58,11 +59,11 @@ export async function GET(
         .limit(5)
 
       quizResults = (results || []).map((r) => ({
-        id: r.id,
-        subject: ((Array.isArray(r.jobs) ? r.jobs[0] : r.jobs) as unknown as { subject: string } | null)?.subject || "Unknown",
-        score: r.score,
-        passed: r.passed,
-        mode: r.mode,
+        id:         r.id,
+        subject:    ((Array.isArray(r.jobs) ? r.jobs[0] : r.jobs) as unknown as { subject: string } | null)?.subject || "Unknown",
+        score:      r.score,
+        passed:     r.passed,
+        mode:       r.mode,
         created_at: r.created_at,
       }))
     }
@@ -70,7 +71,7 @@ export async function GET(
     return NextResponse.json({
       profile,
       quiz_results: quizResults,
-      viewer_role: viewerRole,
+      viewer_role:  viewerRole,
     })
   } catch (err) {
     console.error("GET public teacher profile error:", err)

@@ -43,6 +43,7 @@ type PipelineStage =
 
 interface Applicant {
   id: string
+  teacher_id: string        // teacher_profiles.id — use for profile link
   teacher_name: string
   teacher_photo_url: string | null
   teacher_state: string
@@ -438,7 +439,7 @@ function ApplicantCard({
 
           {/* Actions */}
           <div className="flex items-center gap-2 flex-wrap">
-            <Link href={`/profile/teacher/${applicant.id}`}>
+            <Link href={`/profile/teacher/${applicant.teacher_id || applicant.id}`}>
               <Button
                 size="sm"
                 variant="outline"

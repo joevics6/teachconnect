@@ -31,7 +31,7 @@ interface Job {
   deadline: string; status: string; is_featured: boolean
 }
 interface Applicant {
-  id: string; name: string; job_title: string
+  id: string; teacher_id: string; name: string; job_title: string
   quiz_score: number | null; quiz_passed: boolean | null
   experience: string; location: string; trcn: boolean
   stage: string; photo_url: string | null
@@ -140,12 +140,13 @@ export default function SchoolDashboardPage() {
               const appData = await r.json()
               setRecentApplicants(
                 (appData.applicants || []).slice(0, 3).map((a: {
-                  id: string; teacher_name: string; quiz_score: number | null
+                  id: string; teacher_id?: string; teacher_name: string; quiz_score: number | null
                   quiz_passed: boolean | null; years_experience: number
                   teacher_state: string; trcn_status: string
                   pipeline_stage: string; teacher_photo_url: string | null
                 }) => ({
                   id: a.id,
+                  teacher_id: a.teacher_id || a.id,
                   name: a.teacher_name,
                   job_title: activeJob.title,
                   quiz_score: a.quiz_score,
@@ -462,7 +463,7 @@ export default function SchoolDashboardPage() {
                           </div>
                         )}
                         {getStageBadge(applicant.stage)}
-                        <Link href={`/profile/teacher/${applicant.id}`}>
+                        <Link href={`/profile/teacher/${applicant.teacher_id || applicant.id}`}>
                           <Button size="sm" variant="outline" className="text-xs hidden sm:flex">View</Button>
                         </Link>
                       </div>
