@@ -54,7 +54,7 @@ async function getResource(slug: string): Promise<{ resource: Resource; related:
     .neq("id", resource.id)
     .limit(4)
 
-  return { resource, related: related || [] }
+  return { resource, related: (related || []) as Resource[] }
 }
 
 // ─── generateMetadata ─────────────────────────────────────────
