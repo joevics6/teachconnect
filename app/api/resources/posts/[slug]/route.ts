@@ -3,11 +3,11 @@ import { createClient } from "@/lib/supabase/server"
 
 export async function GET(
   _request: NextRequest,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
     const supabase = await createClient()
-    const { slug } = params
+    const { slug } = await params
 
     const { data: resource, error } = await supabase
       .from("resource_posts")

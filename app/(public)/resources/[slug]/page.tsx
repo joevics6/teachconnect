@@ -60,9 +60,10 @@ async function getResource(slug: string): Promise<{ resource: Resource; related:
 // ─── generateMetadata ─────────────────────────────────────────
 
 export async function generateMetadata(
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ): Promise<Metadata> {
-  const data = await getResource(params.slug)
+  const { slug } = await params
+  const data = await getResource(slug)
   if (!data) return { title: "Resource Not Found — TeachConnect" }
 
   const { resource } = data
@@ -236,8 +237,9 @@ function Breadcrumbs({ resource }: { resource: Resource }) {
 
 // ─── Page ─────────────────────────────────────────────────────
 
-export default async function ResourceDetailPage({ params }: { params: { slug: string } }) {
-  const data = await getResource(params.slug)
+export default async function ResourceDetailPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params
+  const data = await getResource(slug)
   if (!data) notFound()
 
   const { resource, related } = data
