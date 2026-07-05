@@ -1,6 +1,7 @@
 -- ============================================================
--- TeachConnect: Contact, Newsletter & Resources Tables
+-- TeachConnect: Contact & Resources Tables
 -- Run in Supabase SQL Editor
+-- Note: newsletter_subscribers table already exists — excluded
 -- ============================================================
 
 
@@ -16,7 +17,6 @@ CREATE TABLE IF NOT EXISTS contact_submissions (
   created_at timestamptz DEFAULT now()
 );
 
--- RLS: only admins/service role can read; anyone can insert
 ALTER TABLE contact_submissions ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Anyone can submit contact form"
@@ -29,28 +29,7 @@ CREATE POLICY "Anyone can submit contact form"
 --   USING (auth.jwt() ->> 'role' = 'admin');
 
 
--- ─── 2. Newsletter Subscribers ────────────────────────────────
-
-CREATE TABLE IF NOT EXISTS newsletter_subscribers (
-  id           uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  email        text UNIQUE NOT NULL,
-  is_active    boolean DEFAULT true,
-  subscribed_at timestamptz DEFAULT now()
-);
-
-ALTER TABLE newsletter_subscribers ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Anyone can subscribe"
-  ON newsletter_subscribers FOR INSERT
-  WITH CHECK (true);
-
--- Prevent duplicate error leaking emails
-CREATE POLICY "Can check own subscription"
-  ON newsletter_subscribers FOR SELECT
-  USING (true);
-
-
--- ─── 3. Resource Posts (full schema) ─────────────────────────
+-- ─── 2. Resource Posts ───────────────────────────────────────
 -- Supports: articles, PDFs, documents, videos, YouTube links
 -- Each row has enough SEO content to rank independently.
 
@@ -61,19 +40,19 @@ CREATE TABLE IF NOT EXISTS resource_posts (
   title               text NOT NULL,
   slug                text UNIQUE NOT NULL,
   excerpt             text NOT NULL,           -- 1-2 sentence summary, shown in cards
-  body                text,                    -- Full HTML/rich-text body for SEO + reading
-  category            text NOT NULL,           -- 'Career Advice' | 'School Management' | 'TRCN Guide' | 'Salary Insights'
+  body                text,                    -- Full HTML body for SEO + reading
+  category            text NOT NULL,           -- 'Career Advice' | 'School Management' | 'TRCN Guide' | 'Salary Insights' | 'Curriculum Guide'
   author              text,
 
   -- Resource type determines which access field is used
-  resource_type       text NOT NULL DEFAULT 'article',
   -- Values: 'article' | 'pdf' | 'document' | 'video' | 'youtube'
+  resource_type       text NOT NULL DEFAULT 'article',
 
   -- File/media access
   cover_image_url     text,                    -- Header image
   file_url            text,                    -- Supabase storage URL (for pdf/document)
   external_url        text,                    -- External URL (for video/youtube or external docs)
-  youtube_id          text,                    -- YouTube video ID for embedding (e.g. 'dQw4w9WgXcQ')
+  youtube_id          text,                    -- YouTube video ID for embedding
 
   -- Metadata
   tags                text[] DEFAULT '{}',
@@ -81,8 +60,8 @@ CREATE TABLE IF NOT EXISTS resource_posts (
   download_count      int DEFAULT 0,
 
   -- SEO
-  seo_title           text,                    -- Overrides <title> if set
-  seo_description     text,                    -- Meta description for search engines
+  seo_title           text,                    -- Overrides <title> tag if set
+  seo_description     text,                    -- Meta description for Google
 
   -- Publishing
   is_published        boolean DEFAULT false,
@@ -98,9 +77,8 @@ CREATE POLICY "Anyone can read published resources"
   USING (is_published = true);
 
 
--- ─── 4. Resource Downloads (legacy / simple files) ───────────
--- Simpler table for quick-access downloadable files
--- without full article content.
+-- ─── 3. Resource Downloads (simple files) ────────────────────
+-- Lighter table for quick-access files without full article content.
 
 CREATE TABLE IF NOT EXISTS resource_downloads (
   id             uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -108,7 +86,7 @@ CREATE TABLE IF NOT EXISTS resource_downloads (
   slug           text UNIQUE NOT NULL,
   description    text NOT NULL,
   category       text NOT NULL,
-  file_url       text,                         -- Supabase storage or external URL
+  file_url       text,
   download_count int DEFAULT 0,
   is_active      boolean DEFAULT true,
   created_at     timestamptz DEFAULT now()
@@ -121,7 +99,7 @@ CREATE POLICY "Anyone can read active downloads"
   USING (is_active = true);
 
 
--- ─── 5. Helper: increment download/view count ────────────────
+-- ─── 4. Helper: increment view/download count ─────────────────
 
 CREATE OR REPLACE FUNCTION increment_resource_count(resource_slug text)
 RETURNS void
@@ -133,8 +111,8 @@ AS $$
 $$;
 
 
--- ─── Example: seed one resource of each type ─────────────────
--- Remove or adapt before running in production.
+-- ─── 5. Seed examples ────────────────────────────────────────
+-- Adapt or remove before running in production.
 
 INSERT INTO resource_posts
   (title, slug, excerpt, body, category, resource_type, tags, read_time_minutes, seo_title, seo_description, is_published, youtube_id)
@@ -165,10 +143,10 @@ VALUES
     'TRCN Registration Guide 2025 — How to Register as a Teacher in Nigeria',
     'Step-by-step guide to TRCN registration for Nigerian teachers. Watch our video walkthrough and download the checklist.',
     true,
-    'EXAMPLE_YOUTUBE_ID'  -- replace with real YouTube video ID
+    'EXAMPLE_YOUTUBE_ID'
   );
+
 
 -- ─── Verify ──────────────────────────────────────────────────
 -- SELECT resource_type, count(*) FROM resource_posts GROUP BY resource_type;
 -- SELECT count(*) FROM contact_submissions;
--- SELECT count(*) FROM newsletter_subscribers;
