@@ -190,9 +190,9 @@ function ProfileCompletionBar({
 export default function TeacherProfilePage() {
   const params = useParams()
   const profileId = params.id as string
-  const isOwnProfile = profileId === "me"
 
-  const [profile, setProfile] = useState<TeacherProfile | null>(null)
+  const [profile,      setProfile]      = useState<TeacherProfile | null>(null)
+  const [isOwnProfile, setIsOwnProfile] = useState(false)
   const [quizResults, setQuizResults] = useState<QuizResult[]>([])
   const [specializationResults, setSpecializationResults] = useState<SpecializationQuizResult[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -216,6 +216,17 @@ export default function TeacherProfilePage() {
         setProfile(data.profile)
         setQuizResults(data.quiz_results || [])
         setViewerRole(data.viewer_role || "guest")
+
+        // Detect own profile — fetch logged-in teacher's ID and compare
+        try {
+          const meRes = await fetch("/api/teacher/profile")
+          if (meRes.ok) {
+            const meData = await meRes.json()
+            if (meData.profile?.id && meData.profile.id === data.profile?.id) {
+              setIsOwnProfile(true)
+            }
+          }
+        } catch { /* not a teacher or not logged in */ }
 
         // Fetch specialization quiz results separately
         const specUrl = isOwnProfile

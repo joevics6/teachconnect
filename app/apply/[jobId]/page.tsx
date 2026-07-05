@@ -73,6 +73,12 @@ export default function ApplyPage() {
           fetch("/api/teacher/profile"),
         ])
 
+        // Not logged in — redirect to login
+        if (profileRes.status === 401) {
+          router.replace(`/login?next=/apply/${jobId}`)
+          return
+        }
+
         const [jobData, profileData] = await Promise.all([
           jobRes.json(),
           profileRes.json(),
