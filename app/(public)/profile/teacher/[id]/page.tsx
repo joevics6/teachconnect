@@ -64,11 +64,20 @@ interface QuizResult {
 interface SpecializationQuizResult {
   id: string
   subject: string
+  level: string
   score: number
   percentile: number
   correct_answers: number
   total_questions: number
   created_at: string
+}
+
+const LEVEL_LABELS: Record<string, string> = {
+  nursery:  "Nursery",
+  primary:  "Primary",
+  jss:      "JSS",
+  sss:      "SSS",
+  tertiary: "Tertiary",
 }
 
 // ─── Helpers ─────────────────────────────────────────────────
@@ -595,6 +604,7 @@ export default function TeacherProfilePage() {
                       <div key={result.id} className="flex items-center justify-between p-4 border border-gray-100 rounded-xl">
                         <div>
                           <p className="text-sm font-semibold text-gray-900">{result.subject}</p>
+                          <p className="text-xs text-gray-500 font-medium">{LEVEL_LABELS[result.level] || result.level}</p>
                           <p className="text-xs text-gray-400">{result.score}% score • {result.correct_answers}/{result.total_questions} correct</p>
                         </div>
                         <div className="flex items-center gap-3">
@@ -769,7 +779,7 @@ export default function TeacherProfilePage() {
                       <div className="space-y-1.5 mb-3">
                         {specializationResults.slice(0, 2).map((r) => (
                           <div key={r.id} className="flex items-center justify-between text-xs">
-                            <span className="text-gray-600 truncate">{r.subject}</span>
+                            <span className="text-gray-600 truncate">{r.subject} <span className="text-gray-400 text-xs">({LEVEL_LABELS[r.level] || r.level})</span></span>
                             <span className="font-bold text-green-600 flex-shrink-0 ml-2">{r.percentile}th %ile</span>
                           </div>
                         ))}
@@ -811,7 +821,7 @@ export default function TeacherProfilePage() {
                       const label = pct >= 95 ? "Top 5%" : pct >= 90 ? "Top 10%" : pct >= 75 ? "Top 25%" : pct >= 50 ? "Above Avg" : "Below Avg"
                       return (
                         <div key={r.id} className="flex items-center justify-between text-xs">
-                          <span className="text-gray-700 font-medium">{r.subject}</span>
+                          <span className="text-gray-700 font-medium">{r.subject} <span className="text-gray-400 font-normal">({LEVEL_LABELS[r.level] || r.level})</span></span>
                           <span className={`font-bold ${color}`}>{label} ({pct}th %ile)</span>
                         </div>
                       )

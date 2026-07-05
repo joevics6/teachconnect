@@ -20,6 +20,15 @@ import {
 import { Button } from "@/components/ui/button"
 import { SUBJECTS } from "@/lib/constants"
 
+// ─── Levels ──────────────────────────────────────────────────
+const LEVELS = [
+  { value: "nursery",  label: "Crèche / Pre-nursery / Nursery" },
+  { value: "primary",  label: "Primary"                         },
+  { value: "jss",      label: "Secondary — JSS"                 },
+  { value: "sss",      label: "Secondary — SSS"                 },
+  { value: "tertiary", label: "Tertiary"                        },
+]
+
 // ─── Types ────────────────────────────────────────────────────
 
 interface QuizQuestion {
@@ -33,6 +42,7 @@ interface QuizQuestion {
 
 interface QuizMeta {
   subject: string
+  level: string
   duration_minutes: number
   question_count: number
   questions: QuizQuestion[]
@@ -44,6 +54,7 @@ interface QuizResult {
   total: number
   percentile: number
   time_taken_seconds: number
+  level: string
 }
 
 // ─── Helpers ─────────────────────────────────────────────────
@@ -71,10 +82,10 @@ function getOrdinal(n: number) {
 
 // ─── Subject Selection Screen ─────────────────────────────────
 
-function SubjectSelectScreen({ onSelect }: { onSelect: (subject: string) => void }) {
-  const [selected, setSelected] = useState("")
+function SubjectSelectScreen({ onSelect }: { onSelect: (subject: string, level: string) => void }) {
+  const [selected,      setSelected]      = useState("")
+  const [selectedLevel, setSelectedLevel] = useState("")
 
-  // Only show subjects that are likely to have quiz questions
   const quizSubjects = SUBJECTS.filter((s) =>
     !["Nursery Activities", "Primary Activities"].includes(s)
   )
@@ -133,9 +144,31 @@ function SubjectSelectScreen({ onSelect }: { onSelect: (subject: string) => void
           </select>
         </div>
 
+        {/* Level selector */}
+        <div className="bg-white rounded-xl border border-gray-200 p-5 mb-5">
+          <label className="block text-sm font-bold text-gray-900 mb-3">
+            Teaching level
+          </label>
+          <div className="space-y-2">
+            {LEVELS.map((l) => (
+              <button
+                key={l.value}
+                onClick={() => setSelectedLevel(l.value)}
+                className={`w-full text-left px-4 py-2.5 rounded-xl border text-sm font-medium transition-all ${
+                  selectedLevel === l.value
+                    ? "border-green-500 bg-green-50 text-green-700"
+                    : "border-gray-200 text-gray-600 hover:border-gray-300"
+                }`}
+              >
+                {l.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
         <Button
-          onClick={() => selected && onSelect(selected)}
-          disabled={!selected}
+          onClick={() => selected && selectedLevel && onSelect(selected, selectedLevel)}
+          disabled={!selected || !selectedLevel}
           className="w-full bg-green-600 hover:bg-green-700 text-white py-3 text-base font-semibold"
         >
           <Zap className="h-5 w-5 mr-2" />
@@ -157,15 +190,18 @@ function SubjectSelectScreen({ onSelect }: { onSelect: (subject: string) => void
 
 function AlreadyAttemptedScreen({
   subject,
+  level,
   attempt,
   retakeAt,
   onChooseDifferent,
 }: {
   subject: string
+  level: string
   attempt: { score: number; percentile: number }
   retakeAt: string
   onChooseDifferent: () => void
 }) {
+  const levelLabel = LEVELS.find((l) => l.value === level)?.label || level
   const retakeDate = new Date(retakeAt)
   const canRetakeNow = new Date() >= retakeDate
   const percentileInfo = getPercentileLabel(attempt.percentile)
@@ -180,6 +216,7 @@ function AlreadyAttemptedScreen({
           <h1 className="text-xl font-bold text-gray-900 mb-1">
             {subject} Quiz Result
           </h1>
+          <p className="text-xs text-gray-400 mb-1">{levelLabel}</p>
           <p className="text-gray-500 text-sm mb-6">You have already taken this quiz recently</p>
 
           <div className="grid grid-cols-2 gap-4 mb-6">
@@ -263,6 +300,7 @@ function QuizScreen({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           subject: meta.subject,
+          level: meta.level,
           answers,
           time_taken_seconds: timeTaken,
         }),
@@ -276,6 +314,7 @@ function QuizScreen({
         total: data.total,
         percentile: data.percentile,
         time_taken_seconds: timeTaken,
+        level: meta.level,
       })
     } catch (err) {
       console.error("Quiz submit error:", err)
@@ -487,6 +526,7 @@ function ResultsScreen({
   subject: string
   onTakeAnother: () => void
 }) {
+  const levelLabel = LEVELS.find((l) => l.value === result.level)?.label || result.level
   const percentileInfo = getPercentileLabel(result.percentile)
 
   return (
@@ -501,6 +541,7 @@ function ResultsScreen({
           <h1 className="text-xl font-bold text-gray-900 mb-1">
             {subject} Mastery Result
           </h1>
+          <p className="text-xs text-gray-400 mb-1">{levelLabel}</p>
           <p className="text-gray-500 text-sm mb-6">
             Your result has been added to your profile
           </p>
@@ -530,7 +571,7 @@ function ResultsScreen({
             className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-full border text-sm font-semibold mb-6 ${percentileInfo.bg} ${percentileInfo.color}`}
           >
             <Award className="h-4 w-4" />
-            {percentileInfo.label} of {subject} Teachers
+            {percentileInfo.label} — {subject} ({result.level.toUpperCase()})
           </div>
 
           <p className="text-xs text-gray-400 mb-6">
@@ -574,6 +615,7 @@ function SpecializationQuizPage() {
 
   const [phase, setPhase] = useState<"select" | "loading" | "error" | "already-taken" | "quiz" | "results">("select")
   const [selectedSubject, setSelectedSubject] = useState("")
+  const [selectedLevel,   setSelectedLevel]   = useState("")
   const [meta, setMeta] = useState<QuizMeta | null>(null)
   const [result, setResult] = useState<QuizResult | null>(null)
   const [alreadyAttempt, setAlreadyAttempt] = useState<{ score: number; percentile: number } | null>(null)
@@ -583,19 +625,22 @@ function SpecializationQuizPage() {
   // Allow pre-selecting subject from URL param
   useEffect(() => {
     const subjectParam = searchParams.get("subject")
-    if (subjectParam) {
+    const levelParam   = searchParams.get("level")
+    if (subjectParam && levelParam) {
       setSelectedSubject(subjectParam)
-      loadQuiz(subjectParam)
+      setSelectedLevel(levelParam)
+      loadQuiz(subjectParam, levelParam)
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const loadQuiz = async (subject: string) => {
+  const loadQuiz = async (subject: string, level: string) => {
     setPhase("loading")
     setSelectedSubject(subject)
+    setSelectedLevel(level)
     try {
       const response = await fetch(
-        `/api/teacher/specialization-quiz?subject=${encodeURIComponent(subject)}`
+        `/api/teacher/specialization-quiz?subject=${encodeURIComponent(subject)}&level=${encodeURIComponent(level)}`
       )
       const data = await response.json()
 
@@ -628,6 +673,7 @@ function SpecializationQuizPage() {
   const handleReset = () => {
     setPhase("select")
     setSelectedSubject("")
+    setSelectedLevel("")
     setMeta(null)
     setResult(null)
     setAlreadyAttempt(null)
@@ -674,6 +720,7 @@ function SpecializationQuizPage() {
     return (
       <AlreadyAttemptedScreen
         subject={selectedSubject}
+        level={selectedLevel}
         attempt={alreadyAttempt}
         retakeAt={retakeAt}
         onChooseDifferent={handleReset}

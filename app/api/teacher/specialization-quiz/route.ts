@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
 
     const { data: recentAttempt } = await supabase
       .from("specialization_quiz_results")
-      .select("id, score, percentile, subject, created_at")
+      .select("id, score, percentile, subject, level, created_at")
       .eq("teacher_id", teacher.id)
       .eq("subject", subject)
       .gte("created_at", thirtyDaysAgo.toISOString())
@@ -77,6 +77,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       subject,
+      level,
       duration_minutes: DURATION_MINUTES,
       question_count: shuffled.length,
       questions: shuffled,
@@ -102,9 +103,9 @@ export async function POST(request: NextRequest) {
     if (!teacher) return NextResponse.json({ error: "Teacher profile not found" }, { status: 404 })
 
     const body = await request.json()
-    const { subject, answers, time_taken_seconds } = body
+    const { subject, level, answers, time_taken_seconds } = body
 
-    if (!subject || !answers) {
+    if (!subject || !level || !answers) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
     }
 
@@ -129,12 +130,14 @@ export async function POST(request: NextRequest) {
       .from("specialization_quiz_results")
       .select("*", { count: "exact", head: true })
       .eq("subject", subject)
+      .eq("level", level)
       .neq("teacher_id", teacher.id)
 
     const { count: scoredBelow } = await supabase
       .from("specialization_quiz_results")
       .select("*", { count: "exact", head: true })
       .eq("subject", subject)
+      .eq("level", level)
       .neq("teacher_id", teacher.id)
       .lt("score", score)
 
@@ -157,7 +160,7 @@ export async function POST(request: NextRequest) {
         time_taken_seconds,
         percentile,
       })
-      .select("id, score, percentile, subject, created_at")
+      .select("id, score, percentile, subject, level, created_at")
       .single()
 
     if (saveError) throw saveError

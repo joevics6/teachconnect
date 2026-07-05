@@ -22,7 +22,7 @@ export async function GET() {
 
     const { data: results, error } = await supabase
       .from("specialization_quiz_results")
-      .select("id, subject, score, correct_answers, total_questions, time_taken_seconds, percentile, created_at")
+      .select("id, subject, level, score, correct_answers, total_questions, time_taken_seconds, percentile, created_at")
       .eq("teacher_id", teacher.id)
       .order("created_at", { ascending: false })
 
