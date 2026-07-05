@@ -100,8 +100,9 @@ export async function PATCH(request: Request) {
     const allowedFields = [
       "school_name", "school_type", "school_levels",
       "state", "lga", "address", "website",
-      "contact_name", "contact_role", "contact_phone",
-      "contact_phone_alt", "logo_url",
+      "contact_name", "contact_role", "contact_email",
+      "contact_phone", "contact_phone_alt",
+      "cac_number", "logo_url",
     ]
 
     const updates: Record<string, unknown> = {}

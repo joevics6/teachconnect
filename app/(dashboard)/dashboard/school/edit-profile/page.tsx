@@ -23,8 +23,10 @@ const NAV_ITEMS = [
 ]
 
 const SCHOOL_TYPES = [
-  { value: "private", label: "Private" },
-  { value: "public",  label: "Public"  },
+  { value: "private",       label: "Private"       },
+  { value: "public",        label: "Public"        },
+  { value: "international", label: "International" },
+  { value: "missionary",    label: "Missionary"    },
 ]
 
 interface ProfileForm {
