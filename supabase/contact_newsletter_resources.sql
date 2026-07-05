@@ -80,26 +80,7 @@ CREATE POLICY "Anyone can read published resources"
 
 
 -- ─── 3. Resource Downloads (simple files) ────────────────────
--- Lighter table for quick-access files without full article content.
-
-CREATE TABLE IF NOT EXISTS resource_downloads (
-  id             uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  title          text NOT NULL,
-  slug           text UNIQUE NOT NULL,
-  description    text NOT NULL,
-  category       text NOT NULL,
-  file_url       text,
-  download_count int DEFAULT 0,
-  is_active      boolean DEFAULT true,
-  created_at     timestamptz DEFAULT now()
-);
-
-ALTER TABLE resource_downloads ENABLE ROW LEVEL SECURITY;
-
-DROP POLICY IF EXISTS "Anyone can read active downloads" ON resource_downloads;
-CREATE POLICY "Anyone can read active downloads"
-  ON resource_downloads FOR SELECT
-  USING (is_active = true);
+-- Table already exists in DB — skipped to avoid conflicts.
 
 
 -- ─── 4. Helper: increment view/download count ─────────────────
