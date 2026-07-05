@@ -1,13 +1,12 @@
 -- ============================================================
 -- TeachConnect: Contact & Resources Tables
--- Run in Supabase SQL Editor
--- Note: newsletter_subscribers table already exists — excluded
+-- Run in Supabase SQL Editor (fresh — tables deleted beforehand)
 -- ============================================================
 
 
 -- ─── 1. Contact Submissions ──────────────────────────────────
 
-CREATE TABLE IF NOT EXISTS contact_submissions (
+CREATE TABLE contact_submissions (
   id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   name       text NOT NULL,
   email      text NOT NULL,
@@ -19,74 +18,47 @@ CREATE TABLE IF NOT EXISTS contact_submissions (
 
 ALTER TABLE contact_submissions ENABLE ROW LEVEL SECURITY;
 
-DROP POLICY IF EXISTS "Anyone can submit contact form" ON contact_submissions;
 CREATE POLICY "Anyone can submit contact form"
   ON contact_submissions FOR INSERT
   WITH CHECK (true);
 
--- Optional: authenticated admins can read
--- CREATE POLICY "Admins can read submissions"
---   ON contact_submissions FOR SELECT
---   USING (auth.jwt() ->> 'role' = 'admin');
-
 
 -- ─── 2. Resource Posts ───────────────────────────────────────
 -- Supports: articles, PDFs, documents, videos, YouTube links
--- Each row has enough SEO content to rank independently.
+-- Each row is a full SEO page at /resources/[slug]
 
-CREATE TABLE IF NOT EXISTS resource_posts (
-  id                  uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-
-  -- Core content
-  title               text NOT NULL,
-  slug                text UNIQUE NOT NULL,
-  excerpt             text NOT NULL,           -- 1-2 sentence summary, shown in cards
-  body                text,                    -- Full HTML body for SEO + reading
-  category            text NOT NULL,           -- 'Career Advice' | 'School Management' | 'TRCN Guide' | 'Salary Insights' | 'Curriculum Guide'
-  author              text,
-
-  -- Resource type determines which access field is used
-  -- Values: 'article' | 'pdf' | 'document' | 'video' | 'youtube'
-  resource_type       text NOT NULL DEFAULT 'article',
-
-  -- File/media access
-  cover_image_url     text,                    -- Header image
-  file_url            text,                    -- Supabase storage URL (for pdf/document)
-  external_url        text,                    -- External URL (for video/youtube or external docs)
-  youtube_id          text,                    -- YouTube video ID for embedding
-
-  -- Metadata
-  tags                text[] DEFAULT '{}',
-  read_time_minutes   int,
-  download_count      int DEFAULT 0,
-
-  -- SEO
-  seo_title           text,                    -- Overrides <title> tag if set
-  seo_description     text,                    -- Meta description for Google
-
-  -- Publishing
-  is_published        boolean DEFAULT false,
-  published_at        timestamptz DEFAULT now(),
-  created_at          timestamptz DEFAULT now(),
-  updated_at          timestamptz DEFAULT now()
+CREATE TABLE resource_posts (
+  id                uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  title             text NOT NULL,
+  slug              text UNIQUE NOT NULL,
+  excerpt           text NOT NULL,
+  body              text,
+  category          text NOT NULL,
+  author            text,
+  resource_type     text NOT NULL DEFAULT 'article',
+  cover_image_url   text,
+  file_url          text,
+  external_url      text,
+  youtube_id        text,
+  tags              text[] DEFAULT '{}',
+  read_time_minutes int,
+  download_count    int DEFAULT 0,
+  seo_title         text,
+  seo_description   text,
+  is_published      boolean DEFAULT false,
+  published_at      timestamptz DEFAULT now(),
+  created_at        timestamptz DEFAULT now(),
+  updated_at        timestamptz DEFAULT now()
 );
 
 ALTER TABLE resource_posts ENABLE ROW LEVEL SECURITY;
 
-DROP POLICY IF EXISTS "Anyone can read published resources" ON resource_posts;
 CREATE POLICY "Anyone can read published resources"
   ON resource_posts FOR SELECT
   USING (is_published = true);
 
 
--- ─── 3. Resource Downloads (simple files) ────────────────────
--- Table already exists in DB — skipped to avoid conflicts.
-
-
--- ─── 4. Helper: increment view/download count ─────────────────
--- Adds download_count column if missing (safe to run multiple times)
-
-ALTER TABLE resource_posts ADD COLUMN IF NOT EXISTS download_count int DEFAULT 0;
+-- ─── 3. Helper: increment view/download count ────────────────
 
 CREATE OR REPLACE FUNCTION increment_resource_count(resource_slug text)
 RETURNS void
@@ -98,8 +70,7 @@ AS $$
 $$;
 
 
--- ─── 5. Seed examples ────────────────────────────────────────
--- Adapt or remove before running in production.
+-- ─── 4. Seed examples ────────────────────────────────────────
 
 INSERT INTO resource_posts
   (title, slug, excerpt, body, category, resource_type, tags, read_time_minutes, seo_title, seo_description, is_published, youtube_id)
