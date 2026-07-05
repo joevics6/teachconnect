@@ -84,6 +84,9 @@ CREATE POLICY "Anyone can read published resources"
 
 
 -- ─── 4. Helper: increment view/download count ─────────────────
+-- Adds download_count column if missing (safe to run multiple times)
+
+ALTER TABLE resource_posts ADD COLUMN IF NOT EXISTS download_count int DEFAULT 0;
 
 CREATE OR REPLACE FUNCTION increment_resource_count(resource_slug text)
 RETURNS void
