@@ -8,6 +8,7 @@ export async function POST(
   try {
     const { slug } = await params
     const supabase = await createClient()
+    const { slug } = await params
 
     await supabase.rpc("increment_resource_count", { resource_slug: slug })
 
