@@ -1,92 +1,25 @@
 "use client"
 
 import Link from "next/link"
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Menu, X, GraduationCap, ChevronDown, LogOut, User, LayoutDashboard } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { createClient } from "@/lib/supabase/client"
-
-interface AuthUser {
-  id: string
-  email: string
-  role: "teacher" | "school"
-  display_name: string
-  photo_url: string | null
-}
+import { useAuth } from "@/lib/auth-context"
 
 export default function Navbar() {
-  const [isOpen, setIsOpen] = useState(false)
-  const [user, setUser] = useState<AuthUser | null>(null)
+  const { user, isLoading, dashboardLink } = useAuth()
+  const [isOpen,       setIsOpen]       = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
-  const [isLoading, setIsLoading] = useState(true)
-
-  useEffect(() => {
-    const supabase = createClient()
-
-    const loadUser = async (userId: string, email: string, metadata: Record<string, unknown>) => {
-      const role = (metadata?.role as string) || "teacher"
-      let display_name = (metadata?.full_name as string) || email
-      let photo_url: string | null = null
-
-      try {
-        if (role === "teacher") {
-          const { data } = await supabase
-            .from("teacher_profiles")
-            .select("full_name, photo_url")
-            .eq("user_id", userId)
-            .order("created_at", { ascending: false })
-            .limit(1)
-          if (data?.[0]?.full_name) display_name = data[0].full_name
-          if (data?.[0]?.photo_url) photo_url = data[0].photo_url
-        } else {
-          const { data } = await supabase
-            .from("school_profiles")
-            .select("school_name, logo_url")
-            .eq("user_id", userId)
-            .order("created_at", { ascending: false })
-            .limit(1)
-          if (data?.[0]?.school_name) display_name = data[0].school_name
-          if (data?.[0]?.logo_url) photo_url = data[0].logo_url
-        }
-      } catch { /* silently fall back */ }
-
-      return { id: userId, email, role: role as "teacher" | "school", display_name, photo_url }
-    }
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (event === "SIGNED_OUT" || !session) {
-          setUser(null)
-          setIsLoading(false)
-        } else if (session?.user) {
-          const u = await loadUser(session.user.id, session.user.email || "", session.user.user_metadata || {})
-          setUser(u)
-          setIsLoading(false)
-        }
-      }
-    )
-
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      if (session?.user) {
-        const u = await loadUser(session.user.id, session.user.email || "", session.user.user_metadata || {})
-        setUser(u)
-      }
-      setIsLoading(false)
-    })
-
-    return () => subscription.unsubscribe()
-  }, [])
 
   const handleLogout = async () => {
     const supabase = createClient()
-    setUser(null)        // clear UI immediately
     setUserMenuOpen(false)
     setIsOpen(false)
     await supabase.auth.signOut()
     window.location.href = "/"
   }
 
-  const dashboardLink = user?.role === "school" ? "/dashboard/school" : "/dashboard/teacher"
   const getInitials = (name: string) =>
     name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
 
@@ -121,8 +54,10 @@ export default function Navbar() {
 
           {/* Desktop Nav */}
           <div className="hidden md:flex items-center gap-6">
-            {user && (
-              <Link href={dashboardLink} className="text-sm font-medium text-green-700 hover:text-green-800">Dashboard</Link>
+            {!isLoading && user && (
+              <Link href={dashboardLink} className="text-sm font-semibold text-green-700 hover:text-green-800">
+                Dashboard
+              </Link>
             )}
             {(!user || user.role === "teacher") && (
               <Link href="/jobs" className="text-sm text-gray-600 hover:text-gray-900">Browse Jobs</Link>
@@ -171,12 +106,12 @@ export default function Navbar() {
                         <LayoutDashboard className="h-4 w-4 text-gray-400" />Dashboard
                       </Link>
                       <Link
-                        href={user.role === "school" ? "/dashboard/school/settings" : "/dashboard/teacher/edit-profile"}
+                        href={user.role === "school" ? "/dashboard/school/edit-profile" : "/dashboard/teacher/edit-profile"}
                         className="flex items-center gap-2 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition"
                         onClick={() => setUserMenuOpen(false)}
                       >
                         <User className="h-4 w-4 text-gray-400" />
-                        {user.role === "school" ? "School Settings" : "Edit Profile"}
+                        {user.role === "school" ? "Edit Profile" : "Edit Profile"}
                       </Link>
                       <button
                         onClick={handleLogout}
@@ -211,55 +146,69 @@ export default function Navbar() {
 
         {/* Mobile Menu */}
         {isOpen && (
-          <div className="md:hidden py-4 border-t flex flex-col gap-4">
-            {(user || isLoading) && (
-              isLoading
-                ? <div className="h-5 w-24 bg-gray-100 rounded animate-pulse" />
-                : <Link href={dashboardLink} className="text-base font-bold text-green-700" onClick={() => setIsOpen(false)}>Dashboard</Link>
-            )}
-            {(!user || user.role === "teacher") && (
-              <Link href="/jobs" className="text-sm text-gray-600" onClick={() => setIsOpen(false)}>Browse Jobs</Link>
-            )}
-            {(!user || user.role === "school") && (
-              <Link href="/talent" className="text-sm text-gray-600" onClick={() => setIsOpen(false)}>Find Teachers</Link>
-            )}
-            <Link href="/pricing"   className="text-sm text-gray-600" onClick={() => setIsOpen(false)}>Pricing</Link>
-            <Link href="/resources" className="text-sm text-gray-600" onClick={() => setIsOpen(false)}>Resources</Link>
-            <div className="flex flex-col gap-2 pt-2 border-t">
-              {isLoading ? (
-                <div className="h-9 bg-gray-100 rounded-lg animate-pulse" />
-              ) : user ? (
-                <>
-                  <div className="flex items-center gap-3 px-1 py-2">
-                    <Avatar size="lg" />
-                    <div>
-                      <p className="text-sm font-semibold text-gray-900">{user.display_name}</p>
-                      <p className="text-xs text-gray-400 capitalize">{user.role}</p>
-                    </div>
+          <div className="md:hidden py-4 border-t flex flex-col gap-1">
+
+            {/* Auth-dependent top section */}
+            {isLoading ? (
+              <div className="h-10 bg-gray-50 rounded-lg animate-pulse mb-2" />
+            ) : user ? (
+              <div className="mb-3 pb-3 border-b border-gray-100">
+                <div className="flex items-center gap-3 px-1 py-2 mb-2">
+                  <Avatar size="lg" />
+                  <div>
+                    <p className="text-sm font-semibold text-gray-900">{user.display_name}</p>
+                    <p className="text-xs text-gray-400 capitalize">{user.role}</p>
                   </div>
-                  <Link href={dashboardLink} onClick={() => setIsOpen(false)}>
-                    <Button variant="outline" size="sm" className="w-full flex items-center gap-2">
-                      <LayoutDashboard className="h-4 w-4" />Dashboard
-                    </Button>
-                  </Link>
-                  <Button size="sm" variant="ghost" className="w-full text-red-500" onClick={handleLogout}>
-                    <LogOut className="h-4 w-4 mr-2" />Log Out
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <Link href="/login" onClick={() => setIsOpen(false)}>
-                    <Button variant="ghost" size="sm" className="w-full">Log in</Button>
-                  </Link>
-                  <Link href="/register/teacher" onClick={() => setIsOpen(false)}>
-                    <Button size="sm" className="w-full bg-green-600 hover:bg-green-700 text-white">Find Teaching Jobs</Button>
-                  </Link>
-                  <Link href="/register/school" onClick={() => setIsOpen(false)}>
-                    <Button size="sm" className="w-full bg-blue-700 hover:bg-blue-800 text-white">Hire Teachers</Button>
-                  </Link>
-                </>
+                </div>
+                <Link
+                  href={dashboardLink}
+                  onClick={() => setIsOpen(false)}
+                  className="flex items-center gap-2 w-full px-3 py-2.5 bg-green-50 text-green-700 font-bold text-sm rounded-xl mb-1"
+                >
+                  <LayoutDashboard className="h-4 w-4" />
+                  Dashboard
+                </Link>
+              </div>
+            ) : null}
+
+            {/* Nav links */}
+            <div className="flex flex-col gap-1">
+              {(!user || user.role === "teacher") && (
+                <Link href="/jobs" className="px-3 py-2.5 text-sm text-gray-700 rounded-xl hover:bg-gray-50" onClick={() => setIsOpen(false)}>
+                  Browse Jobs
+                </Link>
               )}
+              {(!user || user.role === "school") && (
+                <Link href="/talent" className="px-3 py-2.5 text-sm text-gray-700 rounded-xl hover:bg-gray-50" onClick={() => setIsOpen(false)}>
+                  Find Teachers
+                </Link>
+              )}
+              <Link href="/pricing"   className="px-3 py-2.5 text-sm text-gray-700 rounded-xl hover:bg-gray-50" onClick={() => setIsOpen(false)}>Pricing</Link>
+              <Link href="/resources" className="px-3 py-2.5 text-sm text-gray-700 rounded-xl hover:bg-gray-50" onClick={() => setIsOpen(false)}>Resources</Link>
             </div>
+
+            {/* Bottom auth actions */}
+            {!isLoading && (
+              <div className="flex flex-col gap-2 pt-3 mt-2 border-t border-gray-100">
+                {user ? (
+                  <button onClick={handleLogout} className="flex items-center gap-2 px-3 py-2.5 text-sm text-red-500 rounded-xl hover:bg-red-50 w-full">
+                    <LogOut className="h-4 w-4" />Log Out
+                  </button>
+                ) : (
+                  <>
+                    <Link href="/login" onClick={() => setIsOpen(false)}>
+                      <Button variant="ghost" size="sm" className="w-full">Log in</Button>
+                    </Link>
+                    <Link href="/register/teacher" onClick={() => setIsOpen(false)}>
+                      <Button size="sm" className="w-full bg-green-600 hover:bg-green-700 text-white">Find Teaching Jobs</Button>
+                    </Link>
+                    <Link href="/register/school" onClick={() => setIsOpen(false)}>
+                      <Button size="sm" className="w-full bg-blue-700 hover:bg-blue-800 text-white">Hire Teachers</Button>
+                    </Link>
+                  </>
+                )}
+              </div>
+            )}
           </div>
         )}
       </div>
