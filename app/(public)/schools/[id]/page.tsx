@@ -18,6 +18,7 @@ import {
   ChevronRight,
   Home,
   BookOpen,
+  DollarSign,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { formatCurrency } from "@/lib/utils"
@@ -39,6 +40,15 @@ interface SchoolProfile {
   logo_url: string | null
   is_verified: boolean
   created_at: string
+  // New fields
+  about: string | null
+  curriculum: string[]
+  student_population: number | null
+  salary_range_min: number | null
+  salary_range_max: number | null
+  benefits: string[]
+  school_category: string | null
+  verification_status: string
 }
 
 interface ActiveJob {
@@ -236,7 +246,7 @@ export default function SchoolProfilePage() {
             Back
           </button>
           {isOwnProfile && (
-            <Link href="/dashboard/school/settings">
+            <Link href="/dashboard/school/edit-profile">
               <Button
                 size="sm"
                 className="bg-blue-700 hover:bg-blue-800 text-white"
@@ -292,10 +302,21 @@ export default function SchoolProfilePage() {
                         <h1 className="text-2xl font-bold text-gray-900">
                           {school?.school_name}
                         </h1>
-                        {school?.is_verified && (
-                          <span className="flex items-center gap-1 px-2.5 py-1 bg-blue-100 text-blue-700 text-xs rounded-full font-medium mt-1">
-                            <Star className="h-3 w-3" />
-                            Verified
+                        {school?.verification_status === "verified" && (
+                          <span className="flex items-center gap-1 px-2.5 py-1 bg-green-100 text-green-700 text-xs rounded-full font-medium mt-1">
+                            <CheckCircle2 className="h-3 w-3" />
+                            Verified School
+                          </span>
+                        )}
+                        {school?.verification_status === "pending" && (
+                          <span className="flex items-center gap-1 px-2.5 py-1 bg-yellow-100 text-yellow-700 text-xs rounded-full font-medium mt-1">
+                            <Clock className="h-3 w-3" />
+                            Pending Verification
+                          </span>
+                        )}
+                        {(!school?.verification_status || school?.verification_status === "unverified") && (
+                          <span className="flex items-center gap-1 px-2.5 py-1 bg-gray-100 text-gray-500 text-xs rounded-full font-medium mt-1">
+                            Not Verified
                           </span>
                         )}
                       </div>
@@ -411,9 +432,72 @@ export default function SchoolProfilePage() {
                       </p>
                     </div>
                   </div>
+                  {school?.school_category && (
+                    <div className="flex items-center gap-3">
+                      <Building2 className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                      <div>
+                        <p className="text-xs text-gray-400 mb-0.5">School Category</p>
+                        <p className="text-sm text-gray-700 capitalize">{school.school_category === "both" ? "Day & Boarding" : school.school_category}</p>
+                      </div>
+                    </div>
+                  )}
+                  {school?.student_population && (
+                    <div className="flex items-center gap-3">
+                      <Users className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                      <div>
+                        <p className="text-xs text-gray-400 mb-0.5">Student Population</p>
+                        <p className="text-sm text-gray-700">{school.student_population.toLocaleString()} students</p>
+                      </div>
+                    </div>
+                  )}
+                  {(school?.salary_range_min || school?.salary_range_max) && (
+                    <div className="flex items-center gap-3">
+                      <DollarSign className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                      <div>
+                        <p className="text-xs text-gray-400 mb-0.5">Salary Range (Monthly)</p>
+                        <p className="text-sm text-gray-700">
+                          {formatCurrency(school.salary_range_min ?? 0)} – {formatCurrency(school.salary_range_max ?? 0)}
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
+
+            {/* About */}
+            {school?.about && (
+              <div className="bg-white rounded-xl border border-gray-200 p-6">
+                <h2 className="font-bold text-gray-900 mb-3 text-lg">About the School</h2>
+                <p className="text-sm text-gray-600 leading-relaxed">{school.about}</p>
+              </div>
+            )}
+
+            {/* Curriculum & Benefits */}
+            {(school?.curriculum?.length || school?.benefits?.length) && (
+              <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-5">
+                {school?.curriculum?.length > 0 && (
+                  <div>
+                    <h3 className="font-bold text-gray-900 mb-3">Curriculum</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {school.curriculum.map((c) => (
+                        <span key={c} className="px-3 py-1 bg-blue-50 text-blue-700 text-xs rounded-full font-medium">{c}</span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {school?.benefits?.length > 0 && (
+                  <div>
+                    <h3 className="font-bold text-gray-900 mb-3">Staff Benefits</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {school.benefits.map((b) => (
+                        <span key={b} className="px-3 py-1 bg-green-50 text-green-700 text-xs rounded-full font-medium">{b}</span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Active Jobs */}
             <div className="bg-white rounded-xl border border-gray-200 p-6">

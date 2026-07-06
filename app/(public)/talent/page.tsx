@@ -41,6 +41,8 @@ interface Teacher {
   bio: string | null
   profile_completion: number
   availability: string
+  match_score: number
+  demo_video_url: string | null
 }
 
 interface Filters {
@@ -52,6 +54,7 @@ interface Filters {
   willing_to_relocate: boolean
   accommodation_needed: boolean
   experience_min: string
+  availability: string
 }
 
 // ─── Helpers ─────────────────────────────────────────────────
@@ -182,6 +185,14 @@ function TeacherCard({
 
             {/* Badges */}
             <div className="flex flex-wrap gap-1.5">
+              {teacher.match_score !== undefined && (
+                <span className={`px-1.5 py-0.5 text-xs rounded font-bold ${
+                  teacher.match_score >= 80 ? "bg-green-100 text-green-700"
+                  : teacher.match_score >= 60 ? "bg-blue-50 text-blue-700"
+                  : "bg-gray-100 text-gray-500"}`}>
+                  {teacher.match_score}% match
+                </span>
+              )}
               {teacher.trcn_status === "registered" && (
                 <span className="flex items-center gap-0.5 px-1.5 py-0.5 bg-green-100 text-green-700 text-xs rounded font-medium">
                   <CheckCircle2 className="h-3 w-3" />
@@ -421,6 +432,7 @@ export default function TalentPage() {
     willing_to_relocate: false,
     accommodation_needed: false,
     experience_min: "",
+    availability: "",
   })
 
   const updateFilter = (key: keyof Filters, value: string | boolean) => {
@@ -437,6 +449,7 @@ export default function TalentPage() {
       willing_to_relocate: false,
       accommodation_needed: false,
       experience_min: "",
+      availability: "",
     })
   }
 
@@ -448,6 +461,7 @@ export default function TalentPage() {
     filters.willing_to_relocate,
     filters.accommodation_needed,
     filters.experience_min,
+    filters.availability,
   ].filter(Boolean).length
 
   const fetchTeachers = useCallback(async () => {
@@ -462,6 +476,7 @@ export default function TalentPage() {
       if (filters.willing_to_relocate) params.set("relocate", "true")
       if (filters.accommodation_needed) params.set("accommodation", "true")
       if (filters.experience_min) params.set("experience_min", filters.experience_min)
+      if (filters.availability) params.set("availability", filters.availability)
 
       const [teachersRes, jobsRes] = await Promise.all([
         fetch(`/api/talent?${params.toString()}`),

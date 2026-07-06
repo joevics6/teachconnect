@@ -47,6 +47,7 @@ interface TeacherProfile {
   bio: string | null
   photo_url: string | null
   cv_url: string | null
+  demo_video_url: string | null
   is_visible: boolean
   profile_completion: number
   created_at: string
@@ -194,6 +195,9 @@ export default function TeacherProfilePage() {
   const [profile,      setProfile]      = useState<TeacherProfile | null>(null)
   const [isOwnProfile, setIsOwnProfile] = useState(false)
   const [quizResults, setQuizResults] = useState<QuizResult[]>([])
+  const [isSaved, setIsSaved]         = useState(false)
+  const [saveFolder, setSaveFolder]   = useState("excellent")
+  const [savingTeacher, setSavingTeacher] = useState(false)
   const [specializationResults, setSpecializationResults] = useState<SpecializationQuizResult[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState("")
@@ -313,6 +317,32 @@ export default function TeacherProfilePage() {
         </div>
       </div>
     )
+  }
+
+  const handleSaveTeacher = async (folder: string) => {
+    setSavingTeacher(true)
+    try {
+      if (isSaved) {
+        await fetch("/api/school/saved-teachers", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ teacher_id: profile?.id }),
+        })
+        setIsSaved(false)
+      } else {
+        await fetch("/api/school/saved-teachers", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ teacher_id: profile?.id, folder }),
+        })
+        setIsSaved(true)
+        setSaveFolder(folder)
+      }
+    } catch (err) {
+      console.error("Save teacher error:", err)
+    } finally {
+      setSavingTeacher(false)
+    }
   }
 
   return (
@@ -643,6 +673,25 @@ export default function TeacherProfilePage() {
               </div>
             )}
 
+            {/* Demo Lesson Video */}
+            {profile.demo_video_url && (() => {
+              const match = profile.demo_video_url!.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/)
+              const videoId = match?.[1]
+              return videoId ? (
+                <div className="bg-white rounded-xl border border-gray-200 p-6">
+                  <h2 className="font-bold text-gray-900 mb-4 text-lg">Demo Lesson</h2>
+                  <div className="aspect-video rounded-xl overflow-hidden">
+                    <iframe
+                      src={`https://www.youtube.com/embed/${videoId}`}
+                      className="w-full h-full"
+                      allowFullScreen
+                      title="Demo lesson"
+                    />
+                  </div>
+                </div>
+              ) : null
+            })()}
+
             {/* Quiz Results */}
             {quizResults.length > 0 && (
               <div className="bg-white rounded-xl border border-gray-200 p-6">
@@ -714,6 +763,32 @@ export default function TeacherProfilePage() {
               {/* School actions */}
               {viewerRole === "school" && !isOwnProfile && (
                 <div className="space-y-3 mb-5">
+                  {/* Save Teacher */}
+                  <div className="relative">
+                    <button
+                      onClick={() => handleSaveTeacher(saveFolder)}
+                      disabled={savingTeacher}
+                      className={`w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium border transition ${
+                        isSaved
+                          ? "bg-purple-50 border-purple-200 text-purple-700"
+                          : "bg-white border-gray-200 text-gray-700 hover:border-purple-300"
+                      }`}
+                    >
+                      {savingTeacher ? "..." : isSaved ? "★ Saved" : "☆ Save Teacher"}
+                    </button>
+                    {!isSaved && (
+                      <select
+                        value={saveFolder}
+                        onChange={(e) => setSaveFolder(e.target.value)}
+                        className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-400"
+                      >
+                        <option value="excellent">Excellent Candidate</option>
+                        <option value="interview-later">Interview Later</option>
+                        <option value="contacted">Contacted</option>
+                        <option value="hired">Hired</option>
+                      </select>
+                    )}
+                  </div>
                   {inviteSuccess ? (
                     <div className="flex items-center justify-center gap-2 p-3 bg-green-50 border border-green-200 rounded-xl text-sm text-green-700">
                       <CheckCircle2 className="h-4 w-4" />

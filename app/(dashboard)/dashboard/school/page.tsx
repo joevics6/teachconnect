@@ -5,20 +5,21 @@ import Link from "next/link"
 import {
   GraduationCap, Briefcase, Users, Bell, Settings, LogOut,
   ChevronRight, Plus, Menu, X, Building2, CreditCard,
-  CheckCircle2, Clock, Eye, Star, Loader2,
+  CheckCircle2, Clock, Eye, Star, Loader2, BookOpen, TrendingUp,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
 
 const NAV_ITEMS = [
-  { href: "/dashboard/school",              label: "Overview",        icon: Building2  },
-  { href: "/dashboard/school/jobs",         label: "My Jobs",         icon: Briefcase  },
-  { href: "/dashboard/school/jobs/applicants", label: "Applicants",  icon: Users      },
-  { href: "/talent",                        label: "Browse Teachers", icon: GraduationCap },
-  { href: "/dashboard/school/subscription", label: "Subscription",   icon: CreditCard },
-  { href: "/dashboard/school/edit-profile", label: "Edit Profile",   icon: Building2  },
-  { href: "/dashboard/school/settings",     label: "Settings",       icon: Settings   },
+  { href: "/dashboard/school",               label: "Overview",         icon: Building2    },
+  { href: "/dashboard/school/jobs",          label: "My Jobs",          icon: Briefcase    },
+  { href: "/dashboard/school/jobs/applicants", label: "Applicants",     icon: Users        },
+  { href: "/talent",                         label: "Browse Teachers",  icon: GraduationCap },
+  { href: "/dashboard/school/saved-teachers",label: "Saved Teachers",   icon: Star         },
+  { href: "/dashboard/school/subscription",  label: "Subscription",     icon: CreditCard   },
+  { href: "/dashboard/school/edit-profile",  label: "Edit Profile",     icon: Building2    },
+  { href: "/dashboard/school/settings",      label: "Settings",         icon: Settings     },
 ]
 
 interface SchoolProfile {
@@ -96,6 +97,9 @@ export default function SchoolDashboardPage() {
   const [loadingJobs, setLoadingJobs]               = useState(true)
   const [loadingNotifications, setLoadingNotifications] = useState(true)
   const [loadingApplicants, setLoadingApplicants]   = useState(false)
+  const [metrics, setMetrics] = useState({
+    interviews: 0, offers: 0, hired: 0, avgScore: 0
+  })
 
   // ── Load all data via API routes (same pattern as teacher dashboard) ──
   useEffect(() => {
@@ -165,6 +169,15 @@ export default function SchoolDashboardPage() {
       })
       .catch(console.error)
       .finally(() => setLoadingJobs(false))
+
+    // Recruiter metrics from applications
+    fetch("/api/school/metrics")
+      .then(async (res) => {
+        if (!res.ok) return
+        const data = await res.json()
+        setMetrics(data.metrics || { interviews: 0, offers: 0, hired: 0, avgScore: 0 })
+      })
+      .catch(console.error)
 
     // Notifications
     fetch("/api/teacher/notifications")
@@ -324,6 +337,32 @@ export default function SchoolDashboardPage() {
               ))}
             </div>
           )}
+
+          {/* Recruiter Metrics */}
+          {!loadingJobs && (
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              {[
+                { label: "Interviews",    value: metrics.interviews, color: "text-blue-600",   icon: TrendingUp  },
+                { label: "Offers Sent",   value: metrics.offers,     color: "text-purple-600", icon: Star        },
+                { label: "Teachers Hired",value: metrics.hired,      color: "text-green-600",  icon: BookOpen    },
+                { label: "Avg Quiz Score",value: metrics.avgScore > 0 ? `${metrics.avgScore}%` : "—", color: "text-orange-600", icon: TrendingUp },
+              ].map((m) => (
+                <div key={m.label} className="bg-white rounded-xl border border-gray-200 p-4">
+                  <div className={`text-2xl font-bold mb-1 ${m.color}`}>{m.value}</div>
+                  <div className="text-xs text-gray-500">{m.label}</div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Saved Teachers quick link */}
+          <div className="flex justify-end">
+            <Link href="/dashboard/school/saved-teachers">
+              <button className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800 font-medium transition">
+                <Star className="h-4 w-4" />View Saved Teachers
+              </button>
+            </Link>
+          </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 

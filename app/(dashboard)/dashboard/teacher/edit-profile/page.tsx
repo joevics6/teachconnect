@@ -22,15 +22,19 @@ interface ProfileForm {
   preferred_states: string[]
   willing_to_relocate: boolean
   accommodation_needed: boolean
-  availability: "immediate" | "2-weeks" | "1-month" | "employed"
+  availability: "immediate" | "2-weeks" | "1-month" | "employed" | "part-time" | "online" | "weekend"
   salary_min: number | ""
+  demo_video_url: string
 }
 
 const AVAILABILITY_OPTIONS = [
-  { value: "immediate", label: "Available Immediately" },
-  { value: "2-weeks",   label: "Available in 2 Weeks" },
-  { value: "1-month",   label: "Available in 1 Month" },
-  { value: "employed",  label: "Currently Employed" },
+  { value: "immediate",  label: "Available Immediately"  },
+  { value: "2-weeks",    label: "Available in 2 Weeks"   },
+  { value: "1-month",    label: "Available in 1 Month"   },
+  { value: "employed",   label: "Currently Employed"     },
+  { value: "part-time",  label: "Part-time Only"         },
+  { value: "online",     label: "Online Teaching Only"   },
+  { value: "weekend",    label: "Weekend Teaching Only"  },
 ]
 
 export default function EditTeacherProfilePage() {
@@ -41,6 +45,7 @@ export default function EditTeacherProfilePage() {
     subjects: [], teaching_levels: [], preferred_states: [],
     willing_to_relocate: false, accommodation_needed: false,
     availability: "immediate", salary_min: "",
+    demo_video_url: "",
   })
   const [loading, setLoading]       = useState(true)
   const [saving, setSaving]         = useState(false)
@@ -84,6 +89,7 @@ export default function EditTeacherProfilePage() {
           accommodation_needed: p.accommodation_needed ?? false,
           availability:        p.availability       || "immediate",
           salary_min:          p.salary_min         ?? "",
+          demo_video_url:      p.demo_video_url     || "",
         })
       })
       .catch(console.error)
@@ -574,6 +580,38 @@ export default function EditTeacherProfilePage() {
               ))}
             </div>
           </div>
+        </section>
+
+        {/* Demo Lesson Video */}
+        <section className="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
+          <h2 className="font-bold text-gray-900">Demo Lesson Video</h2>
+          <p className="text-xs text-gray-500">Upload a short teaching demonstration to YouTube and paste the link here. Schools can watch it before inviting you to interview.</p>
+          <div>
+            <label className="text-sm font-medium text-gray-700 block mb-1">YouTube Video URL</label>
+            <input
+              type="url"
+              value={form.demo_video_url}
+              onChange={(e) => setForm({ ...form, demo_video_url: e.target.value })}
+              className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+              placeholder="https://www.youtube.com/watch?v=..."
+            />
+          </div>
+          {form.demo_video_url && (() => {
+            const match = form.demo_video_url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/)
+            const videoId = match?.[1]
+            return videoId ? (
+              <div className="aspect-video rounded-xl overflow-hidden border border-gray-200">
+                <iframe
+                  src={`https://www.youtube.com/embed/${videoId}`}
+                  className="w-full h-full"
+                  allowFullScreen
+                  title="Demo lesson preview"
+                />
+              </div>
+            ) : (
+              <p className="text-xs text-red-500">Couldn&apos;t detect a valid YouTube URL. Make sure it contains a video ID.</p>
+            )
+          })()}
         </section>
 
         {/* Save Button */}
