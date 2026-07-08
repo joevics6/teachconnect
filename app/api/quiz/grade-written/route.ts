@@ -11,6 +11,7 @@ interface QuestionAnswer {
   id: string
   question: string
   answer: string
+  subject?: string
 }
 
 interface GradedQuestion {
@@ -28,15 +29,23 @@ async function gradeWithGemini(
   subject: string,
   qa: QuestionAnswer[]
 ): Promise<GradedQuestion[]> {
+  // Subjects present across this attempt (could be 1-3 combined subjects).
+  const subjectsInvolved = Array.from(
+    new Set(qa.map((q) => q.subject).filter(Boolean))
+  ) as string[]
+  const isCombined = subjectsInvolved.length > 1
+
   const questionsText = qa
-    .map((q, i) => `Q${i + 1}: ${q.question}\nAnswer: ${q.answer}`)
+    .map((q, i) => `Q${i + 1} [${q.subject || subject}]: ${q.question}\nAnswer: ${q.answer}`)
     .join("\n\n")
 
-  const prompt = `You are an expert ${subject} teacher grading a student quiz.
+  const prompt = `You are an expert teacher grading a student quiz${
+    isCombined ? ` covering multiple subjects (${subjectsInvolved.join(", ")})` : ` in ${subject}`
+  }.
+Each question is labeled with the subject it belongs to in brackets — grade it against that
+subject's standards specifically.
 Grade each answer out of 10 points. Be fair but accurate.
 Return ONLY a JSON array. No markdown, no explanation, no backticks.
-
-Subject: ${subject}
 
 Questions and Answers:
 ${questionsText}

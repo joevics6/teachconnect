@@ -101,6 +101,17 @@ export async function POST(request: Request) {
     if (!body.teaching_levels?.length) {
       return NextResponse.json({ error: "At least one teaching level is required" }, { status: 400 })
     }
+    if (body.quiz_enabled) {
+      if (!body.quiz_subjects?.length) {
+        return NextResponse.json({ error: "Select at least one quiz subject" }, { status: 400 })
+      }
+      if (body.quiz_subjects.length > 3) {
+        return NextResponse.json({ error: "A quiz can test at most 3 subjects" }, { status: 400 })
+      }
+      if (!body.quiz_difficulty) {
+        return NextResponse.json({ error: "Select a grade level for the quiz" }, { status: 400 })
+      }
+    }
 
     const jobPayload = {
       school_id:                school.id,
@@ -117,7 +128,7 @@ export async function POST(request: Request) {
       is_private:               body.is_private ?? false,
       is_featured:              body.is_featured ?? false,
       quiz_enabled:             body.quiz_enabled ?? false,
-      quiz_subject:             body.quiz_enabled ? (body.quiz_subject || null) : null,
+      quiz_subjects:            body.quiz_enabled ? (body.quiz_subjects || []) : [],
       quiz_difficulty:          body.quiz_enabled ? (body.quiz_difficulty || null) : null,
       quiz_pass_mark:           body.quiz_enabled ? (parseInt(body.quiz_pass_mark) || 70) : null,
       quiz_mode:                body.quiz_enabled ? (body.quiz_mode || "standard") : null,

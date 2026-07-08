@@ -25,6 +25,7 @@ type QuizMode = "speed" | "standard" | "written"
 
 interface QuizQuestion {
   id: string
+  subject?: string
   question_text: string
   option_a?: string
   option_b?: string
@@ -38,6 +39,7 @@ interface QuizMeta {
   job_title: string
   school_name: string
   subject: string
+  subjects?: string[]
   mode: QuizMode
   duration_minutes: number
   question_count: number
@@ -88,6 +90,10 @@ function getModeColor(mode: QuizMode) {
   return "text-blue-600 bg-blue-50 border-blue-200"
 }
 
+function subjectLabel(meta: { subject: string; subjects?: string[] }) {
+  return meta.subjects?.length ? meta.subjects.join(" + ") : meta.subject
+}
+
 // ─── Pre-Quiz Screen ─────────────────────────────────────────
 
 function PreQuizScreen({
@@ -118,7 +124,7 @@ function PreQuizScreen({
           </div>
 
           <h1 className="text-2xl font-bold text-gray-900 mb-1">
-            {meta.subject} Quiz
+            {subjectLabel(meta)} Quiz
           </h1>
           <p className="text-gray-500 text-sm mb-6">
             {meta.job_title} • {meta.school_name}
@@ -242,6 +248,7 @@ function MCQQuiz({
         body: JSON.stringify({
           job_id: meta.job_id,
           mode: meta.mode,
+          subjects: meta.subjects?.length ? meta.subjects : [meta.subject],
           answers,
           score,
           passed,
@@ -312,7 +319,7 @@ function MCQQuiz({
             </div>
             <div className="min-w-0">
               <p className="text-sm font-semibold text-gray-900 truncate">
-                {meta.subject} — {getModeLabel(meta.mode)}
+                {subjectLabel(meta)} — {getModeLabel(meta.mode)}
               </p>
               <p className="text-xs text-gray-500">
                 {meta.mode === "speed"
@@ -378,9 +385,16 @@ function MCQQuiz({
               <span className="flex-shrink-0 w-8 h-8 rounded-full bg-green-100 text-green-700 text-sm font-bold flex items-center justify-center">
                 {currentIndex + 1}
               </span>
-              <p className="text-gray-900 font-medium leading-relaxed pt-1">
-                {current.question_text}
-              </p>
+              <div className="pt-1">
+                {(meta.subjects?.length ?? 0) > 1 && current.subject && (
+                  <span className="inline-block text-xs font-medium text-green-700 bg-green-50 border border-green-200 rounded-full px-2 py-0.5 mb-1.5">
+                    {current.subject}
+                  </span>
+                )}
+                <p className="text-gray-900 font-medium leading-relaxed">
+                  {current.question_text}
+                </p>
+              </div>
             </div>
 
             <div className="space-y-3">
@@ -524,6 +538,7 @@ function WrittenQuiz({
           subject: meta.subject,
           questions: questions.map((q) => ({
             id: q.id,
+            subject: q.subject,
             question: q.question_text,
             answer: answers[q.id] || "",
           })),
@@ -544,6 +559,7 @@ function WrittenQuiz({
         body: JSON.stringify({
           job_id: meta.job_id,
           mode: "written",
+          subjects: meta.subjects?.length ? meta.subjects : [meta.subject],
           answers,
           score,
           passed,
@@ -600,7 +616,7 @@ function WrittenQuiz({
             </div>
             <div>
               <p className="text-sm font-semibold text-gray-900">
-                {meta.subject} — Written Quiz
+                {subjectLabel(meta)} — Written Quiz
               </p>
               <p className="text-xs text-gray-500">
                 {answeredCount} of {questions.length} answered
@@ -641,9 +657,16 @@ function WrittenQuiz({
               <span className="flex-shrink-0 w-8 h-8 rounded-full bg-purple-100 text-purple-700 text-sm font-bold flex items-center justify-center">
                 {i + 1}
               </span>
-              <p className="text-gray-900 font-medium leading-relaxed pt-1">
-                {q.question_text}
-              </p>
+              <div className="pt-1">
+                {(meta.subjects?.length ?? 0) > 1 && q.subject && (
+                  <span className="inline-block text-xs font-medium text-purple-700 bg-purple-50 border border-purple-200 rounded-full px-2 py-0.5 mb-1.5">
+                    {q.subject}
+                  </span>
+                )}
+                <p className="text-gray-900 font-medium leading-relaxed">
+                  {q.question_text}
+                </p>
+              </div>
             </div>
             <textarea
               value={answers[q.id] || ""}

@@ -42,21 +42,7 @@ const ACCOMMODATION_TYPES = [
   { value: "allowance", label: "Housing Allowance" },
 ]
 
-const QUIZ_SUBJECTS = [
-  { value: "mathematics-primary", label: "Mathematics (Primary)" },
-  { value: "mathematics-jss", label: "Mathematics (JSS)" },
-  { value: "mathematics-sss", label: "Mathematics (SSS)" },
-  { value: "english-primary", label: "English Language (Primary)" },
-  { value: "english-jss", label: "English Language (JSS)" },
-  { value: "english-sss", label: "English Language (SSS)" },
-  { value: "basic-science", label: "Basic Science" },
-  { value: "physics", label: "Physics" },
-  { value: "chemistry", label: "Chemistry" },
-  { value: "biology", label: "Biology" },
-  { value: "economics", label: "Economics" },
-  { value: "government", label: "Government" },
-  { value: "accounting", label: "Accounting" },
-]
+const MAX_QUIZ_SUBJECTS = 3
 
 const EMPLOYMENT_TYPES = [
   { value: "full-time", label: "Full Time" },
@@ -130,7 +116,7 @@ interface FormData {
   is_featured: boolean
   quiz_enabled: boolean
   quiz_mode: QuizMode
-  quiz_subject: string
+  quiz_subjects: string[]
   quiz_difficulty: string
   quiz_pass_mark: number
   quiz_duration: number
@@ -157,7 +143,7 @@ const EMPTY_FORM: FormData = {
   is_featured: false,
   quiz_enabled: false,
   quiz_mode: "standard",
-  quiz_subject: "",
+  quiz_subjects: [],
   quiz_difficulty: "",
   quiz_pass_mark: 70,
   quiz_duration: 20,
@@ -327,8 +313,10 @@ export default function PostJobPage() {
       newErrors.description = "Job description is required"
     if (!formData.required_qualifications)
       newErrors.required_qualifications = "Required qualifications is required"
-    if (formData.quiz_enabled && !formData.quiz_subject)
-      newErrors.quiz_subject = "Select a quiz subject"
+    if (formData.quiz_enabled && formData.quiz_subjects.length === 0)
+      newErrors.quiz_subjects = "Select at least one subject (max 3)"
+    if (formData.quiz_enabled && !formData.quiz_difficulty)
+      newErrors.quiz_difficulty = "Select a grade level"
     if (formData.accommodation_offered && !formData.accommodation_type)
       newErrors.accommodation_type = "Select accommodation type"
     setErrors(newErrors)
@@ -893,24 +881,68 @@ export default function PostJobPage() {
                 {/* Mode-specific settings */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
 
-                  {/* Quiz Subject — all modes */}
+                  {/* Quiz Grade Level — all modes */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                      Quiz Subject
+                      Grade Level
                     </label>
                     <select
-                      value={formData.quiz_subject}
-                      onChange={(e) => update("quiz_subject", e.target.value)}
+                      value={formData.quiz_difficulty}
+                      onChange={(e) => update("quiz_difficulty", e.target.value)}
                       className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                     >
-                      <option value="">Select quiz subject</option>
-                      {QUIZ_SUBJECTS.map((q) => (
-                        <option key={q.value} value={q.value}>{q.label}</option>
+                      <option value="">Select grade level</option>
+                      {TEACHING_LEVELS.map((l) => (
+                        <option key={l.value} value={l.value}>{l.label}</option>
                       ))}
                     </select>
-                    {errors.quiz_subject && (
+                    {errors.quiz_difficulty && (
                       <p className="text-red-500 text-xs mt-1">
-                        {errors.quiz_subject}
+                        {errors.quiz_difficulty}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Quiz Subjects — all modes, up to 3, same grade level */}
+                  <div className="sm:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                      Quiz Subjects ({formData.quiz_subjects.length}/{MAX_QUIZ_SUBJECTS})
+                    </label>
+                    <p className="text-xs text-gray-500 mb-2">
+                      Pick up to {MAX_QUIZ_SUBJECTS} subjects, all tested at the grade level above in one
+                      combined quiz.
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {SUBJECTS.map((s) => {
+                        const isSelected = formData.quiz_subjects.includes(s)
+                        const atLimit = formData.quiz_subjects.length >= MAX_QUIZ_SUBJECTS
+                        return (
+                          <button
+                            key={s}
+                            type="button"
+                            disabled={!isSelected && atLimit}
+                            onClick={() => {
+                              const next = isSelected
+                                ? formData.quiz_subjects.filter((x) => x !== s)
+                                : [...formData.quiz_subjects, s]
+                              update("quiz_subjects", next)
+                            }}
+                            className={`px-3 py-1.5 rounded-full text-xs font-medium border transition ${
+                              isSelected
+                                ? "bg-blue-600 border-blue-600 text-white"
+                                : atLimit
+                                ? "bg-gray-50 border-gray-200 text-gray-300 cursor-not-allowed"
+                                : "bg-white border-gray-300 text-gray-700 hover:border-blue-400"
+                            }`}
+                          >
+                            {s}
+                          </button>
+                        )
+                      })}
+                    </div>
+                    {errors.quiz_subjects && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {errors.quiz_subjects}
                       </p>
                     )}
                   </div>

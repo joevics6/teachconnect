@@ -327,8 +327,8 @@ export default function JobDetailPage() {
                   </h3>
                   <p className="text-sm text-purple-700 leading-relaxed">
                     Before your application reaches the school, you must complete
-                    a {job.quiz_subject?.replace("-", " ")} quiz and score at
-                    least {job.quiz_pass_mark}%. The quiz takes approximately
+                    a {job.quiz_subjects?.length ? job.quiz_subjects.join(" + ") : job.subject} quiz
+                    and score at least {job.quiz_pass_mark}%. The quiz takes approximately
                     15–20 minutes.
                   </p>
                   <p className="text-xs text-purple-500 mt-2">

@@ -106,7 +106,7 @@ export interface Job {
   is_private: boolean
   is_featured: boolean
   quiz_enabled: boolean
-  quiz_subject?: string
+  quiz_subjects?: string[]
   quiz_difficulty?: string
   quiz_pass_mark?: number
   description: string

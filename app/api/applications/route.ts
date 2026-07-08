@@ -8,7 +8,7 @@ export async function POST(request: Request) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
-    const { job_id, mode, answers, score, passed, time_taken, written_feedback, cover_letter } = await request.json()
+    const { job_id, mode, subjects, answers, score, passed, time_taken, written_feedback, cover_letter } = await request.json()
 
     if (!job_id) return NextResponse.json({ error: "Job ID required" }, { status: 400 })
 
@@ -48,6 +48,7 @@ export async function POST(request: Request) {
           time_taken_seconds: time_taken,
           answers: answers || {},
           mode,
+          subjects: subjects || [],
           written_feedback: written_feedback || null,
         })
         .select("id")

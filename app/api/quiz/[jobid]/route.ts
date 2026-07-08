@@ -64,7 +64,7 @@ export async function GET(
         subject,
         quiz_enabled,
         quiz_mode,
-        quiz_subject,
+        quiz_subjects,
         quiz_difficulty,
         quiz_pass_mark,
         quiz_duration,
@@ -85,30 +85,87 @@ export async function GET(
       )
     }
 
-    const questionCount =
-      job.quiz_mode === "speed"
-        ? 50
-        : job.quiz_question_count || 20
+    // Fall back to the job's own subject for older jobs created before
+    // multi-subject quizzes existed (quiz_subjects would be empty then).
+    const quizSubjects: string[] =
+      job.quiz_subjects?.length ? job.quiz_subjects : [job.subject]
 
-    const { data: questions, error: questionsError } = await supabase
-      .from("quiz_questions")
-      .select(
-        job.quiz_mode === "written"
-          ? "id, question_text"
-          : "id, question_text, option_a, option_b, option_c, option_d, correct_option"
+    // Total question count scales with how many subjects are combined,
+    // capped to keep the quiz within a reasonable 30-50 question band.
+    // 1 subject -> mode's normal default. 2 subjects -> 50 total (25 each).
+    // 3 subjects -> 30 total (10 each).
+    let totalQuestions: number
+    if (quizSubjects.length <= 1) {
+      totalQuestions =
+        job.quiz_mode === "speed" ? 50 : job.quiz_question_count || 20
+    } else if (quizSubjects.length === 2) {
+      totalQuestions = 50
+    } else {
+      totalQuestions = 30
+    }
+
+    // Split as evenly as possible across subjects, any remainder going to
+    // the first subjects in the list.
+    const base = Math.floor(totalQuestions / quizSubjects.length)
+    const remainder = totalQuestions % quizSubjects.length
+    const perSubjectCounts = quizSubjects.map((s, i) => ({
+      subject: s,
+      count: base + (i < remainder ? 1 : 0),
+    }))
+
+    const selectColumns =
+      job.quiz_mode === "written"
+        ? "id, subject, question_text"
+        : "id, subject, question_text, option_a, option_b, option_c, option_d, correct_option"
+
+    const results = await Promise.all(
+      perSubjectCounts.map(({ subject, count }) =>
+        supabase
+          .from("quiz_questions")
+          .select(selectColumns)
+          .eq("subject", subject)
+          .eq("difficulty_level", job.quiz_difficulty || "sss")
+          .eq("is_active", true)
+          .limit(count * 3) // buffer, so we can randomly sample instead of always taking the same rows
       )
-      .eq("subject", job.quiz_subject || job.subject)
-      .eq("difficulty_level", job.quiz_difficulty || "sss")
-      .eq("is_active", true)
-      .limit(questionCount)
+    )
 
-    if (questionsError) throw questionsError
+    interface QuestionRow {
+      id: string
+      subject: string
+      question_text: string
+      option_a?: string
+      option_b?: string
+      option_c?: string
+      option_d?: string
+      correct_option?: string
+    }
 
-    const shuffled = ((questions || []) as any[]).sort(() => Math.random() - 0.5)
+    const shortages: { subject: string; available: number; needed: number }[] = []
+    let allQuestions: QuestionRow[] = []
+
+    perSubjectCounts.forEach(({ subject, count }, i) => {
+      const { data, error } = results[i]
+      if (error) throw error
+      const pool = ((data || []) as unknown as QuestionRow[]).sort(() => Math.random() - 0.5)
+      if (pool.length < count) {
+        shortages.push({ subject, available: pool.length, needed: count })
+      }
+      allQuestions = allQuestions.concat(pool.slice(0, count))
+    })
+
+    if (allQuestions.length === 0) {
+      return NextResponse.json(
+        { error: "No questions available for the selected subjects yet" },
+        { status: 404 }
+      )
+    }
+
+    const shuffled = allQuestions.sort(() => Math.random() - 0.5)
 
     const safeQuestions =
       job.quiz_mode === "written"
-        ? shuffled.map(({ id, question_text }) => ({ id, question_text }))
+        ? shuffled.map(({ id, subject, question_text }) => ({ id, subject, question_text }))
         : shuffled.map(({ correct_option: _co, ...q }) => q)
 
     return NextResponse.json({
@@ -116,11 +173,13 @@ export async function GET(
       job_title: job.title,
       school_name: ((Array.isArray(job.school_profiles) ? job.school_profiles[0] : job.school_profiles) as unknown as { school_name: string })?.school_name,
       subject: job.subject,
+      subjects: quizSubjects,
       mode: job.quiz_mode || "standard",
       duration_minutes: job.quiz_duration || 20,
-      question_count: job.quiz_question_count || 20,
+      question_count: shuffled.length,
       pass_mark: job.quiz_pass_mark || 70,
       questions: safeQuestions,
+      ...(shortages.length ? { subject_shortages: shortages } : {}),
     })
   } catch (err) {
     console.error("GET /api/quiz/[jobid] error:", err)
