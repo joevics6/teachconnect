@@ -28,13 +28,14 @@ import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
 
 const NAV_ITEMS = [
-  { href: "/dashboard/teacher", label: "Overview", icon: GraduationCap },
-  { href: "/dashboard/teacher/applications", label: "My Applications", icon: Briefcase },
-  { href: "/dashboard/teacher/saved-jobs", label: "Saved Jobs", icon: BookOpen },
-  { href: "/dashboard/teacher/quiz-results", label: "Quiz Results", icon: Star },
-  { href: "/dashboard/teacher/specialization-quiz", label: "Subject Mastery", icon: Zap },
-  { href: "/dashboard/teacher/edit-profile", label: "Edit Profile", icon: User },
-  { href: "/dashboard/teacher/settings", label: "Settings", icon: Settings },
+  { href: "/dashboard/teacher",                      label: "Overview",       icon: GraduationCap },
+  { href: "/dashboard/teacher/applications",         label: "My Applications",icon: Briefcase     },
+  { href: "/dashboard/teacher/invites",              label: "Invites",        icon: Bell          },
+  { href: "/dashboard/teacher/saved-jobs",           label: "Saved Jobs",     icon: BookOpen      },
+  { href: "/dashboard/teacher/quiz-results",         label: "Quiz Results",   icon: Star          },
+  { href: "/dashboard/teacher/specialization-quiz",  label: "Subject Mastery",icon: Zap           },
+  { href: "/dashboard/teacher/edit-profile",         label: "Edit Profile",   icon: User          },
+  { href: "/dashboard/teacher/settings",             label: "Settings",       icon: Settings      },
 ]
 
 interface TeacherProfile {
@@ -180,7 +181,7 @@ export default function TeacherDashboardPage() {
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [savedJobsCount, setSavedJobsCount] = useState(0)
   const [totalApplicationsCount, setTotalApplicationsCount] = useState(0)
-  const [profileViewsCount, setProfileViewsCount] = useState(0)
+  const [invitesCount, setInvitesCount] = useState(0)
 
   // Loading states per section — all false until triggered
   const [loadingProfile, setLoadingProfile] = useState(false)
@@ -294,6 +295,15 @@ export default function TeacherDashboardPage() {
         setSavedJobsCount(data.saved_jobs?.length || 0)
       })
       .catch((err) => console.error("Saved jobs error:", err))
+
+    // Invites count
+    fetch("/api/teacher/invites")
+      .then(async (res) => {
+        if (!res.ok) return
+        const data = await res.json()
+        setInvitesCount(data.pending || 0)
+      })
+      .catch((err) => console.error("Invites error:", err))
 
   }, [router])
 
@@ -480,15 +490,17 @@ export default function TeacherDashboardPage() {
           ) : (
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               {[
-                { label: "Applications", value: totalApplicationsCount, color: "text-blue-600" },
-                { label: "Shortlisted",  value: shortlistedCount,       color: "text-green-600" },
-                { label: "Saved Jobs",   value: savedJobsCount,         color: "text-purple-600" },
-                { label: "Profile Views",value: profileViewsCount,      color: "text-orange-600" },
+                { label: "Applications", value: totalApplicationsCount, color: "text-blue-600",   href: "/dashboard/teacher/applications" },
+                { label: "Shortlisted",  value: shortlistedCount,       color: "text-green-600",  href: "/dashboard/teacher/applications" },
+                { label: "Saved Jobs",   value: savedJobsCount,         color: "text-purple-600", href: "/dashboard/teacher/saved-jobs"   },
+                { label: "Invites",      value: invitesCount,           color: "text-orange-600", href: "/dashboard/teacher/invites"      },
               ].map((stat) => (
-                <div key={stat.label} className="bg-white rounded-xl border border-gray-200 p-4">
-                  <div className={`text-2xl font-bold mb-1 ${stat.color}`}>{stat.value}</div>
-                  <div className="text-xs text-gray-500">{stat.label}</div>
-                </div>
+                <Link key={stat.label} href={stat.href}>
+                  <div className="bg-white rounded-xl border border-gray-200 p-4 hover:border-green-300 hover:shadow-sm transition cursor-pointer">
+                    <div className={`text-2xl font-bold mb-1 ${stat.color}`}>{stat.value}</div>
+                    <div className="text-xs text-gray-500">{stat.label}</div>
+                  </div>
+                </Link>
               ))}
             </div>
           )}

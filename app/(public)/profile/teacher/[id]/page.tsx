@@ -203,6 +203,9 @@ export default function TeacherProfilePage() {
   const [error, setError] = useState("")
   const [isInviting, setIsInviting] = useState(false)
   const [inviteSuccess, setInviteSuccess] = useState(false)
+  const [schoolJobs, setSchoolJobs] = useState<{ id: string; title: string }[]>([])
+  const [selectedJobId, setSelectedJobId] = useState("")
+  const [inviteError, setInviteError] = useState("")
   const [viewerRole, setViewerRole] = useState<"teacher" | "school" | "guest">(
     "guest"
   )
@@ -252,14 +255,35 @@ export default function TeacherProfilePage() {
     if (profileId) fetchProfile()
   }, [profileId, isOwnProfile])
 
+  // Load school's active jobs for invite picker
+  useEffect(() => {
+    if (viewerRole !== "school" || isOwnProfile) return
+    fetch("/api/school/jobs")
+      .then(async (res) => {
+        if (!res.ok) return
+        const data = await res.json()
+        const active = (data.jobs || []).filter((j: { status: string }) => j.status === "active")
+        setSchoolJobs(active)
+        if (active.length > 0) setSelectedJobId(active[0].id)
+      })
+      .catch(console.error)
+  }, [viewerRole, isOwnProfile])
+
   const handleInvite = async () => {
+    if (!selectedJobId) { setInviteError("Please select a job first"); return }
     setIsInviting(true)
+    setInviteError("")
     try {
-      // Opens invite modal — in practice you'd show job selection
-      await new Promise((res) => setTimeout(res, 1000))
+      const res = await fetch("/api/school/invite", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ teacher_id: profile?.id, job_id: selectedJobId }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || "Failed to send invite")
       setInviteSuccess(true)
-    } catch (err) {
-      console.error(err)
+    } catch (err: unknown) {
+      setInviteError(err instanceof Error ? err.message : "Failed to send invite")
     } finally {
       setIsInviting(false)
     }
@@ -792,21 +816,41 @@ export default function TeacherProfilePage() {
                   {inviteSuccess ? (
                     <div className="flex items-center justify-center gap-2 p-3 bg-green-50 border border-green-200 rounded-xl text-sm text-green-700">
                       <CheckCircle2 className="h-4 w-4" />
-                      Invite sent successfully
+                      Invite sent! Teacher has been notified.
                     </div>
                   ) : (
-                    <Button
-                      onClick={handleInvite}
-                      disabled={isInviting}
-                      className="w-full bg-blue-700 hover:bg-blue-800 text-white flex items-center gap-2"
-                    >
-                      {isInviting ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
+                    <div className="space-y-2">
+                      {schoolJobs.length > 0 ? (
+                        <select
+                          value={selectedJobId}
+                          onChange={(e) => setSelectedJobId(e.target.value)}
+                          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                        >
+                          {schoolJobs.map((j) => (
+                            <option key={j.id} value={j.id}>{j.title}</option>
+                          ))}
+                        </select>
                       ) : (
-                        <Send className="h-4 w-4" />
+                        <p className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-lg p-2">
+                          No active jobs. Post a job first to invite teachers.
+                        </p>
                       )}
-                      Invite to Apply
-                    </Button>
+                      {inviteError && (
+                        <p className="text-xs text-red-500">{inviteError}</p>
+                      )}
+                      <Button
+                        onClick={handleInvite}
+                        disabled={isInviting || schoolJobs.length === 0}
+                        className="w-full bg-blue-700 hover:bg-blue-800 text-white flex items-center gap-2"
+                      >
+                        {isInviting ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Send className="h-4 w-4" />
+                        )}
+                        Invite to Apply
+                      </Button>
+                    </div>
                   )}
                   {profile.cv_url && (
                     <a
