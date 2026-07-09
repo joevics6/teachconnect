@@ -1,12 +1,22 @@
 "use client"
 
-import { useState } from "react"
+import { useState, Suspense } from "react"
 import Link from "next/link"
+import { useSearchParams } from "next/navigation"
 import { GraduationCap, Eye, EyeOff, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { createClient } from "@/lib/supabase/client"
 
 export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginForm />
+    </Suspense>
+  )
+}
+
+function LoginForm() {
+  const searchParams = useSearchParams()
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
@@ -42,7 +52,13 @@ export default function LoginPage() {
       // Use role from user metadata — avoids a DB query that can hang
       // due to RLS or duplicate rows in the users table
       const role = data.user?.user_metadata?.role || "teacher"
-      const redirectTo = role === "school" ? "/dashboard/school" : "/dashboard/teacher"
+      const defaultRedirect = role === "school" ? "/dashboard/school" : "/dashboard/teacher"
+
+      // Honor ?next=... (set by the middleware / apply flow when a signed-out
+      // user was bounced here from a page they need to log in to reach),
+      // but only if it's a same-site relative path — never an absolute URL.
+      const next = searchParams.get("next")
+      const redirectTo = next && next.startsWith("/") && !next.startsWith("//") ? next : defaultRedirect
 
       window.location.href = redirectTo
     } catch (err: unknown) {

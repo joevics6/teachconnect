@@ -2,6 +2,7 @@
 
 import { useState, useEffect, Suspense } from "react"
 import Link from "next/link"
+import { LogoutButton } from "@/components/layout/LogoutButton"
 import { useSearchParams } from "next/navigation"
 import {
   ArrowLeft,
@@ -11,7 +12,6 @@ import {
   CreditCard,
   GraduationCap,
   Loader2,
-  LogOut,
   Menu,
   Settings,
   Star,
@@ -433,10 +433,7 @@ function SubscriptionPageInner() {
           ))}
         </nav>
         <div className="p-3 border-t border-gray-100">
-          <button className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-red-500 hover:bg-red-50 transition w-full">
-            <LogOut className="h-4 w-4" />
-            Log Out
-          </button>
+          <LogoutButton />
         </div>
       </aside>
 

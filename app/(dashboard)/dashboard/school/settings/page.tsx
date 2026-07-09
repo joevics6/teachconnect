@@ -65,7 +65,7 @@ export default function SchoolSettingsPage() {
   const handleLogout = async () => {
     const supabase = createClient()
     await supabase.auth.signOut()
-    router.push("/login")
+    window.location.href = "/"
   }
 
   const handlePasswordChange = async () => {
