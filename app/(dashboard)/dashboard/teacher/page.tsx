@@ -5,38 +5,19 @@ import Link from "next/link"
 import {
   GraduationCap,
   Briefcase,
-  BookOpen,
   Bell,
-  User,
-  Settings,
-  LogOut,
   ChevronRight,
-  Eye,
-  EyeOff,
   CheckCircle2,
   Clock,
   XCircle,
   Star,
   Menu,
-  X,
-  Loader2,
   Zap,
   TrendingUp,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
-
-const NAV_ITEMS = [
-  { href: "/dashboard/teacher",                      label: "Overview",       icon: GraduationCap },
-  { href: "/dashboard/teacher/applications",         label: "My Applications",icon: Briefcase     },
-  { href: "/dashboard/teacher/invites",              label: "Invites",        icon: Bell          },
-  { href: "/dashboard/teacher/saved-jobs",           label: "Saved Jobs",     icon: BookOpen      },
-  { href: "/dashboard/teacher/quiz-results",         label: "Quiz Results",   icon: Star          },
-  { href: "/dashboard/teacher/specialization-quiz",  label: "Subject Mastery",icon: Zap           },
-  { href: "/dashboard/teacher/edit-profile",         label: "Edit Profile",   icon: User          },
-  { href: "/dashboard/teacher/settings",             label: "Settings",       icon: Settings      },
-]
+import { TeacherSidebar } from "@/components/dashboard/TeacherSidebar"
 
 interface TeacherProfile {
   id: string
@@ -146,10 +127,6 @@ function CardSkeleton({ lines = 3 }: { lines?: number }) {
 }
 
 // ── Helpers ───────────────────────────────────────────────────
-function getInitials(name: string) {
-  return name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
-}
-
 function getStatusBadge(status: string) {
   switch (status) {
     case "shortlisted":
@@ -189,7 +166,6 @@ export default function TeacherDashboardPage() {
   const [loadingNotifications, setLoadingNotifications] = useState(false)
 
   const [onboarding, setOnboarding] = useState<OnboardingData | null>(null)
-  const [isTogglingVisibility, setIsTogglingVisibility] = useState(false)
 
   // ── Load all dashboard data via API routes (same pattern as profile page) ──
   useEffect(() => {
@@ -316,23 +292,6 @@ export default function TeacherDashboardPage() {
 
   }, [router])
 
-  const handleToggleVisibility = async () => {
-    if (!profile) return
-    setIsTogglingVisibility(true)
-    try {
-      await fetch("/api/teacher/profile/visibility", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ is_visible: !profile.is_visible }),
-      })
-      setProfile((prev) => prev ? { ...prev, is_visible: !prev.is_visible } : prev)
-    } catch (err) {
-      console.error(err)
-    } finally {
-      setIsTogglingVisibility(false)
-    }
-  }
-
   const handleMarkAllRead = async () => {
     const unreadIds = notifications.filter((n) => !n.is_read).map((n) => n.id)
     if (unreadIds.length === 0) return
@@ -346,15 +305,6 @@ export default function TeacherDashboardPage() {
     } catch (err) {
       console.error("Mark all read error:", err)
     }
-  }
-
-  const handleLogout = async () => {
-    const supabase = createClient()
-    // Clear local state immediately so UI updates before redirect
-    setProfile(null)
-    setUserName("Teacher")
-    await supabase.auth.signOut()
-    window.location.href = "/"
   }
 
   // ── Don't block render on auth check — show skeleton shell ───
@@ -380,89 +330,10 @@ export default function TeacherDashboardPage() {
   const profileCompletion = Math.round((completedFields / completionItems.length) * 100)
 
   // Sidebar content — same whether loading or not
-  const sidebarContent = (
-    <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 transform transition-transform duration-200 ease-in-out ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0 lg:static lg:inset-auto flex flex-col`}>
-      <div className="flex items-center justify-between p-5 border-b border-gray-100">
-        <Link href="/" className="flex items-center gap-2">
-          <div className="bg-green-600 text-white p-1.5 rounded-lg"><GraduationCap className="h-4 w-4" /></div>
-          <div className="flex flex-col leading-none">
-            <span className="font-bold text-xs text-gray-900">JobMeter</span>
-            <span className="font-bold text-xs text-green-600">TeachConnect</span>
-          </div>
-        </Link>
-        <button className="lg:hidden" onClick={() => setSidebarOpen(false)}><X className="h-5 w-5 text-gray-500" /></button>
-      </div>
-
-      <div className="p-5 border-b border-gray-100">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0 overflow-hidden">
-            {profile?.photo_url ? (
-              <img src={profile.photo_url} alt={profile.full_name} className="w-10 h-10 rounded-full object-cover" />
-            ) : (
-              <span className="text-green-700 font-bold text-sm">
-                {profile ? getInitials(profile.full_name) : userName ? getInitials(userName) : "?"}
-              </span>
-            )}
-          </div>
-          <div className="min-w-0">
-            {loadingProfile ? (
-              <>
-                <Skeleton className="h-4 w-28 mb-1" />
-                <Skeleton className="h-3 w-20" />
-              </>
-            ) : (
-              <>
-                <p className="font-semibold text-gray-900 text-sm truncate">{profile?.full_name || userName}</p>
-                <p className="text-xs text-gray-500 truncate">
-                  {profile?.subjects?.[0] || "Teacher"}{profile?.state ? ` • ${profile.state}` : ""}
-                </p>
-              </>
-            )}
-          </div>
-        </div>
-
-        <button
-          onClick={handleToggleVisibility}
-          disabled={isTogglingVisibility || !profile}
-          className={`mt-4 w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-all ${
-            profile?.is_visible
-              ? "bg-green-50 text-green-700 border border-green-200"
-              : "bg-gray-100 text-gray-500 border border-gray-200"
-          }`}
-        >
-          <span>{profile?.is_visible ? "Visible to Schools" : "Hidden from Schools"}</span>
-          {isTogglingVisibility ? (
-            <Loader2 className="h-3.5 w-3.5 animate-spin" />
-          ) : profile?.is_visible ? (
-            <Eye className="h-3.5 w-3.5" />
-          ) : (
-            <EyeOff className="h-3.5 w-3.5" />
-          )}
-        </button>
-      </div>
-
-      <nav className="p-3 flex-1">
-        {NAV_ITEMS.map((item) => (
-          <Link key={item.href} href={item.href}
-            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition mb-0.5">
-            <item.icon className="h-4 w-4 flex-shrink-0" />{item.label}
-          </Link>
-        ))}
-      </nav>
-
-      <div className="p-3 border-t border-gray-100">
-        <button onClick={handleLogout}
-          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-red-500 hover:bg-red-50 transition w-full">
-          <LogOut className="h-4 w-4" />Log Out
-        </button>
-      </div>
-    </aside>
-  )
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
-      {sidebarContent}
-      {sidebarOpen && <div className="fixed inset-0 z-40 bg-black/30 lg:hidden" onClick={() => setSidebarOpen(false)} />}
+      <TeacherSidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       <div className="flex-1 min-w-0">
         {/* Header — always visible immediately */}

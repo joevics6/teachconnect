@@ -6,40 +6,21 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { LogoutButton } from "@/components/layout/LogoutButton"
 import {
-  GraduationCap,
   Briefcase,
-  BookOpen,
-  Bell,
-  User,
-  Settings,
   Menu,
-  X,
   Star,
-  Zap,
   CheckCircle2,
   Clock,
   XCircle,
   Eye,
-  ChevronRight,
   Loader2,
-  AlertCircle,
   MapPin,
   BookOpen as QuizIcon,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { formatCurrency } from "@/lib/utils"
-
-const NAV_ITEMS = [
-  { href: "/dashboard/teacher", label: "Overview", icon: GraduationCap },
-  { href: "/dashboard/teacher/applications", label: "My Applications", icon: Briefcase },
-  { href: "/dashboard/teacher/saved-jobs", label: "Saved Jobs", icon: BookOpen },
-  { href: "/dashboard/teacher/quiz-results", label: "Quiz Results", icon: Star },
-  { href: "/dashboard/teacher/specialization-quiz", label: "Subject Mastery", icon: Zap },
-  { href: "/profile/teacher/me", label: "My Profile", icon: User },
-  { href: "/dashboard/teacher/settings", label: "Settings", icon: Settings },
-]
+import { TeacherSidebar } from "@/components/dashboard/TeacherSidebar"
 
 type PipelineStage =
   | "applied"
@@ -218,36 +199,7 @@ export default function ApplicationsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
-      <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 transform transition-transform duration-200 ease-in-out ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0 lg:static lg:inset-auto`}>
-        <div className="flex items-center justify-between p-5 border-b border-gray-100">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="bg-green-600 text-white p-1.5 rounded-lg"><GraduationCap className="h-4 w-4" /></div>
-            <div className="flex flex-col leading-none">
-              <span className="font-bold text-xs text-gray-900">JobMeter</span>
-              <span className="font-bold text-xs text-green-600">TeachConnect</span>
-            </div>
-          </Link>
-          <button className="lg:hidden" onClick={() => setSidebarOpen(false)}><X className="h-5 w-5 text-gray-500" /></button>
-        </div>
-        <div className="p-5 border-b border-gray-100">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center"><span className="text-green-700 font-bold text-sm">AO</span></div>
-            <div><p className="font-semibold text-gray-900 text-sm">Adaeze Okafor</p><p className="text-xs text-gray-500">Mathematics • Lagos</p></div>
-          </div>
-        </div>
-        <nav className="p-3">
-          {NAV_ITEMS.map((item) => (
-            <Link key={item.href} href={item.href} className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition mb-0.5">
-              <item.icon className="h-4 w-4 flex-shrink-0" />{item.label}
-            </Link>
-          ))}
-        </nav>
-        <div className="p-3 border-t border-gray-100">
-          <LogoutButton />
-        </div>
-      </aside>
-
-      {sidebarOpen && <div className="fixed inset-0 z-40 bg-black/30 lg:hidden" onClick={() => setSidebarOpen(false)} />}
+      <TeacherSidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       <div className="flex-1 min-w-0">
         <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center gap-3 sticky top-0 z-30">
