@@ -173,7 +173,6 @@ export default function TeacherDashboardPage() {
   // Auth state — loaded immediately from client session
   const [authChecked, setAuthChecked] = useState(false)
   const [userName, setUserName] = useState("")
-  const [userId, setUserId] = useState("")
 
   // Data states — all start null (not loading)
   const [profile, setProfile] = useState<TeacherProfile | null>(null)
@@ -182,6 +181,7 @@ export default function TeacherDashboardPage() {
   const [savedJobsCount, setSavedJobsCount] = useState(0)
   const [totalApplicationsCount, setTotalApplicationsCount] = useState(0)
   const [invitesCount, setInvitesCount] = useState(0)
+  const [quizCompletedSubjects, setQuizCompletedSubjects] = useState<string[]>([])
 
   // Loading states per section — all false until triggered
   const [loadingProfile, setLoadingProfile] = useState(false)
@@ -209,7 +209,6 @@ export default function TeacherDashboardPage() {
 
         // Set user name from profile
         setUserName(p.full_name || "Teacher")
-        setUserId(p.id)
         setAuthChecked(true)
 
         setProfile({
@@ -305,6 +304,16 @@ export default function TeacherDashboardPage() {
       })
       .catch((err) => console.error("Invites error:", err))
 
+    // Subject Mastery quiz results — used to mark the profile-completion item done
+    fetch("/api/teacher/specialization-quiz/results")
+      .then(async (res) => {
+        if (!res.ok) return
+        const data = await res.json()
+        const subjects = ((data.results || []) as Array<{ subject: string }>).map((r) => r.subject)
+        setQuizCompletedSubjects(subjects)
+      })
+      .catch((err) => console.error("Quiz results error:", err))
+
   }, [router])
 
   const handleToggleVisibility = async () => {
@@ -327,12 +336,16 @@ export default function TeacherDashboardPage() {
   const handleMarkAllRead = async () => {
     const unreadIds = notifications.filter((n) => !n.is_read).map((n) => n.id)
     if (unreadIds.length === 0) return
-    const supabase = createClient()
-    await supabase
-      .from("notifications")
-      .update({ is_read: true })
-      .in("id", unreadIds)
-    setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })))
+    try {
+      await fetch("/api/teacher/notifications", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mark_all_read: true }),
+      })
+      setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })))
+    } catch (err) {
+      console.error("Mark all read error:", err)
+    }
   }
 
   const handleLogout = async () => {
@@ -361,7 +374,7 @@ export default function TeacherDashboardPage() {
     { label: "Location",       done: !!profile?.state },
     { label: "Availability",   done: !!profile?.availability },
     { label: "Skills",         done: (onboarding?.cv_skills?.length || 0) > 0 },
-    { label: "Subject Mastery Quiz", done: false, href: "/dashboard/teacher/specialization-quiz", isQuiz: true },
+    { label: "Subject Mastery Quiz", done: quizCompletedSubjects.length > 0, href: "/dashboard/teacher/specialization-quiz", isQuiz: true },
   ]
   const completedFields = completionItems.filter((i) => i.done).length
   const profileCompletion = Math.round((completedFields / completionItems.length) * 100)
@@ -459,7 +472,11 @@ export default function TeacherDashboardPage() {
             <h1 className="text-lg font-bold text-gray-900">Dashboard</h1>
           </div>
           <div className="flex items-center gap-3">
-            <button className="relative p-2 rounded-lg hover:bg-gray-100 transition">
+            <button
+              onClick={() => document.getElementById("notifications-panel")?.scrollIntoView({ behavior: "smooth", block: "start" })}
+              className="relative p-2 rounded-lg hover:bg-gray-100 transition"
+              aria-label="View notifications"
+            >
               <Bell className="h-5 w-5 text-gray-600" />
               {unreadCount > 0 && (
                 <span className="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">{unreadCount}</span>
@@ -575,9 +592,11 @@ export default function TeacherDashboardPage() {
 
             {/* Notifications */}
             {loadingNotifications ? (
-              <CardSkeleton lines={4} />
+              <div id="notifications-panel">
+                <CardSkeleton lines={4} />
+              </div>
             ) : (
-              <div className="bg-white rounded-xl border border-gray-200 p-5">
+              <div id="notifications-panel" className="bg-white rounded-xl border border-gray-200 p-5 scroll-mt-20">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="font-bold text-gray-900">Notifications</h3>
                   {unreadCount > 0 && (
