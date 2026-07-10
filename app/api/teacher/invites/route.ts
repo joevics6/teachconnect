@@ -21,7 +21,7 @@ export async function GET() {
       .from("school_invites")
       .select(`
         id, status, created_at,
-        jobs ( id, title, subject, deadline ),
+        jobs ( id, title, subject, deadline, quiz_enabled ),
         school_profiles!school_id ( id, school_name, logo_url, state )
       `)
       .eq("teacher_id", teacher.id)
@@ -30,7 +30,7 @@ export async function GET() {
     if (error) throw error
 
     const shaped = (invites ?? []).map((inv) => {
-      const job    = (Array.isArray(inv.jobs)            ? inv.jobs[0]            : inv.jobs)            as { id: string; title: string; subject: string; deadline: string } | null
+      const job    = (Array.isArray(inv.jobs)            ? inv.jobs[0]            : inv.jobs)            as { id: string; title: string; subject: string; deadline: string; quiz_enabled: boolean } | null
       const school = (Array.isArray(inv.school_profiles) ? inv.school_profiles[0] : inv.school_profiles) as { id: string; school_name: string; logo_url: string | null; state: string } | null
       return {
         id:          inv.id,
@@ -40,6 +40,7 @@ export async function GET() {
         job_title:   job?.title,
         job_subject: job?.subject,
         deadline:    job?.deadline,
+        job_quiz_enabled: job?.quiz_enabled ?? false,
         school_id:   school?.id,
         school_name: school?.school_name,
         school_logo: school?.logo_url,
@@ -70,20 +71,45 @@ export async function PATCH(request: Request) {
 
     const { data: teacherRows } = await supabase
       .from("teacher_profiles")
-      .select("id")
+      .select("id, full_name")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false })
       .limit(1)
     const teacher = (teacherRows ?? [])[0] ?? null
     if (!teacher) return NextResponse.json({ error: "Teacher not found" }, { status: 404 })
 
-    const { error } = await supabase
+    const { data: updated, error } = await supabase
       .from("school_invites")
       .update({ status })
       .eq("id", invite_id)
       .eq("teacher_id", teacher.id)
+      .select(`
+        job_id,
+        jobs ( title, school_profiles ( user_id ) )
+      `)
+      .single()
 
     if (error) throw error
+
+    // Notify the school of the teacher's response
+    const job = (Array.isArray(updated?.jobs) ? updated.jobs[0] : updated?.jobs) as
+      { title: string; school_profiles: { user_id: string } | { user_id: string }[] } | null
+    const school = job
+      ? ((Array.isArray(job.school_profiles) ? job.school_profiles[0] : job.school_profiles) as { user_id: string } | null)
+      : null
+
+    if (school?.user_id) {
+      await supabase.from("notifications").insert({
+        user_id: school.user_id,
+        type: status === "accepted" ? "invite_accepted" : "invite_declined",
+        title: status === "accepted" ? "Invite accepted" : "Invite declined",
+        message: status === "accepted"
+          ? `${teacher.full_name} accepted your invite for ${job?.title || "a job"}.`
+          : `${teacher.full_name} declined your invite for ${job?.title || "a job"}.`,
+        metadata: { invite_id, job_id: updated?.job_id, status },
+      })
+    }
+
     return NextResponse.json({ ok: true })
   } catch (err) {
     console.error("PATCH teacher invite error:", err)

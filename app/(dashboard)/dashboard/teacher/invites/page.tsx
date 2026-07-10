@@ -17,6 +17,7 @@ interface Invite {
   job_title: string
   job_subject: string
   deadline: string
+  job_quiz_enabled: boolean
   school_id: string
   school_name: string
   school_logo: string | null
@@ -72,6 +73,16 @@ export default function TeacherInvitesPage() {
       setInvites((prev) =>
         prev.map((inv) => inv.id === inviteId ? { ...inv, status } : inv)
       )
+
+      // Accepting an invite means applying — send the teacher into the same
+      // apply flow used everywhere else on the site (quiz-gated or direct).
+      if (status === "accepted") {
+        const invite = invites.find((inv) => inv.id === inviteId)
+        if (invite?.job_id) {
+          router.push(invite.job_quiz_enabled ? `/quiz/${invite.job_id}` : `/apply/${invite.job_id}`)
+          return
+        }
+      }
     } catch (err) {
       console.error("Respond error:", err)
     } finally {
