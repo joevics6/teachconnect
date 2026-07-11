@@ -4,22 +4,13 @@ import { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import {
-  Building2, Briefcase, Users, GraduationCap, CreditCard,
-  Settings, Menu, X, Lock, Bell, Trash2,
+  Building2, Menu, X, Lock, Bell, Trash2,
   CheckCircle2, AlertTriangle, Eye, EyeOff, Loader2,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { createClient } from "@/lib/supabase/client"
 import { LogoutButton } from "@/components/layout/LogoutButton"
-
-const NAV_ITEMS = [
-  { href: "/dashboard/school",              label: "Overview",        icon: Building2     },
-  { href: "/dashboard/school/jobs",         label: "My Jobs",         icon: Briefcase     },
-  { href: "/dashboard/school/jobs/applicants", label: "Applicants",  icon: Users         },
-  { href: "/talent",                        label: "Browse Teachers", icon: GraduationCap },
-  { href: "/dashboard/school/subscription", label: "Subscription",   icon: CreditCard    },
-  { href: "/dashboard/school/settings",     label: "Settings",        icon: Settings      },
-]
+import { SCHOOL_NAV_ITEMS as NAV_ITEMS } from "@/components/dashboard/SchoolSidebar"
 
 function Section({ title, description, children }: {
   title: string

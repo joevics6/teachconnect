@@ -2,20 +2,13 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { LogoutButton } from "@/components/layout/LogoutButton"
 import {
   ArrowLeft,
   Briefcase,
-  Building2,
   CheckCircle2,
-  GraduationCap,
   Info,
   Loader2,
-  Settings,
-  Users,
-  CreditCard,
   Menu,
-  X,
   Sparkles,
   Zap,
   BookOpen,
@@ -24,17 +17,7 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { SUBJECTS, TEACHING_LEVELS, BENEFITS } from "@/lib/constants"
-
-const NAV_ITEMS = [
-  { href: "/dashboard/school", label: "Overview", icon: Building2 },
-  { href: "/dashboard/school/jobs", label: "My Jobs", icon: Briefcase },
-  { href: "/dashboard/school/jobs/applicants", label: "Applicants", icon: Users },
-  { href: "/talent", label: "Browse Teachers", icon: GraduationCap },
-  { href: "/dashboard/school/subscription", label: "Subscription", icon: CreditCard },
-  { href: "/schools/me", label: "School Profile", icon: Building2 },
-  { href: "/dashboard/school/edit-profile", label: "Edit Profile", icon: Building2 },
-  { href: "/dashboard/school/settings", label: "Settings", icon: Settings },
-]
+import { SchoolSidebar } from "@/components/dashboard/SchoolSidebar"
 
 const ACCOMMODATION_TYPES = [
   { value: "fully-furnished", label: "Fully Furnished" },
@@ -385,61 +368,7 @@ export default function PostJobPage() {
   return (
     <div className="min-h-screen bg-gray-50 flex">
 
-      {/* Sidebar */}
-      <aside
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 transform transition-transform duration-200 ease-in-out
-          ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0 lg:static lg:inset-auto`}
-      >
-        <div className="flex items-center justify-between p-5 border-b border-gray-100">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="bg-green-600 text-white p-1.5 rounded-lg">
-              <GraduationCap className="h-4 w-4" />
-            </div>
-            <div className="flex flex-col leading-none">
-              <span className="font-bold text-xs text-gray-900">JobMeter</span>
-              <span className="font-bold text-xs text-green-600">TeachConnect</span>
-            </div>
-          </Link>
-          <button className="lg:hidden" onClick={() => setSidebarOpen(false)}>
-            <X className="h-5 w-5 text-gray-500" />
-          </button>
-        </div>
-        <div className="p-5 border-b border-gray-100">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center flex-shrink-0">
-              <Building2 className="h-5 w-5 text-blue-700" />
-            </div>
-            <div className="min-w-0">
-              <p className="font-semibold text-gray-900 text-sm truncate">
-                Greenfield Int&apos;l School
-              </p>
-              <p className="text-xs text-gray-500">Private • Lagos</p>
-            </div>
-          </div>
-        </div>
-        <nav className="p-3">
-          {NAV_ITEMS.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition mb-0.5"
-            >
-              <item.icon className="h-4 w-4 flex-shrink-0" />
-              {item.label}
-            </Link>
-          ))}
-        </nav>
-        <div className="p-3 border-t border-gray-100">
-          <LogoutButton />
-        </div>
-      </aside>
-
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-black/30 lg:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
+      <SchoolSidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       {/* Main */}
       <div className="flex-1 min-w-0">

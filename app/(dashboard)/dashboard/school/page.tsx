@@ -3,30 +3,14 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import {
-  GraduationCap, Briefcase, Users, Bell, Settings,
-  ChevronRight, Plus, Menu, X, Building2, CreditCard,
+  Briefcase, Bell,
+  ChevronRight, Plus, Menu,
   CheckCircle2, Clock, Eye, Star, BookOpen, TrendingUp,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
-import { LogoutButton } from "@/components/layout/LogoutButton"
+import { SchoolSidebar } from "@/components/dashboard/SchoolSidebar"
 
-const NAV_ITEMS = [
-  { href: "/dashboard/school",               label: "Overview",         icon: Building2    },
-  { href: "/dashboard/school/jobs",          label: "My Jobs",          icon: Briefcase    },
-  { href: "/dashboard/school/jobs/applicants", label: "Applicants",     icon: Users        },
-  { href: "/talent",                         label: "Browse Teachers",  icon: GraduationCap },
-  { href: "/dashboard/school/saved-teachers",label: "Saved Teachers",   icon: Star         },
-  { href: "/dashboard/school/subscription",  label: "Subscription",     icon: CreditCard   },
-  { href: "/dashboard/school/edit-profile",  label: "Edit Profile",     icon: Building2    },
-  { href: "/dashboard/school/settings",      label: "Settings",         icon: Settings     },
-]
-
-interface SchoolProfile {
-  id: string; school_name: string; school_type: string
-  state: string; logo_url: string | null; is_verified: boolean
-}
 interface Job {
   id: string; title: string; subject: string
   applicants_count: number; passed_quiz_count: number
@@ -87,7 +71,6 @@ export default function SchoolDashboardPage() {
   const router = useRouter()
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
-  const [school, setSchool]                   = useState<SchoolProfile | null>(null)
   const [planType, setPlanType]               = useState<"free" | "standard" | "term">("free")
   const [jobs, setJobs]                       = useState<Job[]>([])
   const [recentApplicants, setRecentApplicants] = useState<Applicant[]>([])
@@ -111,7 +94,6 @@ export default function SchoolDashboardPage() {
         if (!res.ok) return
         const data = await res.json()
         if (data.school) {
-          setSchool(data.school)
           setSchoolName(data.school.school_name || "School")
         }
       })
@@ -194,9 +176,16 @@ export default function SchoolDashboardPage() {
   const handleMarkAllRead = async () => {
     const unreadIds = notifications.filter((n) => !n.is_read).map((n) => n.id)
     if (unreadIds.length === 0) return
-    const supabase = createClient()
-    await supabase.from("notifications").update({ is_read: true }).in("id", unreadIds)
-    setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })))
+    try {
+      await fetch("/api/teacher/notifications", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mark_all_read: true }),
+      })
+      setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })))
+    } catch (err) {
+      console.error("Mark all read error:", err)
+    }
   }
 
   const unreadCount     = notifications.filter((n) => !n.is_read).length
@@ -207,65 +196,7 @@ export default function SchoolDashboardPage() {
   return (
     <div className="min-h-screen bg-gray-50 flex">
 
-      {/* Sidebar */}
-      <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 transform transition-transform duration-200 ease-in-out ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0 lg:static lg:inset-auto flex flex-col`}>
-        <div className="flex items-center justify-between p-5 border-b border-gray-100">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="bg-green-600 text-white p-1.5 rounded-lg"><GraduationCap className="h-4 w-4" /></div>
-            <div className="flex flex-col leading-none">
-              <span className="font-bold text-xs text-gray-900">JobMeter</span>
-              <span className="font-bold text-xs text-green-600">TeachConnect</span>
-            </div>
-          </Link>
-          <button className="lg:hidden" onClick={() => setSidebarOpen(false)}><X className="h-5 w-5 text-gray-500" /></button>
-        </div>
-
-        <div className="p-5 border-b border-gray-100">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center flex-shrink-0 overflow-hidden">
-              {school?.logo_url
-                ? <img src={school.logo_url} alt={school.school_name} className="w-full h-full object-contain p-1" />
-                : <Building2 className="h-5 w-5 text-blue-700" />
-              }
-            </div>
-            <div className="min-w-0">
-              {loadingProfile ? (
-                <><Skeleton className="h-4 w-28 mb-1" /><Skeleton className="h-3 w-20" /></>
-              ) : (
-                <>
-                  <p className="font-semibold text-gray-900 text-sm truncate">{school?.school_name || "School"}</p>
-                  <p className="text-xs text-gray-500 truncate">
-                    {school?.school_type || ""}{school?.state ? ` • ${school.state}` : ""}
-                  </p>
-                </>
-              )}
-            </div>
-          </div>
-          <div className="mt-4 flex items-center justify-between px-3 py-2 bg-yellow-50 border border-yellow-200 rounded-lg">
-            <span className="text-xs font-medium text-yellow-700 capitalize">
-              {planType === "free" ? "Free Plan" : planType === "term" ? "Term Plan" : "Standard"}
-            </span>
-            {planType === "free" && (
-              <Link href="/dashboard/school/subscription" className="text-xs text-blue-600 font-semibold hover:underline">Upgrade</Link>
-            )}
-          </div>
-        </div>
-
-        <nav className="p-3 flex-1">
-          {NAV_ITEMS.map((item) => (
-            <Link key={item.href} href={item.href}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition mb-0.5">
-              <item.icon className="h-4 w-4 flex-shrink-0" />{item.label}
-            </Link>
-          ))}
-        </nav>
-
-        <div className="p-3 border-t border-gray-100">
-          <LogoutButton />
-        </div>
-      </aside>
-
-      {sidebarOpen && <div className="fixed inset-0 z-40 bg-black/30 lg:hidden" onClick={() => setSidebarOpen(false)} />}
+      <SchoolSidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       {/* Main */}
       <div className="flex-1 min-w-0">
@@ -275,7 +206,11 @@ export default function SchoolDashboardPage() {
             <h1 className="text-lg font-bold text-gray-900">Dashboard</h1>
           </div>
           <div className="flex items-center gap-3">
-            <button className="relative p-2 rounded-lg hover:bg-gray-100 transition">
+            <button
+              onClick={() => document.getElementById("notifications-panel")?.scrollIntoView({ behavior: "smooth", block: "start" })}
+              className="relative p-2 rounded-lg hover:bg-gray-100 transition"
+              aria-label="View notifications"
+            >
               <Bell className="h-5 w-5 text-gray-600" />
               {unreadCount > 0 && (
                 <span className="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">{unreadCount}</span>
@@ -412,7 +347,7 @@ export default function SchoolDashboardPage() {
             </div>
 
             {/* Notifications */}
-            <div className="bg-white rounded-xl border border-gray-200 p-5">
+            <div id="notifications-panel" className="bg-white rounded-xl border border-gray-200 p-5 scroll-mt-20">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-bold text-gray-900">Notifications</h3>
                 {unreadCount > 0 && (
