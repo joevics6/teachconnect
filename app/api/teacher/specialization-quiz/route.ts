@@ -158,6 +158,7 @@ export async function POST(request: NextRequest) {
       .insert({
         teacher_id: teacher.id,
         subject,
+        level,
         score,
         correct_answers: correct,
         total_questions: total,
