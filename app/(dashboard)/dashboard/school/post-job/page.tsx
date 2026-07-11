@@ -174,6 +174,7 @@ export default function PostJobPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [upgradeRequired, setUpgradeRequired] = useState(false)
   const [formData, setFormData] = useState<FormData>(EMPTY_FORM)
 
   const [aiInput, setAiInput] = useState("")
@@ -309,6 +310,7 @@ export default function PostJobPage() {
   const handleSubmit = async () => {
     if (!validate()) return
     setIsLoading(true)
+    setUpgradeRequired(false)
     try {
       const response = await fetch("/api/school/jobs", {
         method: "POST",
@@ -316,8 +318,10 @@ export default function PostJobPage() {
         body: JSON.stringify(formData),
       })
       const data = await response.json()
-      if (!response.ok)
+      if (!response.ok) {
+        if (data.upgrade_required) setUpgradeRequired(true)
         throw new Error(data.error || "Failed to post job")
+      }
       setSubmitted(true)
     } catch (err: unknown) {
       setErrors({
@@ -385,8 +389,15 @@ export default function PostJobPage() {
         <div className="p-6 max-w-4xl mx-auto space-y-6">
 
           {errors.submit && (
-            <div className="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-lg">
-              {errors.submit}
+            <div className="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-lg flex items-center justify-between gap-3 flex-wrap">
+              <span>{errors.submit}</span>
+              {upgradeRequired && (
+                <Link href="/dashboard/school/subscription">
+                  <Button size="sm" className="bg-blue-700 hover:bg-blue-800 text-white flex-shrink-0">
+                    Upgrade Plan
+                  </Button>
+                </Link>
+              )}
             </div>
           )}
 

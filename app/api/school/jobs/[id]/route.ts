@@ -5,6 +5,7 @@
 
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
+import { checkJobPostingLimit } from "@/lib/job-limits"
 
 export async function PATCH(
   request: NextRequest,
@@ -29,6 +30,25 @@ export async function PATCH(
       "salary_min", "salary_max", "is_featured", "is_private"]
     const updates: Record<string, unknown> = {}
     allowed.forEach((f) => { if (body[f] !== undefined) updates[f] = body[f] })
+
+    // If this update would turn a non-active job (e.g. a duplicated draft)
+    // into active, it needs to pass the same plan-limit check as creating a
+    // brand new job — otherwise duplicate + activate would bypass the paywall.
+    if (updates.status === "active") {
+      const { data: existing } = await supabase
+        .from("jobs")
+        .select("status")
+        .eq("id", id)
+        .eq("school_id", school.id)
+        .single()
+
+      if (existing && existing.status !== "active") {
+        const limitCheck = await checkJobPostingLimit(supabase, school.id)
+        if (!limitCheck.allowed) {
+          return NextResponse.json({ error: limitCheck.error, upgrade_required: true }, { status: 402 })
+        }
+      }
+    }
 
     const { data, error } = await supabase
       .from("jobs")

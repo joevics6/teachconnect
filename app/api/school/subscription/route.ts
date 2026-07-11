@@ -49,6 +49,7 @@ export async function GET() {
       .from("jobs")
       .select("id", { count: "exact" })
       .eq("school_id", school.id)
+      .eq("status", "active")
       .gte(
         "created_at",
         subscription?.starts_at || new Date(0).toISOString()

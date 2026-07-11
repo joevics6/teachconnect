@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
+import { checkJobPostingLimit } from "@/lib/job-limits"
 
 // Helper — get or auto-create school profile row
 async function getSchoolProfile(supabase: Awaited<ReturnType<typeof createClient>>, userId: string) {
@@ -93,6 +94,12 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json()
+
+    // Enforce plan limits — see lib/job-limits.ts for the rules.
+    const limitCheck = await checkJobPostingLimit(supabase, school.id)
+    if (!limitCheck.allowed) {
+      return NextResponse.json({ error: limitCheck.error, upgrade_required: true }, { status: 402 })
+    }
 
     const required = ["title", "subject", "employment_type", "deadline", "description", "required_qualifications"]
     for (const field of required) {
