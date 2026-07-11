@@ -1,6 +1,7 @@
 "use client"
 
-import { LogOut } from "lucide-react"
+import { useState } from "react"
+import { LogOut, Loader2 } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 
 // Shared logout control for every dashboard sidebar. Always signs out via
@@ -15,23 +16,38 @@ export function LogoutButton({
   className?: string
   label?: string
 }) {
+  const [loading, setLoading] = useState(false)
+
   const handleLogout = async () => {
-    const supabase = createClient()
-    await supabase.auth.signOut()
-    window.location.href = "/"
+    if (loading) return
+    setLoading(true)
+    try {
+      const supabase = createClient()
+      const { error } = await supabase.auth.signOut()
+      if (error) console.error("Logout error:", error)
+    } catch (err) {
+      console.error("Logout error:", err)
+    } finally {
+      // Always redirect, even if signOut() failed — a hard navigation to a
+      // protected-by-default app forces middleware to re-check auth, and a
+      // stuck client-side session is worse than a stale one that gets
+      // re-validated on the next request.
+      window.location.href = "/"
+    }
   }
 
   return (
     <button
       type="button"
       onClick={handleLogout}
+      disabled={loading}
       className={
         className ??
-        "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-red-500 hover:bg-red-50 transition w-full"
+        "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-red-500 hover:bg-red-50 transition w-full disabled:opacity-60"
       }
     >
-      <LogOut className="h-4 w-4" />
-      {label}
+      {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogOut className="h-4 w-4" />}
+      {loading ? "Logging out…" : label}
     </button>
   )
 }

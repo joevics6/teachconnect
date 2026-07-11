@@ -5,11 +5,12 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import {
   Building2, Briefcase, Users, GraduationCap, CreditCard,
-  Settings, LogOut, Menu, X, Lock, Bell, Trash2,
+  Settings, Menu, X, Lock, Bell, Trash2,
   CheckCircle2, AlertTriangle, Eye, EyeOff, Loader2,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { createClient } from "@/lib/supabase/client"
+import { LogoutButton } from "@/components/layout/LogoutButton"
 
 const NAV_ITEMS = [
   { href: "/dashboard/school",              label: "Overview",        icon: Building2     },
@@ -61,12 +62,6 @@ export default function SchoolSettingsPage() {
   const [deleteConfirm, setDeleteConfirm] = useState("")
   const [deleteLoading, setDeleteLoading] = useState(false)
   const [showDeleteBox, setShowDeleteBox] = useState(false)
-
-  const handleLogout = async () => {
-    const supabase = createClient()
-    await supabase.auth.signOut()
-    window.location.href = "/"
-  }
 
   const handlePasswordChange = async () => {
     setPasswordMsg(null)
@@ -166,13 +161,7 @@ export default function SchoolSettingsPage() {
         })}
       </div>
       <div className="p-3 border-t border-gray-100">
-        <button
-          onClick={handleLogout}
-          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-red-500 hover:bg-red-50 w-full transition-colors"
-        >
-          <LogOut className="h-4 w-4" />
-          Sign Out
-        </button>
+        <LogoutButton label="Sign Out" />
       </div>
     </nav>
   )

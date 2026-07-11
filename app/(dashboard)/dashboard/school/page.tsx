@@ -3,13 +3,14 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import {
-  GraduationCap, Briefcase, Users, Bell, Settings, LogOut,
+  GraduationCap, Briefcase, Users, Bell, Settings,
   ChevronRight, Plus, Menu, X, Building2, CreditCard,
-  CheckCircle2, Clock, Eye, Star, Loader2, BookOpen, TrendingUp,
+  CheckCircle2, Clock, Eye, Star, BookOpen, TrendingUp,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
+import { LogoutButton } from "@/components/layout/LogoutButton"
 
 const NAV_ITEMS = [
   { href: "/dashboard/school",               label: "Overview",         icon: Building2    },
@@ -198,14 +199,6 @@ export default function SchoolDashboardPage() {
     setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })))
   }
 
-  const handleLogout = async () => {
-    const supabase = createClient()
-    setSchool(null)
-    setSchoolName("School")
-    await supabase.auth.signOut()
-    window.location.href = "/"
-  }
-
   const unreadCount     = notifications.filter((n) => !n.is_read).length
   const activeJobs      = jobs.filter((j) => j.status === "active").length
   const totalApplicants = jobs.reduce((s, j) => s + (j.applicants_count || 0), 0)
@@ -268,10 +261,7 @@ export default function SchoolDashboardPage() {
         </nav>
 
         <div className="p-3 border-t border-gray-100">
-          <button onClick={handleLogout}
-            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-red-500 hover:bg-red-50 transition w-full">
-            <LogOut className="h-4 w-4" />Log Out
-          </button>
+          <LogoutButton />
         </div>
       </aside>
 
