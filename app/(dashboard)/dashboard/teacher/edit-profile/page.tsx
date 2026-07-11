@@ -161,6 +161,19 @@ export default function EditTeacherProfilePage() {
     }
   }
 
+  const handleRemovePhoto = async () => {
+    setPhotoError("")
+    const prev = photoPreview
+    setPhotoPreview(null)
+    try {
+      const res = await fetch("/api/teacher/profile/photo", { method: "DELETE" })
+      if (!res.ok) throw new Error("Failed to remove photo")
+    } catch {
+      setPhotoPreview(prev)
+      setPhotoError("Couldn't remove photo — try again.")
+    }
+  }
+
   const handleSave = async () => {
     setError("")
     setSuccess(false)
@@ -285,7 +298,7 @@ export default function EditTeacherProfilePage() {
               {photoPreview && !uploadingPhoto && (
                 <button
                   type="button"
-                  onClick={() => setPhotoPreview(null)}
+                  onClick={handleRemovePhoto}
                   className="flex items-center gap-1.5 mt-2 text-xs text-red-500 hover:text-red-600 transition"
                 >
                   <X className="h-3 w-3" />Remove photo

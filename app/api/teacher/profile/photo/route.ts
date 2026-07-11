@@ -50,3 +50,22 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Upload failed" }, { status: 500 })
   }
 }
+
+export async function DELETE() {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+
+    const { error } = await supabase
+      .from("teacher_profiles")
+      .update({ photo_url: null })
+      .eq("user_id", user.id)
+
+    if (error) throw error
+    return NextResponse.json({ ok: true })
+  } catch (err) {
+    console.error("Photo delete error:", err)
+    return NextResponse.json({ error: "Failed to remove photo" }, { status: 500 })
+  }
+}
