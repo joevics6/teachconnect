@@ -21,6 +21,12 @@ const PLAN_AMOUNTS: Record<string, number> = {
 export async function POST(request: Request) {
   try {
     const supabase = await createClient()
+
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
     const { reference } = await request.json()
 
     // Verify with Paystack
@@ -46,6 +52,21 @@ export async function POST(request: Request) {
     }
 
     const { school_id, plan_id } = paystackData.data.metadata
+
+    // The transaction must belong to the school the caller is logged in as —
+    // otherwise a reference obtained elsewhere (e.g. browser history) could be
+    // replayed to activate/notify a different school's subscription.
+    const { data: callerSchool } = await supabase
+      .from("school_profiles")
+      .select("id")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .single()
+
+    if (!callerSchool || callerSchool.id !== school_id) {
+      return NextResponse.json({ error: "This payment does not belong to your account" }, { status: 403 })
+    }
 
     // Check reference not already used
     const { data: existing } = await supabase
