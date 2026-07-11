@@ -122,11 +122,10 @@ export async function POST(request: Request) {
         })
  
       if (!cvError) {
-        const { data: signedUrl } = await supabase.storage
+        const { data: publicUrl } = supabase.storage
           .from("cvs")
-          .createSignedUrl(cvPath, 60 * 60 * 24 * 365) // 1 year
- 
-        cv_url = signedUrl?.signedUrl || null
+          .getPublicUrl(cvPath)
+        cv_url = publicUrl?.publicUrl || null
       }
     }
  

@@ -32,14 +32,15 @@ export async function POST(request: Request) {
 
     if (uploadError) throw uploadError
 
-    // Signed URL valid for 1 year (CVs are private bucket)
-    const { data: signedUrl } = await supabase.storage
+    // Public URL — the cvs bucket is public (see supabase/cvs_public_bucket.sql),
+    // so this link never expires, unlike the old 1-year signed URL.
+    const { data: publicUrl } = supabase.storage
       .from("cvs")
-      .createSignedUrl(cvPath, 60 * 60 * 24 * 365)
+      .getPublicUrl(cvPath)
 
-    if (!signedUrl?.signedUrl) throw new Error("Failed to generate signed URL")
+    if (!publicUrl?.publicUrl) throw new Error("Failed to generate CV URL")
 
-    const cv_url = signedUrl.signedUrl
+    const cv_url = publicUrl.publicUrl
 
     const { error: updateError } = await supabase
       .from("teacher_profiles")
