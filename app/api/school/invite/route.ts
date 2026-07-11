@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
+import { notifyUser } from "@/lib/notifications"
 
 export async function POST(request: Request) {
   try {
@@ -49,12 +50,13 @@ export async function POST(request: Request) {
     const teacherProfile = (teacherRows ?? [])[0] ?? null
 
     if (teacherProfile) {
-      await supabase.from("notifications").insert({
-        user_id: teacherProfile.user_id,
+      await notifyUser(supabase, {
+        userId: teacherProfile.user_id,
         type: "job_invite",
         title: "You have been invited to apply",
         message: `${school.school_name} has invited you to apply for ${job.title}. Check your invites tab to respond.`,
         metadata: { invite_id: invite?.id, job_id, school_id: school.id },
+        prefKey: "invites",
       })
     }
 

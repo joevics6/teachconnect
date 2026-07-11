@@ -127,6 +127,7 @@ export async function PATCH(request: Request) {
       "trcn_number", "trcn_status", "preferred_states",
       "willing_to_relocate", "accommodation_needed",
       "availability", "salary_min", "salary_max", "bio", "photo_url", "demo_video_url",
+      "notification_prefs",
     ]
 
     const updates: Record<string, unknown> = {}

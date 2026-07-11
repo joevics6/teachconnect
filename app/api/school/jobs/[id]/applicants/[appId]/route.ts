@@ -5,6 +5,7 @@
 
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
+import { notifyUser } from "@/lib/notifications"
 
 export async function PATCH(
   request: NextRequest,
@@ -74,12 +75,13 @@ export async function PATCH(
 
       if (application?.teacher_profiles) {
         const teacherProfile = (Array.isArray(application.teacher_profiles) ? application.teacher_profiles[0] : application.teacher_profiles) as unknown as { user_id: string }
-        await supabase.from("notifications").insert({
-          user_id: teacherProfile.user_id,
+        await notifyUser(supabase, {
+          userId: teacherProfile.user_id,
           type: "application_hired",
           title: "Congratulations! You have been hired",
           message: `You have been selected for the position at the school. Check your email for further details.`,
           metadata: { job_id: jobId, application_id: appId },
+          prefKey: "application_updates",
         })
       }
     }
@@ -126,12 +128,13 @@ export async function PATCH(
         const schoolName = jobData?.school_profiles?.school_name || "The school"
         const jobTitle = jobData?.title || "the position"
 
-        await supabase.from("notifications").insert({
-          user_id: teacherProfile.user_id,
+        await notifyUser(supabase, {
+          userId: teacherProfile.user_id,
           type: stageInfo.type,
           title: stageInfo.title,
           message: stageInfo.message(schoolName, jobTitle),
           metadata: { job_id: jobId, application_id: appId },
+          prefKey: "application_updates",
         })
       }
     }

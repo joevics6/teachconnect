@@ -1,8 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
 import {
   GraduationCap, Briefcase, BookOpen, User, Settings,
   LogOut, Menu, X, Star, Zap, Lock, Bell, Trash2,
@@ -14,6 +13,7 @@ import { createClient } from "@/lib/supabase/client"
 const NAV_ITEMS = [
   { href: "/dashboard/teacher",                   label: "Overview",        icon: GraduationCap },
   { href: "/dashboard/teacher/applications",      label: "My Applications", icon: Briefcase     },
+  { href: "/dashboard/teacher/invites",           label: "Invites",         icon: Bell          },
   { href: "/dashboard/teacher/saved-jobs",        label: "Saved Jobs",      icon: BookOpen      },
   { href: "/dashboard/teacher/quiz-results",      label: "Quiz Results",    icon: Star          },
   { href: "/dashboard/teacher/specialization-quiz", label: "Subject Mastery", icon: Zap         },
@@ -39,7 +39,6 @@ function Section({ title, description, children }: {
 }
 
 export default function TeacherSettingsPage() {
-  const router = useRouter()
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   // Password
@@ -58,6 +57,22 @@ export default function TeacherSettingsPage() {
   const [notifNewsletter,        setNotifNewsletter]        = useState(false)
   const [notifSaving,            setNotifSaving]            = useState(false)
   const [notifMsg,               setNotifMsg]               = useState<string | null>(null)
+
+  useEffect(() => {
+    fetch("/api/teacher/profile")
+      .then(async (res) => {
+        if (!res.ok) return
+        const data = await res.json()
+        const prefs = data.profile?.notification_prefs
+        if (prefs) {
+          setNotifApplicationUpdate(prefs.application_updates ?? true)
+          setNotifNewJobs(prefs.new_jobs ?? true)
+          setNotifInvites(prefs.invites ?? true)
+          setNotifNewsletter(prefs.newsletter ?? false)
+        }
+      })
+      .catch((err) => console.error("Notification prefs fetch error:", err))
+  }, [])
 
   // Delete account
   const [deleteConfirm, setDeleteConfirm]   = useState("")
@@ -119,15 +134,22 @@ export default function TeacherSettingsPage() {
   const handleSaveNotifications = async () => {
     setNotifSaving(true)
     setNotifMsg(null)
-    // Stored in localStorage for now (no notifications_prefs table yet)
     try {
-      localStorage.setItem("tc_notif_prefs", JSON.stringify({
-        application_updates: notifApplicationUpdate,
-        new_jobs:            notifNewJobs,
-        invites:             notifInvites,
-        newsletter:          notifNewsletter,
-      }))
-      setNotifMsg("Preferences saved.")
+      const res = await fetch("/api/teacher/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          notification_prefs: {
+            application_updates: notifApplicationUpdate,
+            new_jobs:            notifNewJobs,
+            invites:             notifInvites,
+            newsletter:          notifNewsletter,
+          },
+        }),
+      })
+      setNotifMsg(res.ok ? "Preferences saved." : "Couldn't save preferences — try again.")
+    } catch {
+      setNotifMsg("Couldn't save preferences — try again.")
     } finally {
       setNotifSaving(false)
       setTimeout(() => setNotifMsg(null), 3000)
@@ -139,10 +161,14 @@ export default function TeacherSettingsPage() {
     if (deleteConfirm !== "DELETE") return
     setDeleteLoading(true)
     try {
+      const res = await fetch("/api/teacher/account", { method: "DELETE" })
+      if (!res.ok) {
+        setDeleteLoading(false)
+        return
+      }
       const supabase = createClient()
-      // Sign out first — actual deletion would require a server action or admin API
       await supabase.auth.signOut()
-      router.push("/?deleted=1")
+      window.location.href = "/?deleted=1"
     } catch {
       setDeleteLoading(false)
     }
