@@ -2,7 +2,6 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
 import {
   Building2, Menu, X, Lock, Bell, Trash2,
   CheckCircle2, AlertTriangle, Eye, EyeOff, Loader2,
@@ -29,7 +28,6 @@ function Section({ title, description, children }: {
 }
 
 export default function SchoolSettingsPage() {
-  const router = useRouter()
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   // Password
@@ -113,9 +111,14 @@ export default function SchoolSettingsPage() {
     if (deleteConfirm !== "DELETE") return
     setDeleteLoading(true)
     try {
+      const res = await fetch("/api/school/account", { method: "DELETE" })
+      if (!res.ok) {
+        setDeleteLoading(false)
+        return
+      }
       const supabase = createClient()
       await supabase.auth.signOut()
-      router.push("/?deleted=1")
+      window.location.href = "/?deleted=1"
     } catch {
       setDeleteLoading(false)
     }
