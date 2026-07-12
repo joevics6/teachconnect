@@ -536,27 +536,52 @@ export default function JobsPage() {
               Previous
             </Button>
             <div className="flex items-center gap-2">
-              {[...Array(Math.min(totalPages, 5))].map((_, i) => {
-                const page = i + 1
+              {(() => {
+                const windowSize = 5
+                let start = Math.max(1, currentPage - Math.floor(windowSize / 2))
+                const end = Math.min(totalPages, start + windowSize - 1)
+                start = Math.max(1, end - windowSize + 1)
+                const pages = Array.from({ length: end - start + 1 }, (_, i) => start + i)
                 return (
-                  <button
-                    key={page}
-                    onClick={() => setCurrentPage(page)}
-                    className={`w-9 h-9 rounded-lg text-sm font-medium transition-all ${
-                      currentPage === page
-                        ? "bg-green-600 text-white"
-                        : "text-gray-600 hover:bg-gray-100"
-                    }`}
-                  >
-                    {page}
-                  </button>
+                  <>
+                    {start > 1 && (
+                      <>
+                        <button
+                          onClick={() => setCurrentPage(1)}
+                          className="w-9 h-9 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100"
+                        >
+                          1
+                        </button>
+                        <span className="text-gray-400 text-sm">…</span>
+                      </>
+                    )}
+                    {pages.map((page) => (
+                      <button
+                        key={page}
+                        onClick={() => setCurrentPage(page)}
+                        className={`w-9 h-9 rounded-lg text-sm font-medium transition-all ${
+                          currentPage === page
+                            ? "bg-green-600 text-white"
+                            : "text-gray-600 hover:bg-gray-100"
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    ))}
+                    {end < totalPages && (
+                      <>
+                        <span className="text-gray-400 text-sm">…</span>
+                        <button
+                          onClick={() => setCurrentPage(totalPages)}
+                          className="w-9 h-9 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100"
+                        >
+                          {totalPages}
+                        </button>
+                      </>
+                    )}
+                  </>
                 )
-              })}
-              {totalPages > 5 && (
-                <span className="text-gray-400 text-sm">
-                  ... {totalPages}
-                </span>
-              )}
+              })()}
             </div>
             <Button
               variant="outline"
