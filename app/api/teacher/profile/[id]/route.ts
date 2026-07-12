@@ -11,10 +11,27 @@ export async function GET(
 
     // Determine viewer role from auth metadata — avoids users table lookup
     let viewerRole: "teacher" | "school" | "guest" = "guest"
+    let viewerIsPremiumSchool = false
     const { data: { user } } = await supabase.auth.getUser()
     if (user) {
       const role = user.user_metadata?.role
       if (role === "school" || role === "teacher") viewerRole = role
+
+      if (viewerRole === "school") {
+        const { data: schoolRows } = await supabase
+          .from("school_profiles").select("id").eq("user_id", user.id)
+          .order("created_at", { ascending: false }).limit(1)
+        const school = (schoolRows ?? [])[0] ?? null
+        if (school) {
+          const { data: subRows } = await supabase
+            .from("subscriptions").select("id")
+            .eq("school_id", school.id).eq("is_active", true)
+            .in("plan_type", ["standard", "term"])
+            .gte("expires_at", new Date().toISOString())
+            .order("created_at", { ascending: false }).limit(1)
+          viewerIsPremiumSchool = !!((subRows ?? [])[0])
+        }
+      }
     }
 
     // Fetch profile — use limit(1) not single(), remove is_visible filter
@@ -42,10 +59,13 @@ export async function GET(
       )
     }
 
-    // Hide phone/cv from non-school viewers
-    if (viewerRole !== "school") {
+    // Hide phone/cv/TRCN number from non-premium-school viewers — only
+    // paying schools (Standard or Term plan) get contact details, matching
+    // the paywall already shown on the talent browse page.
+    if (!viewerIsPremiumSchool) {
       delete (profile as Record<string, unknown>).cv_url
       delete (profile as Record<string, unknown>).phone
+      delete (profile as Record<string, unknown>).trcn_number
     }
 
     // Quiz results — show to schools
@@ -72,6 +92,7 @@ export async function GET(
       profile,
       quiz_results: quizResults,
       viewer_role:  viewerRole,
+      viewer_is_premium: viewerIsPremiumSchool,
     })
   } catch (err) {
     console.error("GET public teacher profile error:", err)
