@@ -4,12 +4,13 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import {
   Briefcase, Bell,
-  ChevronRight, Plus, Menu,
+  ChevronRight, Plus, Menu, XCircle,
   CheckCircle2, Clock, Eye, Star, BookOpen, TrendingUp,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
 import { SchoolSidebar } from "@/components/dashboard/SchoolSidebar"
+import { LogoutButton } from "@/components/layout/LogoutButton"
 
 interface Job {
   id: string; title: string; subject: string
@@ -78,6 +79,7 @@ export default function SchoolDashboardPage() {
   const [schoolName, setSchoolName]           = useState("School")
 
   const [loadingProfile, setLoadingProfile]         = useState(true)
+  const [accountDisabled, setAccountDisabled]       = useState(false)
   const [loadingJobs, setLoadingJobs]               = useState(true)
   const [loadingNotifications, setLoadingNotifications] = useState(true)
   const [loadingApplicants, setLoadingApplicants]   = useState(false)
@@ -91,6 +93,10 @@ export default function SchoolDashboardPage() {
     fetch("/api/school/profile")
       .then(async (res) => {
         if (res.status === 401) { router.push("/login"); return }
+        if (res.status === 403) {
+          const errData = await res.json().catch(() => ({}))
+          if (errData.account_disabled) { setAccountDisabled(true); return }
+        }
         if (!res.ok) return
         const data = await res.json()
         if (data.school) {
@@ -192,6 +198,26 @@ export default function SchoolDashboardPage() {
   const activeJobs      = jobs.filter((j) => j.status === "active").length
   const totalApplicants = jobs.reduce((s, j) => s + (j.applicants_count || 0), 0)
   const totalPassed     = jobs.reduce((s, j) => s + (j.passed_quiz_count || 0), 0)
+
+  if (accountDisabled) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+        <div className="max-w-sm text-center">
+          <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
+            <XCircle className="h-6 w-6 text-red-600" />
+          </div>
+          <h1 className="text-lg font-bold text-gray-900 mb-2">Account disabled</h1>
+          <p className="text-sm text-gray-500 mb-6">
+            Your account has been disabled. If you believe this is a mistake, please contact support.
+          </p>
+          <LogoutButton
+            label="Log Out"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 transition"
+          />
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 flex">

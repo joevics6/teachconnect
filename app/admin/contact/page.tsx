@@ -1,8 +1,9 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Mail, Loader2, AlertCircle, CheckCircle2, Circle } from "lucide-react"
+import { Mail, Loader2, CheckCircle2, Circle } from "lucide-react"
 import { formatDate } from "@/lib/utils"
+import { AdminShell } from "@/components/admin/AdminShell"
 
 interface Submission {
   id: string
@@ -17,19 +18,16 @@ interface Submission {
 export default function AdminContactPage() {
   const [submissions, setSubmissions] = useState<Submission[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState("")
   const [selected, setSelected] = useState<Submission | null>(null)
 
   useEffect(() => {
     fetch("/api/admin/contact-submissions")
       .then(async (res) => {
-        if (res.status === 403) { setError("You don't have access to this page."); return }
-        if (res.status === 401) { setError("Please log in."); return }
-        if (!res.ok) { setError("Failed to load messages."); return }
+        if (!res.ok) return
         const data = await res.json()
         setSubmissions(data.submissions || [])
       })
-      .catch(() => setError("Failed to load messages."))
+      .catch((err) => console.error("Failed to load messages:", err))
       .finally(() => setIsLoading(false))
   }, [])
 
@@ -51,27 +49,8 @@ export default function AdminContactPage() {
 
   const unreadCount = submissions.filter((s) => !s.is_read).length
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 text-green-600 animate-spin" />
-      </div>
-    )
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-        <div className="text-center">
-          <AlertCircle className="h-10 w-10 text-red-400 mx-auto mb-3" />
-          <p className="text-gray-700">{error}</p>
-        </div>
-      </div>
-    )
-  }
-
   return (
-    <div className="min-h-screen bg-gray-50">
+    <AdminShell>
       <div className="max-w-5xl mx-auto px-4 py-8">
         <div className="flex items-center gap-2 mb-6">
           <Mail className="h-5 w-5 text-gray-700" />
@@ -81,7 +60,9 @@ export default function AdminContactPage() {
           )}
         </div>
 
-        {submissions.length === 0 ? (
+        {isLoading ? (
+          <div className="flex justify-center py-16"><Loader2 className="h-6 w-6 text-green-600 animate-spin" /></div>
+        ) : submissions.length === 0 ? (
           <div className="bg-white border border-gray-200 rounded-xl p-10 text-center text-gray-500 text-sm">
             No messages yet.
           </div>
@@ -128,6 +109,6 @@ export default function AdminContactPage() {
           </div>
         )}
       </div>
-    </div>
+    </AdminShell>
   )
 }

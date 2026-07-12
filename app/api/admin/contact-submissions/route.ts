@@ -1,31 +1,17 @@
 // ============================================================
 // app/api/admin/contact-submissions/route.ts
-// GET — list contact form submissions. Restricted to email
-// addresses listed in the ADMIN_EMAILS environment variable
-// (comma-separated), since there's no admin role in the schema.
+// GET/PATCH — list and mark-read contact form submissions.
 // ============================================================
 
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
-
-function isAdminEmail(email: string | undefined | null) {
-  if (!email) return false
-  const allowed = (process.env.ADMIN_EMAILS || "")
-    .split(",")
-    .map((e) => e.trim().toLowerCase())
-    .filter(Boolean)
-  return allowed.includes(email.toLowerCase())
-}
+import { requireAdmin } from "@/lib/admin"
 
 export async function GET() {
   try {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    if (!isAdminEmail(user.email)) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
-    }
+    const admin = await requireAdmin(supabase)
+    if (!admin) return NextResponse.json({ error: "Forbidden" }, { status: 403 })
 
     const { data: submissions, error } = await supabase
       .from("contact_submissions")
@@ -45,12 +31,8 @@ export async function GET() {
 export async function PATCH(request: Request) {
   try {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    if (!isAdminEmail(user.email)) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
-    }
+    const admin = await requireAdmin(supabase)
+    if (!admin) return NextResponse.json({ error: "Forbidden" }, { status: 403 })
 
     const { id, is_read } = await request.json()
     if (!id) return NextResponse.json({ error: "id required" }, { status: 400 })

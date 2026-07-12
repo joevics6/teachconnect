@@ -18,6 +18,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
 import { TeacherSidebar } from "@/components/dashboard/TeacherSidebar"
+import { LogoutButton } from "@/components/layout/LogoutButton"
 
 interface TeacherProfile {
   id: string
@@ -149,6 +150,7 @@ export default function TeacherDashboardPage() {
 
   // Auth state — loaded immediately from client session
   const [authChecked, setAuthChecked] = useState(false)
+  const [accountDisabled, setAccountDisabled] = useState(false)
   const [userName, setUserName] = useState("")
 
   // Data states — all start null (not loading)
@@ -177,6 +179,14 @@ export default function TeacherDashboardPage() {
         if (res.status === 401) {
           router.push("/login")
           return
+        }
+        if (res.status === 403) {
+          const errData = await res.json().catch(() => ({}))
+          if (errData.account_disabled) {
+            setAccountDisabled(true)
+            setAuthChecked(true)
+            return
+          }
         }
         if (!res.ok) return
         const data = await res.json()
@@ -330,6 +340,26 @@ export default function TeacherDashboardPage() {
   const profileCompletion = Math.round((completedFields / completionItems.length) * 100)
 
   // Sidebar content — same whether loading or not
+
+  if (accountDisabled) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+        <div className="max-w-sm text-center">
+          <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
+            <XCircle className="h-6 w-6 text-red-600" />
+          </div>
+          <h1 className="text-lg font-bold text-gray-900 mb-2">Account disabled</h1>
+          <p className="text-sm text-gray-500 mb-6">
+            Your account has been disabled. If you believe this is a mistake, please contact support.
+          </p>
+          <LogoutButton
+            label="Log Out"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 transition"
+          />
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 flex">

@@ -30,6 +30,13 @@ export async function GET() {
       )
     }
 
+    if (profile.is_disabled) {
+      return NextResponse.json(
+        { error: "Account disabled", account_disabled: true },
+        { status: 403 }
+      )
+    }
+
     // Fetch onboarding_data in parallel with quiz results
     const [quizRes, onboardingRes] = await Promise.all([
       supabase

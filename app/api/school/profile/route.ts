@@ -40,6 +40,13 @@ export async function GET() {
       } catch { /* non-fatal */ }
     }
 
+    if (school.is_disabled) {
+      return NextResponse.json(
+        { error: "Account disabled", account_disabled: true },
+        { status: 403 }
+      )
+    }
+
     const [{ count: totalJobs }, { count: activeJobCount }] = await Promise.all([
       supabase.from("jobs").select("id", { count: "exact", head: true }).eq("school_id", school.id),
       supabase.from("jobs").select("id", { count: "exact", head: true }).eq("school_id", school.id).eq("status", "active"),
