@@ -231,18 +231,17 @@ function MCQQuiz({
     setIsSubmitting(true)
 
     const timeTaken = Math.floor((Date.now() - startTime.current) / 1000)
+    const attempted = Object.keys(answers).length
+
+    // Note: the client never receives correct_option (stripped server-side
+    // for security), so scoring happens authoritatively in the API response
+    // below — this local pass is just to shape the request, not to grade.
+    let score = 0
+    let passed = false
     let correct = 0
 
-    questions.forEach((q) => {
-      if (answers[q.id] === q.correct_option) correct++
-    })
-
-    const attempted = Object.keys(answers).length
-    const score = attempted === 0 ? 0 : Math.round((correct / (meta.mode === "speed" ? attempted : totalQuestions)) * 100)
-    const passed = score >= meta.pass_mark
-
     try {
-      await fetch("/api/applications", {
+      const res = await fetch("/api/applications", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -250,11 +249,19 @@ function MCQQuiz({
           mode: meta.mode,
           subjects: meta.subjects?.length ? meta.subjects : [meta.subject],
           answers,
-          score,
-          passed,
           time_taken: timeTaken,
         }),
       })
+      const data = await res.json()
+      if (res.ok) {
+        score = data.score ?? 0
+        passed = data.passed ?? false
+        // Back out an approximate correct count for the results screen —
+        // the authoritative number lives server-side; this is display-only.
+        correct = meta.mode === "speed"
+          ? Math.round((score / 100) * attempted)
+          : Math.round((score / 100) * totalQuestions)
+      }
     } catch (err) {
       console.error("Failed to submit quiz:", err)
     }
@@ -266,7 +273,7 @@ function MCQQuiz({
       correct,
       total: meta.mode === "speed" ? attempted : totalQuestions,
     })
-  }, [answers, isSubmitting, meta, questions, totalQuestions, onComplete])
+  }, [answers, isSubmitting, meta, totalQuestions, onComplete])
 
   // Countdown timer
   useEffect(() => {
