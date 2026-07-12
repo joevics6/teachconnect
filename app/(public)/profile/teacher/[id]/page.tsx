@@ -175,7 +175,7 @@ function ProfileCompletionBar({
         <p className="text-xs text-gray-500">
           Complete your profile to appear higher in school searches.{" "}
           <Link
-            href="/profile/teacher/me"
+            href="/dashboard/teacher/edit-profile"
             className="text-green-600 hover:underline font-medium"
           >
             Complete now →
@@ -404,7 +404,7 @@ export default function TeacherProfilePage() {
                 )}
                 {profile.is_visible ? "Visible to schools" : "Hidden"}
               </button>
-              <Link href="/profile/teacher/me/edit">
+              <Link href="/dashboard/teacher/edit-profile">
                 <Button
                   size="sm"
                   className="bg-green-600 hover:bg-green-700 text-white"

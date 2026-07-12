@@ -301,7 +301,7 @@ export default function ApplyPage() {
                     {!profile.cv_url && (
                       <div className="mt-3 pt-3 border-t border-gray-200 flex items-center gap-2 text-xs text-orange-600">
                         <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
-                        No CV uploaded. <Link href="/profile/teacher/me" className="underline">Add a CV</Link> to strengthen your application.
+                        No CV uploaded. <Link href="/dashboard/teacher/edit-profile" className="underline">Add a CV</Link> to strengthen your application.
                       </div>
                     )}
                   </div>
