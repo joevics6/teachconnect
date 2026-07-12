@@ -86,6 +86,10 @@ export default function JobDetailPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ job_id: jobId }),
       })
+      if (response.status === 401) {
+        router.push(`/login?next=/jobs/${jobId}`)
+        return
+      }
       if (!response.ok) throw new Error("Failed to save job")
       setIsSaved(!isSaved)
     } catch (err) {

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { createClient } from "@/lib/supabase/server"
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY!
 
@@ -68,6 +69,12 @@ async function callGemini(model: string, description: string) {
 
 export async function POST(request: Request) {
   try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user || user.user_metadata?.role !== "school") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
     const { description } = await request.json()
 
     if (!description?.trim()) {

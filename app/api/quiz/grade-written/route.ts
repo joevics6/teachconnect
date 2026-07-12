@@ -6,6 +6,7 @@
 // Create this at: app/api/quiz/grade-written/route.ts
 
 import { NextResponse } from "next/server"
+import { createClient } from "@/lib/supabase/server"
 
 interface QuestionAnswer {
   id: string
@@ -100,6 +101,12 @@ Return this exact JSON array structure:
 
 export async function POST(request: Request) {
   try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user || user.user_metadata?.role !== "teacher") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
     const { job_id, subject, questions } = await request.json()
 
     if (!questions || questions.length === 0) {
