@@ -73,6 +73,7 @@ export default function Navbar() {
             )}
             <Link href="/pricing"   className="text-sm text-gray-600 hover:text-gray-900">Pricing</Link>
             <Link href="/resources" className="text-sm text-gray-600 hover:text-gray-900">Resources</Link>
+            <Link href="/blog"      className="text-sm text-gray-600 hover:text-gray-900">Blog</Link>
           </div>
 
           {/* Desktop Auth */}
@@ -191,6 +192,7 @@ export default function Navbar() {
               )}
               <Link href="/pricing"   className="px-3 py-2.5 text-sm text-gray-700 rounded-xl hover:bg-gray-50" onClick={() => setIsOpen(false)}>Pricing</Link>
               <Link href="/resources" className="px-3 py-2.5 text-sm text-gray-700 rounded-xl hover:bg-gray-50" onClick={() => setIsOpen(false)}>Resources</Link>
+              <Link href="/blog"      className="px-3 py-2.5 text-sm text-gray-700 rounded-xl hover:bg-gray-50" onClick={() => setIsOpen(false)}>Blog</Link>
             </div>
 
             {/* Bottom auth actions */}

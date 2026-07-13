@@ -46,6 +46,7 @@ export async function middleware(request: NextRequest) {
   const publicPrefixes = [
     "/jobs",
     "/resources",
+    "/blog",
     "/pricing",
     "/contact",
     "/privacy",
