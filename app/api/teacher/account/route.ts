@@ -1,19 +1,13 @@
 // ============================================================
 // app/api/teacher/account/route.ts
-// DELETE — permanently remove the current teacher's profile and
-// all data owned by it (applications, saved jobs, invites, quiz
-// history, onboarding data, notifications).
-//
-// Note: this does not delete the underlying auth.users row — that
-// requires the Supabase service-role key, which this project does
-// not have configured server-side. If the person logs back in,
-// they'll land on a fresh, empty profile with none of their old
-// data, which matches "delete my account" from the user's
-// perspective even though the login credential itself still exists.
+// DELETE — permanently remove the current teacher's profile, all
+// data owned by it (applications, saved jobs, invites, quiz history,
+// onboarding data, notifications), and the auth.users login itself.
 // ============================================================
 
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 
 export async function DELETE() {
   try {
@@ -41,6 +35,18 @@ export async function DELETE() {
 
     await supabase.from("onboarding_data").delete().eq("user_id", user.id)
     await supabase.from("notifications").delete().eq("user_id", user.id)
+
+    // Delete the actual login credential — requires the service-role key.
+    // If this fails (key missing/misconfigured), the data above is still
+    // gone; we log it rather than fail the whole request, since a person
+    // whose data was already wiped shouldn't see an error mid-deletion.
+    try {
+      const adminClient = createAdminClient()
+      const { error: authDeleteError } = await adminClient.auth.admin.deleteUser(user.id)
+      if (authDeleteError) throw authDeleteError
+    } catch (err) {
+      console.error("Failed to delete auth user (service role key missing or invalid?):", err)
+    }
 
     return NextResponse.json({ ok: true })
   } catch (err) {
