@@ -175,9 +175,6 @@ export default function AdminUsersPage() {
             </table>
           </div>
         )}
-        <p className="text-xs text-gray-400 mt-4">
-          Note: teacher email addresses aren&apos;t shown — they&apos;re only stored in Supabase&apos;s auth system, which this admin panel can&apos;t query directly.
-        </p>
       </div>
     </AdminShell>
   )

@@ -3,15 +3,14 @@
 // GET — list teachers + schools for the admin Users page.
 // PATCH — verify a school, or disable/enable either account type.
 //
-// Note: teacher accounts have no email column outside Supabase's
-// auth.users table, which isn't queryable without a service-role
-// key (not configured in this project). Teachers are listed by
-// name/phone/state instead; schools do have contact_email stored
-// directly on school_profiles, so that's shown for schools.
+// Teacher emails live only in Supabase's auth.users table, so they're
+// fetched separately via the service-role Admin API (lib/supabase/admin.ts)
+// rather than a normal query — auth.users isn't reachable through RLS.
 // ============================================================
 
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { requireAdmin } from "@/lib/admin"
 
 export async function GET(request: Request) {
@@ -43,13 +42,36 @@ export async function GET(request: Request) {
     if (tErr) throw tErr
     if (sErr) throw sErr
 
+    // Teacher emails only exist in Supabase's auth.users table, which
+    // needs the service-role key to query. Build a full id->email map
+    // once (paginated) rather than one API call per teacher.
+    const emailByUserId = new Map<string, string>()
+    if ((teachers || []).length > 0) {
+      try {
+        const adminClient = createAdminClient()
+        let page = 1
+        const perPage = 1000
+        while (true) {
+          const { data, error: listErr } = await adminClient.auth.admin.listUsers({ page, perPage })
+          if (listErr) throw listErr
+          for (const u of data.users) {
+            if (u.email) emailByUserId.set(u.id, u.email)
+          }
+          if (data.users.length < perPage) break
+          page++
+        }
+      } catch (err) {
+        console.error("Failed to fetch auth emails (service role key missing or invalid?):", err)
+      }
+    }
+
     const users = [
       ...(teachers || []).map((t) => ({
         id: t.id,
         user_id: t.user_id,
         role: "teacher" as const,
         name: t.full_name,
-        email: null,
+        email: emailByUserId.get(t.user_id) || null,
         phone: t.phone,
         state: t.state,
         subjects: t.subjects,
