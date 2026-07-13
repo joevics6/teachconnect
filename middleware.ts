@@ -83,6 +83,34 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl)
   }
 
+  // Disabled-account check — was previously only enforced on the two
+  // Overview dashboard pages (via their own profile-fetch routes), so a
+  // disabled account could still reach every other dashboard page, apply
+  // to jobs, or take a quiz by going straight to those URLs. Centralizing
+  // it here covers everywhere that actually matters, at the cost of one
+  // extra lookup per request on these specific prefixes (not every
+  // protected page — /talent and /profile/teacher stay lookup-free).
+  const needsDisabledCheck =
+    user &&
+    pathname !== "/account-disabled" &&
+    (pathname.startsWith("/dashboard") || pathname.startsWith("/apply") || pathname.startsWith("/quiz"))
+
+  if (needsDisabledCheck) {
+    const role = user.user_metadata?.role
+    const table = role === "school" ? "school_profiles" : role === "teacher" ? "teacher_profiles" : null
+    if (table) {
+      const { data: rows } = await supabase
+        .from(table)
+        .select("is_disabled")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+      if (rows?.[0]?.is_disabled) {
+        return NextResponse.redirect(new URL("/account-disabled", request.url))
+      }
+    }
+  }
+
   return supabaseResponse
 }
 

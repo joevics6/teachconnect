@@ -5,6 +5,7 @@
  
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
  
 export async function POST(request: Request) {
   try {
@@ -155,9 +156,17 @@ export async function POST(request: Request) {
       })
  
     if (profileError) {
-      // Don't call admin.deleteUser — requires service role key and crashes the server
-      // The auth user exists but has no profile — auto-create will handle it on login
       console.error("Teacher profile insert failed:", profileError)
+      // Roll back the auth user we just created rather than leaving an
+      // orphaned, profile-less account behind — the old fallback here
+      // (rely on auto-create-on-login) still works, but a clean rollback
+      // is better now that the service-role key is available.
+      try {
+        const adminClient = createAdminClient()
+        await adminClient.auth.admin.deleteUser(userId)
+      } catch (cleanupErr) {
+        console.error("Failed to roll back orphaned auth user:", cleanupErr)
+      }
       throw profileError
     }
 
