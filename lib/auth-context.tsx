@@ -70,12 +70,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const refresh = useCallback(async () => {
     const supabase = createClient()
-    const { data: { session } } = await supabase.auth.getSession()
-    if (session?.user) {
+    const { data: { user: authUser } } = await supabase.auth.getUser()
+    if (authUser) {
       const u = await loadUserProfile(
-        session.user.id,
-        session.user.email || "",
-        session.user.user_metadata || {}
+        authUser.id,
+        authUser.email || "",
+        authUser.user_metadata || {}
       )
       setUser(u)
     } else {
@@ -86,13 +86,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const supabase = createClient()
 
-    // Get initial session
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      if (session?.user) {
+    // Get initial user — getUser() verifies with the Supabase server rather
+    // than trusting whatever session getSession() finds in local storage,
+    // which was the actual cause of the navbar showing "logged out" for
+    // people who were, in fact, logged in.
+    supabase.auth.getUser().then(async ({ data: { user: authUser } }) => {
+      if (authUser) {
         const u = await loadUserProfile(
-          session.user.id,
-          session.user.email || "",
-          session.user.user_metadata || {}
+          authUser.id,
+          authUser.email || "",
+          authUser.user_metadata || {}
         )
         setUser(u)
       }

@@ -10,8 +10,8 @@ export async function GET() {
   try {
     const supabase = await createClient()
 
-    const { data: { session } } = await supabase.auth.getSession()
-    if (!session?.user) {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
@@ -40,7 +40,7 @@ export async function GET() {
         sector,
         job_type
       `)
-      .eq("user_id", session.user.id)
+      .eq("user_id", user.id)
       .single()
 
     if (error && error.code !== "PGRST116") {

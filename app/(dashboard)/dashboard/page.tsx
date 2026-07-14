@@ -10,13 +10,13 @@ export default function DashboardIndexPage() {
 
   useEffect(() => {
     const supabase = createClient()
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      if (!session?.user) {
+    supabase.auth.getUser().then(async ({ data: { user } }) => {
+      if (!user) {
         router.replace("/login")
         return
       }
       // Determine role from metadata first (fast), then DB as fallback
-      const role = session.user.user_metadata?.role
+      const role = user.user_metadata?.role
       if (role === "school") {
         router.replace("/dashboard/school")
       } else {
