@@ -262,12 +262,14 @@ function ApplicantCard({
   onStageChange,
   onNotesClick,
   stageLoading,
+  cvLocked,
 }: {
   applicant: Applicant
   jobInfo: JobInfo
   onStageChange: (id: string, stage: PipelineStage) => void
   onNotesClick: (applicant: Applicant) => void
   stageLoading: string | null
+  cvLocked: boolean
 }) {
   const QuizIcon = getQuizModeIcon(applicant.quiz_mode || jobInfo.quiz_mode)
   const isRejected = applicant.pipeline_stage === "rejected"
@@ -829,6 +831,7 @@ export default function ApplicantsPage() {
                   onStageChange={handleStageChange}
                   onNotesClick={setNotesApplicant}
                   stageLoading={stageLoading}
+                  cvLocked={cvLocked}
                 />
               ))}
             </div>
