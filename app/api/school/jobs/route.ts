@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { checkJobPostingLimit } from "@/lib/job-limits"
+import { getActivePlanType, isPremiumPlan } from "@/lib/school-plan"
 
 // Helper — get or auto-create school profile row
 async function getSchoolProfile(supabase: Awaited<ReturnType<typeof createClient>>, userId: string) {
@@ -99,6 +100,32 @@ export async function POST(request: Request) {
     const limitCheck = await checkJobPostingLimit(supabase, school.id)
     if (!limitCheck.allowed) {
       return NextResponse.json({ error: limitCheck.error, upgrade_required: true }, { status: 402 })
+    }
+
+    // Enforce premium-only fields (see pricing page comparison table) —
+    // Free plan can't turn on quiz screening, private postings, or
+    // featured placement. These fields were previously accepted from any
+    // school regardless of plan.
+    const planType = await getActivePlanType(supabase, school.id)
+    if (!isPremiumPlan(planType)) {
+      if (body.quiz_enabled) {
+        return NextResponse.json(
+          { error: "Quiz screening requires the Standard or Term plan.", upgrade_required: true },
+          { status: 402 }
+        )
+      }
+      if (body.is_private) {
+        return NextResponse.json(
+          { error: "Private postings require the Standard or Term plan.", upgrade_required: true },
+          { status: 402 }
+        )
+      }
+      if (body.is_featured) {
+        return NextResponse.json(
+          { error: "Featured listings aren't available on the Free plan yet.", upgrade_required: true },
+          { status: 402 }
+        )
+      }
     }
 
     const required = ["title", "subject", "employment_type", "deadline", "description", "required_qualifications"]

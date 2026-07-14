@@ -44,16 +44,22 @@ export async function GET() {
       .eq("school_id", school.id)
       .order("created_at", { ascending: false })
 
-    // Get usage stats
+    const planType = subscription?.plan_type || "free"
+
+    // Get usage stats — window matches the actual enforcement logic in
+    // lib/job-limits.ts: Free resets every calendar month, Standard is
+    // scoped to the current purchase (starts_at), Term is unlimited.
+    const jobsWindowStart =
+      planType === "free"
+        ? new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString()
+        : subscription?.starts_at || new Date(0).toISOString()
+
     const { count: jobsPosted } = await supabase
       .from("jobs")
       .select("id", { count: "exact" })
       .eq("school_id", school.id)
       .eq("status", "active")
-      .gte(
-        "created_at",
-        subscription?.starts_at || new Date(0).toISOString()
-      )
+      .gte("created_at", jobsWindowStart)
 
     const { count: totalApplicants } = await supabase
       .from("applications")
@@ -73,8 +79,6 @@ export async function GET() {
       .select("id", { count: "exact" })
       .eq("school_id", school.id)
       .eq("status", "active")
-
-    const planType = subscription?.plan_type || "free"
 
     const usage = [
       {

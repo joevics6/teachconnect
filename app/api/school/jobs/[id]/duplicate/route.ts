@@ -46,6 +46,15 @@ export async function POST(
         deadline: newDeadline.toISOString().split("T")[0],
         views: 0,
         is_featured: false,
+        is_private: false,
+        quiz_enabled: false,
+        quiz_subjects: [],
+        quiz_difficulty: null,
+        quiz_pass_mark: null,
+        quiz_mode: null,
+        quiz_duration: null,
+        quiz_question_count: null,
+        custom_questions: [],
       })
       .select()
       .single()

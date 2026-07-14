@@ -431,7 +431,7 @@ function ApplicantCard({
                 View Profile
               </Button>
             </Link>
-            {applicant.cv_url && (
+            {applicant.cv_url ? (
               <a
                 href={applicant.cv_url}
                 target="_blank"
@@ -446,7 +446,18 @@ function ApplicantCard({
                   Download CV
                 </Button>
               </a>
-            )}
+            ) : cvLocked ? (
+              <Link href="/dashboard/school/subscription">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="text-xs h-8 flex items-center gap-1.5 text-blue-700 border-blue-200"
+                >
+                  <Download className="h-3.5 w-3.5" />
+                  Upgrade to download CV
+                </Button>
+              </Link>
+            ) : null}
             <Button
               size="sm"
               variant="outline"
@@ -491,6 +502,7 @@ export default function ApplicantsPage() {
   const [minScore, setMinScore] = useState(0)
   const [showFilters, setShowFilters] = useState(false)
   const [sortBy, setSortBy] = useState<"newest" | "score_high" | "score_low">("newest")
+  const [cvLocked, setCvLocked] = useState(false)
 
   const fetchApplicants = useCallback(async () => {
     setIsLoading(true)
@@ -501,6 +513,7 @@ export default function ApplicantsPage() {
       const data = await response.json()
       setJobInfo(data.job)
       setApplicants(data.applicants || [])
+      setCvLocked(!!data.cv_downloads_locked)
     } catch (err) {
       console.error("Failed to fetch applicants:", err)
     } finally {

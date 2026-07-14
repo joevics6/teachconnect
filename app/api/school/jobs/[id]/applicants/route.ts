@@ -5,6 +5,7 @@
 
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
+import { getActivePlanType, isPremiumPlan } from "@/lib/school-plan"
 
 export async function GET(
   request: NextRequest,
@@ -50,6 +51,13 @@ export async function GET(
 
     if (error) throw error
 
+    // CV downloads are a Standard/Term perk (see pricing page) — strip the
+    // link for Free-plan schools rather than relying on the UI to hide it.
+    const planType = await getActivePlanType(supabase, school.id)
+    const shapedApplicants = isPremiumPlan(planType)
+      ? (applicants || [])
+      : (applicants || []).map((a) => ({ ...a, cv_url: null }))
+
     const jobInfo = {
       ...job,
       total_applicants: applicants?.length || 0,
@@ -58,7 +66,8 @@ export async function GET(
 
     return NextResponse.json({
       job: jobInfo,
-      applicants: applicants || [],
+      applicants: shapedApplicants,
+      cv_downloads_locked: !isPremiumPlan(planType),
     })
   } catch (err) {
     console.error("GET applicants error:", err)

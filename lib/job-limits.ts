@@ -4,6 +4,12 @@
 // is created directly as active, and when a draft (e.g. a
 // duplicated job) is switched to active — both are ways a job
 // becomes a live, counted posting, so both need the same gate.
+//
+// Reset windows differ by plan (see pricing page comparison table):
+// - Free: 1 job per calendar month (resets every month)
+// - Standard: 1 job per purchase (each purchase is its own
+//   subscription row, so the window is "since that row's starts_at")
+// - Term: unlimited
 // ============================================================
 
 import type { SupabaseClient } from "@supabase/supabase-js"
@@ -21,12 +27,17 @@ export async function checkJobPostingLimit(supabase: SupabaseClient, schoolId: s
 
   if (planType === "term") return { allowed: true as const }
 
+  const windowStart =
+    planType === "free"
+      ? new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString()
+      : subscription?.starts_at || new Date(0).toISOString()
+
   const { count: jobsPosted } = await supabase
     .from("jobs")
     .select("id", { count: "exact", head: true })
     .eq("school_id", schoolId)
     .eq("status", "active")
-    .gte("created_at", subscription?.starts_at || new Date(0).toISOString())
+    .gte("created_at", windowStart)
 
   if ((jobsPosted || 0) >= 1) {
     return {
@@ -34,7 +45,7 @@ export async function checkJobPostingLimit(supabase: SupabaseClient, schoolId: s
       error:
         planType === "standard"
           ? "You've used the job posting included in your Standard plan. Purchase another posting or upgrade to the Term Plan for unlimited postings."
-          : "Free accounts can post 1 job. Upgrade to Standard or the Term Plan to post more.",
+          : "Free accounts can post 1 job per month. Upgrade to Standard or the Term Plan to post more right away.",
     }
   }
 

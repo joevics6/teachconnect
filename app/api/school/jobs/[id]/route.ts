@@ -6,6 +6,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { checkJobPostingLimit } from "@/lib/job-limits"
+import { getActivePlanType, isPremiumPlan } from "@/lib/school-plan"
 
 export async function PATCH(
   request: NextRequest,
@@ -30,6 +31,25 @@ export async function PATCH(
       "salary_min", "salary_max", "is_featured", "is_private"]
     const updates: Record<string, unknown> = {}
     allowed.forEach((f) => { if (body[f] !== undefined) updates[f] = body[f] })
+
+    // Same premium gate as job creation — otherwise a Free-plan school
+    // could create a plain job then PATCH it into private/featured after
+    // the fact, bypassing the check entirely.
+    if (updates.is_private === true || updates.is_featured === true) {
+      const planType = await getActivePlanType(supabase, school.id)
+      if (!isPremiumPlan(planType)) {
+        if (updates.is_private === true) {
+          return NextResponse.json(
+            { error: "Private postings require the Standard or Term plan.", upgrade_required: true },
+            { status: 402 }
+          )
+        }
+        return NextResponse.json(
+          { error: "Featured listings aren't available on the Free plan yet.", upgrade_required: true },
+          { status: 402 }
+        )
+      }
+    }
 
     // If this update would turn a non-active job (e.g. a duplicated draft)
     // into active, it needs to pass the same plan-limit check as creating a
