@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import {
   CheckCircle2,
@@ -12,6 +12,7 @@ import {
   ChevronDown,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { useAuth } from "@/lib/auth-context"
 
 // ─── Types ───────────────────────────────────────────────────
 
@@ -320,6 +321,20 @@ function ComparisonCell({ value }: { value: boolean | string }) {
 // ─── Main Page ────────────────────────────────────────────────
 
 export default function PricingPage() {
+  const { user } = useAuth()
+  const [currentPlan, setCurrentPlan] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (user?.role !== "school") return
+    fetch("/api/school/subscription")
+      .then(async (res) => {
+        if (!res.ok) return
+        const data = await res.json()
+        setCurrentPlan(data.subscription?.plan_type || "free")
+      })
+      .catch((err) => console.error("Failed to load current plan:", err))
+  }, [user])
+
   return (
     <div className="min-h-screen bg-gray-50">
 
@@ -347,7 +362,7 @@ export default function PricingPage() {
         {/* Plan Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
           {PLANS.map((plan) => (
-            <PlanCard key={plan.id} plan={plan} />
+            <PlanCard key={plan.id} plan={plan} isCurrentPlan={currentPlan === plan.id} />
           ))}
         </div>
 
@@ -491,11 +506,11 @@ export default function PricingPage() {
         </div>
 
         {/* Final CTA */}
-        <div className="bg-gray-900 rounded-2xl p-8 text-center">
+        <div className="bg-ink-900 rounded-2xl p-8 text-center">
           <h2 className="text-2xl font-bold text-white mb-3">
             Ready to find your next great teacher?
           </h2>
-          <p className="text-gray-400 mb-8 max-w-xl mx-auto">
+          <p className="text-ink-200 mb-8 max-w-xl mx-auto">
             Start for free today. No credit card required. Upgrade anytime
             when you are ready to hire at scale.
           </p>

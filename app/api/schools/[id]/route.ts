@@ -16,7 +16,10 @@ export async function GET(
         `id, school_name, school_type, school_levels,
          state, lga, address, website,
          contact_name, contact_role, contact_phone,
-         logo_url, is_verified, created_at`
+         logo_url, is_verified, created_at,
+         about, curriculum, student_population,
+         salary_range_min, salary_range_max, benefits,
+         school_category`
       )
       .eq("id", id)
       .limit(1)

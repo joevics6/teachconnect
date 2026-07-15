@@ -48,7 +48,6 @@ interface SchoolProfile {
   salary_range_max: number | null
   benefits: string[]
   school_category: string | null
-  verification_status: string
 }
 
 interface ActiveJob {
@@ -302,19 +301,12 @@ export default function SchoolProfilePage() {
                         <h1 className="text-2xl font-bold text-gray-900">
                           {school?.school_name}
                         </h1>
-                        {school?.verification_status === "verified" && (
+                        {school?.is_verified ? (
                           <span className="flex items-center gap-1 px-2.5 py-1 bg-ink-100 text-ink-700 text-xs rounded-full font-medium mt-1">
                             <CheckCircle2 className="h-3 w-3" />
                             Verified School
                           </span>
-                        )}
-                        {school?.verification_status === "pending" && (
-                          <span className="flex items-center gap-1 px-2.5 py-1 bg-yellow-100 text-yellow-700 text-xs rounded-full font-medium mt-1">
-                            <Clock className="h-3 w-3" />
-                            Pending Verification
-                          </span>
-                        )}
-                        {(!school?.verification_status || school?.verification_status === "unverified") && (
+                        ) : (
                           <span className="flex items-center gap-1 px-2.5 py-1 bg-gray-100 text-gray-500 text-xs rounded-full font-medium mt-1">
                             Not Verified
                           </span>
