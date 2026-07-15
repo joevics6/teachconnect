@@ -75,12 +75,12 @@ function LoginForm() {
         {/* Logo */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2 mb-6">
-            <div className="bg-green-600 text-white p-2 rounded-xl">
+            <div className="bg-ink-600 text-white p-2 rounded-xl">
               <GraduationCap className="h-6 w-6" />
             </div>
             <div className="flex flex-col leading-none text-left">
               <span className="font-bold text-gray-900">JobMeter</span>
-              <span className="font-bold text-green-600">TeachConnect</span>
+              <span className="font-bold text-ink-600">ClassHire</span>
             </div>
           </Link>
           <h1 className="text-2xl font-bold text-gray-900">Welcome back</h1>
@@ -113,7 +113,7 @@ function LoginForm() {
                   setFormData({ ...formData, email: e.target.value })
                 }
                 placeholder="you@example.com"
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ink-500 focus:border-transparent"
               />
             </div>
 
@@ -125,7 +125,7 @@ function LoginForm() {
                 </label>
                 <Link
                   href="/forgot-password"
-                  className="text-xs text-green-600 hover:text-green-700"
+                  className="text-xs text-ink-600 hover:text-ink-700"
                 >
                   Forgot password?
                 </Link>
@@ -138,7 +138,7 @@ function LoginForm() {
                     setFormData({ ...formData, password: e.target.value })
                   }
                   placeholder="Enter your password"
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent pr-10"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ink-500 focus:border-transparent pr-10"
                 />
                 <button
                   type="button"
@@ -158,7 +158,7 @@ function LoginForm() {
             <Button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-green-600 hover:bg-green-700 text-white py-2.5"
+              className="w-full bg-ink-600 hover:bg-ink-700 text-white py-2.5"
             >
               {isLoading ? (
                 <>
@@ -177,7 +177,7 @@ function LoginForm() {
               <div className="w-full border-t border-gray-200" />
             </div>
             <div className="relative flex justify-center text-xs text-gray-400 bg-white px-3">
-              New to TeachConnect?
+              New to ClassHire?
             </div>
           </div>
 
@@ -186,7 +186,7 @@ function LoginForm() {
             <Link href="/register/teacher">
               <Button
                 variant="outline"
-                className="w-full text-sm border-green-200 text-green-700 hover:bg-green-50"
+                className="w-full text-sm border-ink-200 text-ink-700 hover:bg-ink-50"
               >
                 Join as Teacher
               </Button>

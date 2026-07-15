@@ -64,7 +64,7 @@ function getStatusBadge(status: string, daysLeft: number) {
   if (status === "closed" || daysLeft <= 0) {
     return <span className="px-2.5 py-1 bg-red-100 text-red-600 text-xs rounded-full font-medium">Closed</span>
   }
-  return <span className="px-2.5 py-1 bg-green-100 text-green-700 text-xs rounded-full font-medium">Active</span>
+  return <span className="px-2.5 py-1 bg-ink-100 text-ink-700 text-xs rounded-full font-medium">Active</span>
 }
 
 function JobActionsMenu({
@@ -110,7 +110,7 @@ function JobActionsMenu({
               onClick={() => { onDuplicate(job.id); setOpen(false) }}
               className="flex items-center gap-2 px-3 py-2.5 text-xs text-gray-700 hover:bg-gray-50 transition w-full"
             >
-              <Copy className="h-3.5 w-3.5 text-green-500" />
+              <Copy className="h-3.5 w-3.5 text-ink-500" />
               Duplicate Job
             </button>
             {job.status === "active" && (
@@ -231,7 +231,7 @@ export default function SchoolJobsPage() {
 
           {/* Success message */}
           {successMessage && (
-            <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-xl text-green-700 text-sm">
+            <div className="flex items-center gap-2 p-3 bg-ink-50 border border-ink-200 rounded-xl text-ink-700 text-sm">
               <CheckCircle2 className="h-4 w-4 flex-shrink-0" />
               {successMessage}
             </div>
@@ -241,7 +241,7 @@ export default function SchoolJobsPage() {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {[
               { label: "Total Jobs", value: jobs.length, color: "text-blue-600" },
-              { label: "Active", value: counts.active, color: "text-green-600" },
+              { label: "Active", value: counts.active, color: "text-ink-600" },
               { label: "Total Applicants", value: totalApplicants, color: "text-purple-600" },
               { label: "Passed Quiz", value: totalPassed, color: "text-orange-600" },
             ].map((stat) => (
@@ -324,7 +324,7 @@ export default function SchoolJobsPage() {
                         <p className="text-xs text-gray-500">Applicants</p>
                       </div>
                       <div className="p-2.5 bg-gray-50 rounded-lg text-center">
-                        <p className="text-lg font-bold text-green-600">{job.passed_quiz_count}</p>
+                        <p className="text-lg font-bold text-ink-600">{job.passed_quiz_count}</p>
                         <p className="text-xs text-gray-500">Passed Quiz</p>
                       </div>
                       <div className="p-2.5 bg-gray-50 rounded-lg text-center">

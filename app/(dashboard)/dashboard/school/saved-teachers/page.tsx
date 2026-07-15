@@ -42,7 +42,7 @@ function getInitials(name: string) {
 
 function AvailabilityBadge({ value }: { value: string }) {
   const map: Record<string, { label: string; color: string }> = {
-    "immediate":  { label: "Available Now",     color: "bg-green-100 text-green-700"  },
+    "immediate":  { label: "Available Now",     color: "bg-ink-100 text-ink-700"  },
     "2-weeks":    { label: "2 Weeks",            color: "bg-blue-100 text-blue-700"    },
     "1-month":    { label: "1 Month",            color: "bg-yellow-100 text-yellow-700"},
     "employed":   { label: "Employed",           color: "bg-gray-100 text-gray-600"   },
@@ -152,16 +152,16 @@ export default function SavedTeachersPage() {
                 <div key={item.id} className="bg-white rounded-xl border border-gray-200 p-5">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex items-start gap-4 min-w-0">
-                      <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                      <div className="w-12 h-12 rounded-full bg-ink-100 flex items-center justify-center flex-shrink-0 overflow-hidden">
                         {t.photo_url
                           ? <img src={t.photo_url} alt={t.full_name} className="w-full h-full object-cover" />
-                          : <span className="text-green-700 font-bold text-sm">{getInitials(t.full_name)}</span>}
+                          : <span className="text-ink-700 font-bold text-sm">{getInitials(t.full_name)}</span>}
                       </div>
                       <div className="min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
                           <h3 className="font-bold text-gray-900">{t.full_name}</h3>
                           {t.trcn_status === "registered" && (
-                            <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">TRCN</span>
+                            <span className="text-xs bg-ink-100 text-ink-700 px-2 py-0.5 rounded-full font-medium">TRCN</span>
                           )}
                           <AvailabilityBadge value={t.availability} />
                         </div>

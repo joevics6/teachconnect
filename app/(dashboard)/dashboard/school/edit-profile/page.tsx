@@ -167,7 +167,7 @@ export default function EditSchoolProfilePage() {
     const map: Record<string, { label: string; color: string }> = {
       unverified: { label: "Not Verified", color: "bg-gray-100 text-gray-500" },
       pending:    { label: "Pending Verification", color: "bg-yellow-100 text-yellow-700" },
-      verified:   { label: "Verified", color: "bg-green-100 text-green-700" },
+      verified:   { label: "Verified", color: "bg-ink-100 text-ink-700" },
     }
     const v = map[verificationStatus] || map.unverified
     return <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${v.color}`}>{v.label}</span>

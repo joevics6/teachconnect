@@ -131,7 +131,7 @@ function CardSkeleton({ lines = 3 }: { lines?: number }) {
 function getStatusBadge(status: string) {
   switch (status) {
     case "shortlisted":
-      return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700"><CheckCircle2 className="h-3 w-3" />Shortlisted</span>
+      return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-ink-100 text-ink-700"><CheckCircle2 className="h-3 w-3" />Shortlisted</span>
     case "applied":
       return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700"><Clock className="h-3 w-3" />Pending</span>
     case "rejected":
@@ -384,7 +384,7 @@ export default function TeacherDashboardPage() {
               )}
             </button>
             <Link href="/jobs">
-              <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white">Browse Jobs</Button>
+              <Button size="sm" className="bg-ink-600 hover:bg-ink-700 text-white">Browse Jobs</Button>
             </Link>
           </div>
         </header>
@@ -392,9 +392,9 @@ export default function TeacherDashboardPage() {
         <div className="p-6 space-y-6">
 
           {/* Welcome Banner — shows immediately with whatever name we have */}
-          <div className="bg-gradient-to-r from-green-600 to-green-700 rounded-2xl p-6 text-white">
+          <div className="bg-gradient-to-r from-ink-600 to-ink-700 rounded-2xl p-6 text-white">
             <h2 className="text-xl font-bold mb-1">Welcome back, {firstName} 👋</h2>
-            <p className="text-green-100 text-sm">
+            <p className="text-ink-100 text-sm">
               {loadingApplications
                 ? "Loading your activity..."
                 : `You have ${unreadCount} unread notification${unreadCount !== 1 ? "s" : ""}${shortlistedCount > 0 ? ` and ${shortlistedCount} active shortlist${shortlistedCount !== 1 ? "s" : ""}` : ""}.`
@@ -409,12 +409,12 @@ export default function TeacherDashboardPage() {
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               {[
                 { label: "Applications", value: totalApplicationsCount, color: "text-blue-600",   href: "/dashboard/teacher/applications" },
-                { label: "Shortlisted",  value: shortlistedCount,       color: "text-green-600",  href: "/dashboard/teacher/applications" },
+                { label: "Shortlisted",  value: shortlistedCount,       color: "text-ink-600",  href: "/dashboard/teacher/applications" },
                 { label: "Saved Jobs",   value: savedJobsCount,         color: "text-purple-600", href: "/dashboard/teacher/saved-jobs"   },
                 { label: "Invites",      value: invitesCount,           color: "text-orange-600", href: "/dashboard/teacher/invites"      },
               ].map((stat) => (
                 <Link key={stat.label} href={stat.href}>
-                  <div className="bg-white rounded-xl border border-gray-200 p-4 hover:border-green-300 hover:shadow-sm transition cursor-pointer">
+                  <div className="bg-white rounded-xl border border-gray-200 p-4 hover:border-ink-300 hover:shadow-sm transition cursor-pointer">
                     <div className={`text-2xl font-bold mb-1 ${stat.color}`}>{stat.value}</div>
                     <div className="text-xs text-gray-500">{stat.label}</div>
                   </div>
@@ -435,19 +435,19 @@ export default function TeacherDashboardPage() {
                 <h3 className="font-bold text-gray-900 mb-4">Profile Completion</h3>
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm text-gray-500">{completedFields} of {completionItems.length} fields</span>
-                  <span className="text-sm font-bold text-green-600">{profileCompletion}%</span>
+                  <span className="text-sm font-bold text-ink-600">{profileCompletion}%</span>
                 </div>
                 <div className="w-full bg-gray-100 rounded-full h-2.5 mb-4">
-                  <div className="bg-green-600 h-2.5 rounded-full transition-all" style={{ width: `${profileCompletion}%` }} />
+                  <div className="bg-ink-600 h-2.5 rounded-full transition-all" style={{ width: `${profileCompletion}%` }} />
                 </div>
                 <div className="space-y-2">
                   {completionItems.map((item) => (
                     <div key={item.label} className="flex items-center gap-2 text-xs">
-                      <div className={`w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 ${item.done ? "bg-green-100" : "bg-gray-100"}`}>
-                        {item.done ? <CheckCircle2 className="h-3 w-3 text-green-600" /> : <div className="w-1.5 h-1.5 rounded-full bg-gray-400" />}
+                      <div className={`w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 ${item.done ? "bg-ink-100" : "bg-gray-100"}`}>
+                        {item.done ? <CheckCircle2 className="h-3 w-3 text-ink-600" /> : <div className="w-1.5 h-1.5 rounded-full bg-gray-400" />}
                       </div>
                       {"href" in item && !item.done ? (
-                        <Link href={item.href!} className="text-green-600 hover:underline font-medium flex items-center gap-1">
+                        <Link href={item.href!} className="text-ink-600 hover:underline font-medium flex items-center gap-1">
                           <Zap className="h-3 w-3" />
                           {item.label}
                         </Link>
@@ -461,7 +461,7 @@ export default function TeacherDashboardPage() {
                   <Button size="sm" variant="outline" className="w-full mt-4 text-xs">Complete Profile</Button>
                 </Link>
                 <Link href="/dashboard/teacher/specialization-quiz">
-                  <Button size="sm" className="w-full mt-2 text-xs bg-green-600 hover:bg-green-700 text-white flex items-center justify-center gap-1.5">
+                  <Button size="sm" className="w-full mt-2 text-xs bg-ink-600 hover:bg-ink-700 text-white flex items-center justify-center gap-1.5">
                     <Zap className="h-3.5 w-3.5" />
                     Take Subject Mastery Quiz
                   </Button>
@@ -470,10 +470,10 @@ export default function TeacherDashboardPage() {
             )}
 
             {/* Subject Mastery Prompt */}
-            <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border border-green-200 p-5">
+            <div className="bg-gradient-to-br from-ink-50 to-emerald-50 rounded-xl border border-ink-200 p-5">
               <div className="flex items-center gap-2 mb-3">
-                <div className="p-1.5 bg-green-100 rounded-lg">
-                  <Zap className="h-4 w-4 text-green-600" />
+                <div className="p-1.5 bg-ink-100 rounded-lg">
+                  <Zap className="h-4 w-4 text-ink-600" />
                 </div>
                 <h3 className="font-bold text-gray-900 text-sm">Subject Mastery</h3>
               </div>
@@ -481,11 +481,11 @@ export default function TeacherDashboardPage() {
                 Take a 5-minute quiz on your subject. Your percentile rank appears on your profile and signals expertise to schools.
               </p>
               <div className="flex items-center gap-2 mb-4">
-                <TrendingUp className="h-4 w-4 text-green-600 flex-shrink-0" />
-                <span className="text-xs text-green-700 font-medium">Stand out from other applicants</span>
+                <TrendingUp className="h-4 w-4 text-ink-600 flex-shrink-0" />
+                <span className="text-xs text-ink-700 font-medium">Stand out from other applicants</span>
               </div>
               <Link href="/dashboard/teacher/specialization-quiz">
-                <Button size="sm" className="w-full bg-green-600 hover:bg-green-700 text-white text-xs">
+                <Button size="sm" className="w-full bg-ink-600 hover:bg-ink-700 text-white text-xs">
                   Start Quiz
                 </Button>
               </Link>
@@ -501,7 +501,7 @@ export default function TeacherDashboardPage() {
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="font-bold text-gray-900">Notifications</h3>
                   {unreadCount > 0 && (
-                    <button onClick={handleMarkAllRead} className="text-xs text-green-600 hover:underline">Mark all read</button>
+                    <button onClick={handleMarkAllRead} className="text-xs text-ink-600 hover:underline">Mark all read</button>
                   )}
                 </div>
                 {notifications.length === 0 ? (
@@ -509,10 +509,10 @@ export default function TeacherDashboardPage() {
                 ) : (
                   <div className="space-y-3">
                     {notifications.map((n) => (
-                      <div key={n.id} className={`p-3 rounded-lg text-xs ${n.is_read ? "bg-gray-50" : "bg-green-50 border border-green-100"}`}>
+                      <div key={n.id} className={`p-3 rounded-lg text-xs ${n.is_read ? "bg-gray-50" : "bg-ink-50 border border-ink-100"}`}>
                         <div className="flex items-start justify-between gap-2">
                           <p className="font-semibold text-gray-900">{n.title}</p>
-                          {!n.is_read && <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0 mt-0.5" />}
+                          {!n.is_read && <div className="w-2 h-2 bg-ink-500 rounded-full flex-shrink-0 mt-0.5" />}
                         </div>
                         <p className="text-gray-500 mt-0.5">{n.message}</p>
                         <p className="text-gray-400 mt-1">
@@ -530,7 +530,7 @@ export default function TeacherDashboardPage() {
               <h3 className="font-bold text-gray-900 mb-4">Quick Actions</h3>
               <div className="space-y-2">
                 {[
-                  { label: "Browse new jobs", href: "/jobs", color: "text-green-600" },
+                  { label: "Browse new jobs", href: "/jobs", color: "text-ink-600" },
                   { label: "Edit my profile", href: "/dashboard/teacher/edit-profile", color: "text-blue-600" },
                   { label: "View saved jobs", href: "/dashboard/teacher/saved-jobs", color: "text-purple-600" },
                   { label: "Check quiz results", href: "/dashboard/teacher/quiz-results", color: "text-orange-600" },
@@ -550,7 +550,7 @@ export default function TeacherDashboardPage() {
           <div className="bg-white rounded-xl border border-gray-200 p-5">
             <div className="flex items-center justify-between mb-5">
               <h3 className="font-bold text-gray-900">Recent Applications</h3>
-              <Link href="/dashboard/teacher/applications" className="text-sm text-green-600 hover:underline">View all</Link>
+              <Link href="/dashboard/teacher/applications" className="text-sm text-ink-600 hover:underline">View all</Link>
             </div>
             {loadingApplications ? (
               <div className="space-y-3">
@@ -570,7 +570,7 @@ export default function TeacherDashboardPage() {
                 <Briefcase className="h-8 w-8 text-gray-300 mx-auto mb-2" />
                 <p className="text-sm text-gray-500 mb-3">No applications yet.</p>
                 <Link href="/jobs">
-                  <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white">Browse Jobs</Button>
+                  <Button size="sm" className="bg-ink-600 hover:bg-ink-700 text-white">Browse Jobs</Button>
                 </Link>
               </div>
             ) : (
@@ -590,7 +590,7 @@ export default function TeacherDashboardPage() {
                       {app.quiz_score !== null && (
                         <div className="text-right hidden sm:block">
                           <p className="text-xs text-gray-500">Quiz</p>
-                          <p className={`text-sm font-bold ${app.quiz_passed ? "text-green-600" : "text-red-500"}`}>{app.quiz_score}%</p>
+                          <p className={`text-sm font-bold ${app.quiz_passed ? "text-ink-600" : "text-red-500"}`}>{app.quiz_score}%</p>
                         </div>
                       )}
                       {getStatusBadge(app.pipeline_stage)}

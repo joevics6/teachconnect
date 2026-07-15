@@ -3,12 +3,44 @@
 
 @custom-variant dark (&:is(.dark *));
 
+@theme {
+  --font-display: var(--font-display);
+
+  /* Ink — deep navy, the primary brand color. Reads as authority and
+     trust (a ledger, a certificate, a school uniform) rather than the
+     "fresh startup" feel of the old green. */
+  --color-ink-50: #F3F5F9;
+  --color-ink-100: #E4E9F2;
+  --color-ink-200: #C7D2E3;
+  --color-ink-300: #9FB0CB;
+  --color-ink-400: #6E85AC;
+  --color-ink-500: #4A628C;
+  --color-ink-600: #33507A;
+  --color-ink-700: #283A57;
+  --color-ink-800: #1E2C41;
+  --color-ink-900: #16233F;
+  --color-ink-950: #0E1729;
+
+  /* Brass — warm gold accent used sparingly for distinction (academic
+     honors, a wax seal, a graduation cord) — never the primary color. */
+  --color-brass-50: #FBF7EC;
+  --color-brass-100: #F5EBD0;
+  --color-brass-200: #EAD5A0;
+  --color-brass-300: #DEBC6E;
+  --color-brass-400: #CFA249;
+  --color-brass-500: #B98A2E;
+  --color-brass-600: #9A6F22;
+  --color-brass-700: #7A571C;
+  --color-brass-800: #5C4116;
+  --color-brass-900: #3F2D10;
+}
+
 :root {
   --background: #ffffff;
   --foreground: #0a0a0a;
-  --primary: #16a34a;
+  --primary: #33507A;
   --primary-foreground: #ffffff;
-  --secondary: #1d4ed8;
+  --secondary: #B98A2E;
   --secondary-foreground: #ffffff;
   --muted: #f4f4f5;
   --muted-foreground: #71717a;

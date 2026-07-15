@@ -165,7 +165,7 @@ function PreQuizScreen({
             {meta.mode === "written" && (
               <div className="flex justify-between text-sm">
                 <span className="text-gray-500">Time Limit</span>
-                <span className="font-semibold text-green-600">
+                <span className="font-semibold text-ink-600">
                   No time limit
                 </span>
               </div>
@@ -188,7 +188,7 @@ function PreQuizScreen({
 
           <Button
             onClick={onStart}
-            className="w-full bg-green-600 hover:bg-green-700 text-white py-3 text-base"
+            className="w-full bg-ink-600 hover:bg-ink-700 text-white py-3 text-base"
           >
             Start Quiz
           </Button>
@@ -354,7 +354,7 @@ function MCQQuiz({
           <div className="w-full bg-gray-100 rounded-full h-1.5">
             <div
               className={`h-1.5 rounded-full transition-all duration-1000 ${
-                isLowTime ? "bg-red-500" : "bg-green-500"
+                isLowTime ? "bg-red-500" : "bg-ink-500"
               }`}
               style={{ width: `${timerPercent}%` }}
             />
@@ -373,9 +373,9 @@ function MCQQuiz({
                 onClick={() => setCurrentIndex(i)}
                 className={`w-8 h-8 rounded-lg text-xs font-medium transition-all ${
                   i === currentIndex
-                    ? "bg-green-600 text-white"
+                    ? "bg-ink-600 text-white"
                     : answers[q.id]
-                    ? "bg-green-100 text-green-700"
+                    ? "bg-ink-100 text-ink-700"
                     : "bg-gray-100 text-gray-500 hover:bg-gray-200"
                 }`}
               >
@@ -389,12 +389,12 @@ function MCQQuiz({
         {current && (
           <div className="bg-white rounded-2xl border border-gray-200 p-6 mb-5">
             <div className="flex items-start gap-3 mb-6">
-              <span className="flex-shrink-0 w-8 h-8 rounded-full bg-green-100 text-green-700 text-sm font-bold flex items-center justify-center">
+              <span className="flex-shrink-0 w-8 h-8 rounded-full bg-ink-100 text-ink-700 text-sm font-bold flex items-center justify-center">
                 {currentIndex + 1}
               </span>
               <div className="pt-1">
                 {(meta.subjects?.length ?? 0) > 1 && current.subject && (
-                  <span className="inline-block text-xs font-medium text-green-700 bg-green-50 border border-green-200 rounded-full px-2 py-0.5 mb-1.5">
+                  <span className="inline-block text-xs font-medium text-ink-700 bg-ink-50 border border-ink-200 rounded-full px-2 py-0.5 mb-1.5">
                     {current.subject}
                   </span>
                 )}
@@ -413,14 +413,14 @@ function MCQQuiz({
                     onClick={() => selectAnswer(current.id, opt.key)}
                     className={`w-full flex items-center gap-4 p-4 rounded-xl border text-left transition-all ${
                       isSelected
-                        ? "bg-green-50 border-green-400 text-green-800"
+                        ? "bg-ink-50 border-ink-400 text-ink-800"
                         : "bg-white border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-gray-700"
                     }`}
                   >
                     <span
                       className={`flex-shrink-0 w-7 h-7 rounded-full border-2 flex items-center justify-center text-xs font-bold uppercase ${
                         isSelected
-                          ? "border-green-500 bg-green-500 text-white"
+                          ? "border-ink-500 bg-ink-500 text-white"
                           : "border-gray-300 text-gray-400"
                       }`}
                     >
@@ -465,7 +465,7 @@ function MCQQuiz({
             <Button
               onClick={() => handleSubmit(false)}
               disabled={isSubmitting}
-              className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-2"
+              className="bg-ink-600 hover:bg-ink-700 text-white flex items-center gap-2"
             >
               {isSubmitting ? (
                 <>
@@ -488,7 +488,7 @@ function MCQQuiz({
             <Button
               onClick={() => handleSubmit(false)}
               disabled={isSubmitting}
-              className="bg-green-600 hover:bg-green-700 text-white"
+              className="bg-ink-600 hover:bg-ink-700 text-white"
             >
               {isSubmitting ? (
                 <Loader2 className="h-4 w-4 animate-spin mr-2" />
@@ -689,7 +689,7 @@ function WrittenQuiz({
               <span
                 className={`text-xs ${
                   (answers[q.id] || "").length > 20
-                    ? "text-green-500"
+                    ? "text-ink-500"
                     : "text-gray-400"
                 }`}
               >
@@ -743,11 +743,11 @@ function ResultsScreen({
         <div className="bg-white rounded-2xl border border-gray-200 p-8 text-center">
           <div
             className={`inline-flex items-center justify-center w-20 h-20 rounded-full mb-5 ${
-              passed ? "bg-green-100" : "bg-red-100"
+              passed ? "bg-ink-100" : "bg-red-100"
             }`}
           >
             {passed ? (
-              <CheckCircle2 className="h-10 w-10 text-green-600" />
+              <CheckCircle2 className="h-10 w-10 text-ink-600" />
             ) : (
               <XCircle className="h-10 w-10 text-red-500" />
             )}
@@ -758,7 +758,7 @@ function ResultsScreen({
           </h1>
           <p
             className={`text-lg font-bold mb-2 ${
-              passed ? "text-green-600" : "text-red-500"
+              passed ? "text-ink-600" : "text-red-500"
             }`}
           >
             {passed ? "Quiz Passed!" : "Quiz Not Passed"}
@@ -807,7 +807,7 @@ function ResultsScreen({
                     <span
                       className={`flex-shrink-0 text-xs font-bold px-2 py-1 rounded-full ${
                         fb.score >= fb.max_score * 0.7
-                          ? "bg-green-100 text-green-700"
+                          ? "bg-ink-100 text-ink-700"
                           : fb.score >= fb.max_score * 0.4
                           ? "bg-yellow-100 text-yellow-700"
                           : "bg-red-100 text-red-600"
@@ -837,7 +837,7 @@ function ResultsScreen({
           </Link>
           {passed && (
             <Link href="/dashboard/teacher/applications" className="flex-1">
-              <Button className="w-full bg-green-600 hover:bg-green-700 text-white">
+              <Button className="w-full bg-ink-600 hover:bg-ink-700 text-white">
                 View Application
               </Button>
             </Link>
@@ -885,7 +885,7 @@ export default function QuizPage() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="h-8 w-8 text-green-600 animate-spin mx-auto mb-3" />
+          <Loader2 className="h-8 w-8 text-ink-600 animate-spin mx-auto mb-3" />
           <p className="text-gray-500 text-sm">Loading quiz...</p>
         </div>
       </div>
@@ -906,7 +906,7 @@ export default function QuizPage() {
             {error || "This quiz could not be loaded."}
           </p>
           <Link href="/jobs">
-            <Button className="bg-green-600 hover:bg-green-700 text-white">
+            <Button className="bg-ink-600 hover:bg-ink-700 text-white">
               Back to Jobs
             </Button>
           </Link>

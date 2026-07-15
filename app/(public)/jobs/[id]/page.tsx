@@ -129,7 +129,7 @@ export default function JobDetailPage() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="h-8 w-8 text-green-600 animate-spin mx-auto mb-3" />
+          <Loader2 className="h-8 w-8 text-ink-600 animate-spin mx-auto mb-3" />
           <p className="text-gray-500 text-sm">Loading job details...</p>
         </div>
       </div>
@@ -150,7 +150,7 @@ export default function JobDetailPage() {
             {error || "This job listing may have been removed or closed."}
           </p>
           <Link href="/jobs">
-            <Button className="bg-green-600 hover:bg-green-700 text-white">
+            <Button className="bg-ink-600 hover:bg-ink-700 text-white">
               Browse All Jobs
             </Button>
           </Link>
@@ -199,7 +199,7 @@ export default function JobDetailPage() {
                       </h1>
                       <Link
                         href={`/schools/${job.school_id}`}
-                        className="text-sm text-green-600 hover:underline flex items-center gap-1"
+                        className="text-sm text-ink-600 hover:underline flex items-center gap-1"
                       >
                         {job.school_name}
                         {job.school_is_verified && (
@@ -214,7 +214,7 @@ export default function JobDetailPage() {
                         title="Share job"
                       >
                         {copied ? (
-                          <CheckCircle2 className="h-4 w-4 text-green-500" />
+                          <CheckCircle2 className="h-4 w-4 text-ink-500" />
                         ) : (
                           <Share2 className="h-4 w-4 text-gray-500" />
                         )}
@@ -224,14 +224,14 @@ export default function JobDetailPage() {
                         disabled={isSaving}
                         className={`p-2 rounded-lg border transition ${
                           isSaved
-                            ? "border-green-200 bg-green-50"
+                            ? "border-ink-200 bg-ink-50"
                             : "border-gray-200 hover:bg-gray-50"
                         }`}
                         title={isSaved ? "Unsave job" : "Save job"}
                       >
                         <Bookmark
                           className={`h-4 w-4 ${
-                            isSaved ? "text-green-600 fill-green-600" : "text-gray-500"
+                            isSaved ? "text-ink-600 fill-ink-600" : "text-gray-500"
                           }`}
                         />
                       </button>
@@ -251,7 +251,7 @@ export default function JobDetailPage() {
                 <span
                   className={`px-3 py-1 text-xs rounded-full font-medium ${
                     job.employment_type === "full-time"
-                      ? "bg-green-100 text-green-700"
+                      ? "bg-ink-100 text-ink-700"
                       : job.employment_type === "part-time"
                       ? "bg-purple-100 text-purple-700"
                       : "bg-orange-100 text-orange-700"
@@ -344,15 +344,15 @@ export default function JobDetailPage() {
 
             {/* Accommodation Notice */}
             {job.accommodation_offered && (
-              <div className="bg-green-50 border border-green-200 rounded-xl p-5 flex gap-4">
-                <div className="flex-shrink-0 p-2 bg-green-100 rounded-lg h-fit">
-                  <Home className="h-5 w-5 text-green-600" />
+              <div className="bg-ink-50 border border-ink-200 rounded-xl p-5 flex gap-4">
+                <div className="flex-shrink-0 p-2 bg-ink-100 rounded-lg h-fit">
+                  <Home className="h-5 w-5 text-ink-600" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-green-900 mb-1">
+                  <h3 className="font-bold text-ink-900 mb-1">
                     Accommodation Included
                   </h3>
-                  <p className="text-sm text-green-700">
+                  <p className="text-sm text-ink-700">
                     This school provides{" "}
                     <span className="font-medium capitalize">
                       {job.accommodation_type?.replace("-", " ")}
@@ -381,7 +381,7 @@ export default function JobDetailPage() {
               </h2>
               <div>
                 <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-green-500" />
+                  <CheckCircle2 className="h-4 w-4 text-ink-500" />
                   Required Qualifications
                 </h3>
                 <div className="text-sm text-gray-600 leading-relaxed whitespace-pre-wrap pl-6 mb-5">
@@ -411,7 +411,7 @@ export default function JobDetailPage() {
                   {job.benefits.map((benefit) => (
                     <span
                       key={benefit}
-                      className="flex items-center gap-1.5 px-3 py-1.5 bg-green-50 text-green-700 text-sm rounded-lg font-medium"
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-ink-50 text-ink-700 text-sm rounded-lg font-medium"
                     >
                       <CheckCircle2 className="h-3.5 w-3.5" />
                       {benefit}
@@ -432,10 +432,10 @@ export default function JobDetailPage() {
                     <Link
                       key={related.id}
                       href={`/jobs/${related.id}`}
-                      className="flex items-center justify-between p-3 border border-gray-100 rounded-xl hover:border-green-200 hover:bg-green-50 transition group"
+                      className="flex items-center justify-between p-3 border border-gray-100 rounded-xl hover:border-ink-200 hover:bg-ink-50 transition group"
                     >
                       <div>
-                        <p className="font-semibold text-gray-900 text-sm group-hover:text-green-600 transition-colors">
+                        <p className="font-semibold text-gray-900 text-sm group-hover:text-ink-600 transition-colors">
                           {related.title}
                         </p>
                         <p className="text-xs text-gray-500">
@@ -469,9 +469,9 @@ export default function JobDetailPage() {
               </div>
 
               {hasApplied ? (
-                <div className="flex items-center justify-center gap-2 p-3 bg-green-50 border border-green-200 rounded-xl mb-4">
-                  <CheckCircle2 className="h-5 w-5 text-green-600" />
-                  <p className="text-sm font-medium text-green-700">
+                <div className="flex items-center justify-center gap-2 p-3 bg-ink-50 border border-ink-200 rounded-xl mb-4">
+                  <CheckCircle2 className="h-5 w-5 text-ink-600" />
+                  <p className="text-sm font-medium text-ink-700">
                     You have applied for this job
                   </p>
                 </div>
@@ -485,7 +485,7 @@ export default function JobDetailPage() {
               ) : (
                 <Button
                   onClick={handleApply}
-                  className="w-full bg-green-600 hover:bg-green-700 text-white mb-3 py-3 text-base"
+                  className="w-full bg-ink-600 hover:bg-ink-700 text-white mb-3 py-3 text-base"
                 >
                   {job.quiz_enabled ? (
                     <>
@@ -503,11 +503,11 @@ export default function JobDetailPage() {
                 onClick={handleSave}
                 disabled={isSaving}
                 className={`w-full flex items-center justify-center gap-2 ${
-                  isSaved ? "border-green-300 text-green-600" : ""
+                  isSaved ? "border-ink-300 text-ink-600" : ""
                 }`}
               >
                 <Bookmark
-                  className={`h-4 w-4 ${isSaved ? "fill-green-600" : ""}`}
+                  className={`h-4 w-4 ${isSaved ? "fill-ink-600" : ""}`}
                 />
                 {isSaved ? "Saved" : "Save Job"}
               </Button>
@@ -524,7 +524,7 @@ export default function JobDetailPage() {
                   </span>
                 </div>
                 {job.accommodation_offered && (
-                  <div className="flex items-center gap-2 text-sm text-green-600">
+                  <div className="flex items-center gap-2 text-sm text-ink-600">
                     <Home className="h-4 w-4 flex-shrink-0" />
                     <span>Accommodation included</span>
                   </div>

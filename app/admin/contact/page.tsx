@@ -56,12 +56,12 @@ export default function AdminContactPage() {
           <Mail className="h-5 w-5 text-gray-700" />
           <h1 className="text-xl font-bold text-gray-900">Contact Messages</h1>
           {unreadCount > 0 && (
-            <span className="px-2 py-0.5 bg-green-600 text-white text-xs rounded-full font-medium">{unreadCount} unread</span>
+            <span className="px-2 py-0.5 bg-ink-600 text-white text-xs rounded-full font-medium">{unreadCount} unread</span>
           )}
         </div>
 
         {isLoading ? (
-          <div className="flex justify-center py-16"><Loader2 className="h-6 w-6 text-green-600 animate-spin" /></div>
+          <div className="flex justify-center py-16"><Loader2 className="h-6 w-6 text-ink-600 animate-spin" /></div>
         ) : submissions.length === 0 ? (
           <div className="bg-white border border-gray-200 rounded-xl p-10 text-center text-gray-500 text-sm">
             No messages yet.
@@ -73,13 +73,13 @@ export default function AdminContactPage() {
                 <button
                   key={s.id}
                   onClick={() => openMessage(s)}
-                  className={`w-full text-left px-4 py-3 hover:bg-gray-50 transition ${selected?.id === s.id ? "bg-green-50" : ""}`}
+                  className={`w-full text-left px-4 py-3 hover:bg-gray-50 transition ${selected?.id === s.id ? "bg-ink-50" : ""}`}
                 >
                   <div className="flex items-start gap-2">
                     {s.is_read ? (
                       <CheckCircle2 className="h-3.5 w-3.5 text-gray-300 mt-0.5 flex-shrink-0" />
                     ) : (
-                      <Circle className="h-3.5 w-3.5 text-green-600 fill-green-600 mt-0.5 flex-shrink-0" />
+                      <Circle className="h-3.5 w-3.5 text-ink-600 fill-ink-600 mt-0.5 flex-shrink-0" />
                     )}
                     <div className="min-w-0">
                       <p className={`text-sm truncate ${s.is_read ? "text-gray-600" : "font-semibold text-gray-900"}`}>{s.subject}</p>
@@ -97,7 +97,7 @@ export default function AdminContactPage() {
                   <h2 className="font-bold text-gray-900 mb-1">{selected.subject}</h2>
                   <p className="text-sm text-gray-500 mb-1">
                     From <span className="font-medium text-gray-700">{selected.name}</span> —{" "}
-                    <a href={`mailto:${selected.email}`} className="text-green-600 hover:underline">{selected.email}</a>
+                    <a href={`mailto:${selected.email}`} className="text-ink-600 hover:underline">{selected.email}</a>
                   </p>
                   <p className="text-xs text-gray-400 mb-4">{formatDate(selected.created_at)}</p>
                   <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{selected.message}</p>

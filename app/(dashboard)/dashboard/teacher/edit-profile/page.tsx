@@ -207,7 +207,7 @@ export default function EditTeacherProfilePage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Loader2 className="h-6 w-6 animate-spin text-green-600" />
+        <Loader2 className="h-6 w-6 animate-spin text-ink-600" />
       </div>
     )
   }
@@ -228,7 +228,7 @@ export default function EditTeacherProfilePage() {
           <Button
             onClick={handleSave}
             disabled={saving || success}
-            className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-2"
+            className="bg-ink-600 hover:bg-ink-700 text-white flex items-center gap-2"
           >
             {saving ? (
               <><Loader2 className="h-4 w-4 animate-spin" />Saving…</>
@@ -250,7 +250,7 @@ export default function EditTeacherProfilePage() {
           </div>
         )}
         {success && (
-          <div className="flex items-center gap-2 p-4 bg-green-50 border border-green-200 rounded-xl text-green-700 text-sm">
+          <div className="flex items-center gap-2 p-4 bg-ink-50 border border-ink-200 rounded-xl text-ink-700 text-sm">
             <CheckCircle2 className="h-4 w-4 flex-shrink-0" />Profile saved! Redirecting…
           </div>
         )}
@@ -261,11 +261,11 @@ export default function EditTeacherProfilePage() {
           <div className="flex items-center gap-5">
             {/* Avatar preview */}
             <div className="relative flex-shrink-0">
-              <div className="w-20 h-20 rounded-full overflow-hidden bg-green-100 flex items-center justify-center">
+              <div className="w-20 h-20 rounded-full overflow-hidden bg-ink-100 flex items-center justify-center">
                 {photoPreview ? (
                   <img src={photoPreview} alt="Profile" className="w-full h-full object-cover" />
                 ) : (
-                  <span className="text-2xl font-bold text-green-700">
+                  <span className="text-2xl font-bold text-ink-700">
                     {form.full_name ? form.full_name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2) : "?"}
                   </span>
                 )}
@@ -290,7 +290,7 @@ export default function EditTeacherProfilePage() {
                 type="button"
                 onClick={() => photoInputRef.current?.click()}
                 disabled={uploadingPhoto}
-                className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg text-sm text-gray-700 hover:border-green-400 hover:text-green-700 transition disabled:opacity-50"
+                className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg text-sm text-gray-700 hover:border-ink-400 hover:text-ink-700 transition disabled:opacity-50"
               >
                 <Camera className="h-4 w-4" />
                 {uploadingPhoto ? "Uploading…" : photoPreview ? "Change Photo" : "Upload Photo"}
@@ -317,15 +317,15 @@ export default function EditTeacherProfilePage() {
           <div className="flex items-center gap-4">
             <div className="flex-1">
               {cvUrl ? (
-                <div className="flex items-center gap-3 p-3 bg-green-50 border border-green-200 rounded-lg mb-3">
-                  <FileText className="h-5 w-5 text-green-600 flex-shrink-0" />
+                <div className="flex items-center gap-3 p-3 bg-ink-50 border border-ink-200 rounded-lg mb-3">
+                  <FileText className="h-5 w-5 text-ink-600 flex-shrink-0" />
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-green-800">CV uploaded</p>
+                    <p className="text-sm font-medium text-ink-800">CV uploaded</p>
                     <a
                       href={cvUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-xs text-green-600 hover:underline"
+                      className="text-xs text-ink-600 hover:underline"
                     >
                       View current CV →
                     </a>
@@ -348,7 +348,7 @@ export default function EditTeacherProfilePage() {
                 type="button"
                 onClick={() => cvInputRef.current?.click()}
                 disabled={uploadingCv}
-                className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg text-sm text-gray-700 hover:border-green-400 hover:text-green-700 transition disabled:opacity-50"
+                className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg text-sm text-gray-700 hover:border-ink-400 hover:text-ink-700 transition disabled:opacity-50"
               >
                 {uploadingCv ? (
                   <><Loader2 className="h-4 w-4 animate-spin" />Uploading…</>
@@ -357,7 +357,7 @@ export default function EditTeacherProfilePage() {
                 )}
               </button>
               {cvSuccess && (
-                <p className="text-xs text-green-600 mt-2 flex items-center gap-1">
+                <p className="text-xs text-ink-600 mt-2 flex items-center gap-1">
                   <CheckCircle2 className="h-3.5 w-3.5" />CV uploaded successfully
                 </p>
               )}
@@ -376,7 +376,7 @@ export default function EditTeacherProfilePage() {
               type="text"
               value={form.full_name}
               onChange={(e) => setForm({ ...form, full_name: e.target.value })}
-              className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ink-500"
               placeholder="e.g. Amaka Johnson"
             />
           </div>
@@ -387,7 +387,7 @@ export default function EditTeacherProfilePage() {
               type="tel"
               value={form.phone}
               onChange={(e) => setForm({ ...form, phone: e.target.value })}
-              className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ink-500"
               placeholder="e.g. 08012345678"
             />
           </div>
@@ -405,7 +405,7 @@ export default function EditTeacherProfilePage() {
               value={form.bio}
               onChange={(e) => setForm({ ...form, bio: e.target.value })}
               rows={4}
-              className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 resize-none"
+              className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ink-500 resize-none"
               placeholder="Tell schools about yourself — your teaching approach, strengths, and goals…"
             />
           </div>
@@ -425,8 +425,8 @@ export default function EditTeacherProfilePage() {
                   onClick={() => setForm({ ...form, teaching_levels: toggle(form.teaching_levels, level.value) })}
                   className={`px-3 py-1.5 rounded-full text-sm border transition ${
                     form.teaching_levels.includes(level.value)
-                      ? "bg-green-600 text-white border-green-600"
-                      : "bg-white text-gray-600 border-gray-200 hover:border-green-400"
+                      ? "bg-ink-600 text-white border-ink-600"
+                      : "bg-white text-gray-600 border-gray-200 hover:border-ink-400"
                   }`}
                 >
                   {level.label}
@@ -445,8 +445,8 @@ export default function EditTeacherProfilePage() {
                   onClick={() => setForm({ ...form, subjects: toggle(form.subjects, subject) })}
                   className={`px-3 py-1.5 rounded-full text-sm border transition ${
                     form.subjects.includes(subject)
-                      ? "bg-green-600 text-white border-green-600"
-                      : "bg-white text-gray-600 border-gray-200 hover:border-green-400"
+                      ? "bg-ink-600 text-white border-ink-600"
+                      : "bg-white text-gray-600 border-gray-200 hover:border-ink-400"
                   }`}
                 >
                   {subject}
@@ -463,7 +463,7 @@ export default function EditTeacherProfilePage() {
               max={50}
               value={form.years_experience}
               onChange={(e) => setForm({ ...form, years_experience: e.target.value === "" ? "" : Number(e.target.value) })}
-              className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ink-500"
               placeholder="e.g. 5"
             />
           </div>
@@ -488,7 +488,7 @@ export default function EditTeacherProfilePage() {
                     value={opt.value}
                     checked={form.trcn_status === opt.value}
                     onChange={() => setForm({ ...form, trcn_status: opt.value as ProfileForm["trcn_status"] })}
-                    className="text-green-600"
+                    className="text-ink-600"
                   />
                   <span className="text-sm text-gray-700">{opt.label}</span>
                 </label>
@@ -503,7 +503,7 @@ export default function EditTeacherProfilePage() {
                 type="text"
                 value={form.trcn_number}
                 onChange={(e) => setForm({ ...form, trcn_number: e.target.value })}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ink-500"
                 placeholder="e.g. TRCN/2021/123456"
               />
             </div>
@@ -525,7 +525,7 @@ export default function EditTeacherProfilePage() {
                     value={opt.value}
                     checked={form.availability === opt.value}
                     onChange={() => setForm({ ...form, availability: opt.value as ProfileForm["availability"] })}
-                    className="text-green-600"
+                    className="text-ink-600"
                   />
                   <span className="text-sm text-gray-700">{opt.label}</span>
                 </label>
@@ -540,7 +540,7 @@ export default function EditTeacherProfilePage() {
               min={0}
               value={form.salary_min}
               onChange={(e) => setForm({ ...form, salary_min: e.target.value === "" ? "" : Number(e.target.value) })}
-              className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ink-500"
               placeholder="e.g. 80000"
             />
           </div>
@@ -553,7 +553,7 @@ export default function EditTeacherProfilePage() {
             <button
               type="button"
               onClick={() => setForm({ ...form, willing_to_relocate: !form.willing_to_relocate })}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${form.willing_to_relocate ? "bg-green-600" : "bg-gray-200"}`}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${form.willing_to_relocate ? "bg-ink-600" : "bg-gray-200"}`}
             >
               <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${form.willing_to_relocate ? "translate-x-6" : "translate-x-1"}`} />
             </button>
@@ -567,7 +567,7 @@ export default function EditTeacherProfilePage() {
             <button
               type="button"
               onClick={() => setForm({ ...form, accommodation_needed: !form.accommodation_needed })}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${form.accommodation_needed ? "bg-green-600" : "bg-gray-200"}`}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${form.accommodation_needed ? "bg-ink-600" : "bg-gray-200"}`}
             >
               <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${form.accommodation_needed ? "translate-x-6" : "translate-x-1"}`} />
             </button>
@@ -584,8 +584,8 @@ export default function EditTeacherProfilePage() {
                   onClick={() => setForm({ ...form, preferred_states: toggle(form.preferred_states, state) })}
                   className={`px-3 py-1.5 rounded-full text-sm border transition ${
                     form.preferred_states.includes(state)
-                      ? "bg-green-600 text-white border-green-600"
-                      : "bg-white text-gray-600 border-gray-200 hover:border-green-400"
+                      ? "bg-ink-600 text-white border-ink-600"
+                      : "bg-white text-gray-600 border-gray-200 hover:border-ink-400"
                   }`}
                 >
                   {state}
@@ -605,7 +605,7 @@ export default function EditTeacherProfilePage() {
               type="url"
               value={form.demo_video_url}
               onChange={(e) => setForm({ ...form, demo_video_url: e.target.value })}
-              className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ink-500"
               placeholder="https://www.youtube.com/watch?v=..."
             />
           </div>
@@ -632,7 +632,7 @@ export default function EditTeacherProfilePage() {
           <Button
             onClick={handleSave}
             disabled={saving || success}
-            className="w-full bg-green-600 hover:bg-green-700 text-white py-6 text-base"
+            className="w-full bg-ink-600 hover:bg-ink-700 text-white py-6 text-base"
           >
             {saving ? (
               <><Loader2 className="h-5 w-5 animate-spin mr-2" />Saving…</>

@@ -44,12 +44,12 @@ export default function ForgotPasswordPage() {
         {/* Logo */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2 mb-6">
-            <div className="bg-green-600 text-white p-2 rounded-xl">
+            <div className="bg-ink-600 text-white p-2 rounded-xl">
               <GraduationCap className="h-6 w-6" />
             </div>
             <div className="flex flex-col leading-none text-left">
               <span className="font-bold text-gray-900">JobMeter</span>
-              <span className="font-bold text-green-600">TeachConnect</span>
+              <span className="font-bold text-ink-600">ClassHire</span>
             </div>
           </Link>
         </div>
@@ -59,8 +59,8 @@ export default function ForgotPasswordPage() {
           {/* Success State */}
           {submitted ? (
             <div className="text-center">
-              <div className="inline-flex items-center justify-center w-14 h-14 bg-green-100 rounded-full mb-5">
-                <MailCheck className="h-7 w-7 text-green-600" />
+              <div className="inline-flex items-center justify-center w-14 h-14 bg-ink-100 rounded-full mb-5">
+                <MailCheck className="h-7 w-7 text-ink-600" />
               </div>
               <h2 className="text-xl font-bold text-gray-900 mb-2">
                 Check your email
@@ -107,14 +107,14 @@ export default function ForgotPasswordPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="you@example.com"
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ink-500 focus:border-transparent"
                   />
                 </div>
 
                 <Button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full bg-green-600 hover:bg-green-700 text-white"
+                  className="w-full bg-ink-600 hover:bg-ink-700 text-white"
                 >
                   {isLoading ? (
                     <>

@@ -85,7 +85,7 @@ export default function ResetPasswordPage() {
   if (checkingSession) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 text-green-600 animate-spin" />
+        <Loader2 className="h-8 w-8 text-ink-600 animate-spin" />
       </div>
     )
   }
@@ -97,12 +97,12 @@ export default function ResetPasswordPage() {
         {/* Logo */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2 mb-6">
-            <div className="bg-green-600 text-white p-2 rounded-xl">
+            <div className="bg-ink-600 text-white p-2 rounded-xl">
               <GraduationCap className="h-6 w-6" />
             </div>
             <div className="flex flex-col leading-none text-left">
               <span className="font-bold text-gray-900">JobMeter</span>
-              <span className="font-bold text-green-600">TeachConnect</span>
+              <span className="font-bold text-ink-600">ClassHire</span>
             </div>
           </Link>
         </div>
@@ -111,15 +111,15 @@ export default function ResetPasswordPage() {
 
           {success ? (
             <div className="text-center">
-              <div className="inline-flex items-center justify-center w-14 h-14 bg-green-100 rounded-full mb-5">
-                <CheckCircle2 className="h-7 w-7 text-green-600" />
+              <div className="inline-flex items-center justify-center w-14 h-14 bg-ink-100 rounded-full mb-5">
+                <CheckCircle2 className="h-7 w-7 text-ink-600" />
               </div>
               <h2 className="text-xl font-bold text-gray-900 mb-2">Password Updated</h2>
               <p className="text-gray-500 text-sm mb-4">
                 Your password has been reset successfully. Redirecting to login...
               </p>
               <Link href="/login">
-                <Button className="bg-green-600 hover:bg-green-700 text-white w-full">
+                <Button className="bg-ink-600 hover:bg-ink-700 text-white w-full">
                   Go to Login
                 </Button>
               </Link>
@@ -134,7 +134,7 @@ export default function ResetPasswordPage() {
                 This password reset link is invalid or has expired. Please request a new one.
               </p>
               <Link href="/forgot-password">
-                <Button className="bg-green-600 hover:bg-green-700 text-white w-full">
+                <Button className="bg-ink-600 hover:bg-ink-700 text-white w-full">
                   Request New Link
                 </Button>
               </Link>
@@ -159,7 +159,7 @@ export default function ResetPasswordPage() {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="Min. 8 characters"
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 pr-10"
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ink-500 pr-10"
                     />
                     <button
                       type="button"
@@ -178,7 +178,7 @@ export default function ResetPasswordPage() {
                             key={i}
                             className={`h-1 flex-1 rounded-full transition-colors ${
                               password.length >= (i + 1) * 3
-                                ? password.length >= 12 ? "bg-green-500"
+                                ? password.length >= 12 ? "bg-ink-500"
                                   : password.length >= 8 ? "bg-yellow-400"
                                   : "bg-red-400"
                                 : "bg-gray-200"
@@ -200,7 +200,7 @@ export default function ResetPasswordPage() {
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="Repeat your password"
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ink-500"
                   />
                   {confirmPassword && password !== confirmPassword && (
                     <p className="text-red-500 text-xs mt-1">Passwords do not match</p>
@@ -210,7 +210,7 @@ export default function ResetPasswordPage() {
                 <Button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full bg-green-600 hover:bg-green-700 text-white py-2.5"
+                  className="w-full bg-ink-600 hover:bg-ink-700 text-white py-2.5"
                 >
                   {isLoading ? (
                     <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Updating...</>

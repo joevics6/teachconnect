@@ -93,14 +93,14 @@ export default function SavedJobsPage() {
           <h1 className="text-lg font-bold text-gray-900">Saved Jobs</h1>
           <span className="ml-2 px-2.5 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-full font-medium">{savedJobs.length}</span>
           <Link href="/jobs" className="ml-auto">
-            <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white">Browse More Jobs</Button>
+            <Button size="sm" className="bg-ink-600 hover:bg-ink-700 text-white">Browse More Jobs</Button>
           </Link>
         </header>
 
         <div className="p-6">
           {isLoading ? (
             <div className="flex items-center justify-center py-16">
-              <Loader2 className="h-8 w-8 text-green-600 animate-spin" />
+              <Loader2 className="h-8 w-8 text-ink-600 animate-spin" />
             </div>
           ) : savedJobs.length === 0 ? (
             <div className="bg-white rounded-xl border border-gray-100 py-16 text-center">
@@ -109,7 +109,7 @@ export default function SavedJobsPage() {
               </div>
               <h3 className="font-bold text-gray-900 mb-2">No saved jobs</h3>
               <p className="text-gray-500 text-sm mb-5">Save jobs you&apos;re interested in to apply later.</p>
-              <Link href="/jobs"><Button className="bg-green-600 hover:bg-green-700 text-white">Browse Jobs</Button></Link>
+              <Link href="/jobs"><Button className="bg-ink-600 hover:bg-ink-700 text-white">Browse Jobs</Button></Link>
             </div>
           ) : (
             <div className="space-y-4">
@@ -135,7 +135,7 @@ export default function SavedJobsPage() {
                             <span className="px-2.5 py-1 bg-red-100 text-red-600 text-xs rounded-full font-medium flex-shrink-0">Closed</span>
                           )}
                           {saved.has_applied && !isClosed && (
-                            <span className="px-2.5 py-1 bg-green-100 text-green-700 text-xs rounded-full font-medium flex-shrink-0">Applied</span>
+                            <span className="px-2.5 py-1 bg-ink-100 text-ink-700 text-xs rounded-full font-medium flex-shrink-0">Applied</span>
                           )}
                         </div>
 
@@ -180,7 +180,7 @@ export default function SavedJobsPage() {
                             </Link>
                             {!isClosed && !saved.has_applied && (
                               <Link href={saved.quiz_enabled ? `/quiz/${saved.job_id}` : `/apply/${saved.job_id}`}>
-                                <Button size="sm" className="text-xs h-7 bg-green-600 hover:bg-green-700 text-white">Apply</Button>
+                                <Button size="sm" className="text-xs h-7 bg-ink-600 hover:bg-ink-700 text-white">Apply</Button>
                               </Link>
                             )}
                           </div>

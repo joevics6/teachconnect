@@ -128,10 +128,10 @@ export default function SchoolSettingsPage() {
     <nav className={mobile ? "flex flex-col h-full" : ""}>
       <div className="p-5 border-b border-gray-100">
         <Link href="/" className="flex items-center gap-2">
-          <div className="bg-green-600 text-white p-1.5 rounded-lg">
+          <div className="bg-ink-600 text-white p-1.5 rounded-lg">
             <Building2 className="h-4 w-4" />
           </div>
-          <span className="font-bold text-sm text-gray-900">TeachConnect</span>
+          <span className="font-bold text-sm text-gray-900">ClassHire</span>
         </Link>
       </div>
       <div className="p-3 flex-1">
@@ -144,7 +144,7 @@ export default function SchoolSettingsPage() {
               onClick={() => setSidebarOpen(false)}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm mb-0.5 transition-colors ${
                 active
-                  ? "bg-green-50 text-green-700 font-medium"
+                  ? "bg-ink-50 text-ink-700 font-medium"
                   : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
               }`}
             >
@@ -207,7 +207,7 @@ export default function SchoolSettingsPage() {
                     type={showCurrent ? "text" : "password"}
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm pr-10 focus:outline-none focus:ring-2 focus:ring-green-500"
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm pr-10 focus:outline-none focus:ring-2 focus:ring-ink-500"
                     placeholder="••••••••"
                   />
                   <button type="button" onClick={() => setShowCurrent(!showCurrent)}
@@ -223,7 +223,7 @@ export default function SchoolSettingsPage() {
                     type={showNew ? "text" : "password"}
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm pr-10 focus:outline-none focus:ring-2 focus:ring-green-500"
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm pr-10 focus:outline-none focus:ring-2 focus:ring-ink-500"
                     placeholder="••••••••"
                   />
                   <button type="button" onClick={() => setShowNew(!showNew)}
@@ -238,13 +238,13 @@ export default function SchoolSettingsPage() {
                   type="password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ink-500"
                   placeholder="••••••••"
                 />
               </div>
               {passwordMsg && (
                 <div className={`flex items-center gap-2 text-sm p-3 rounded-lg ${
-                  passwordMsg.type === "success" ? "bg-green-50 text-green-700" : "bg-red-50 text-red-600"
+                  passwordMsg.type === "success" ? "bg-ink-50 text-ink-700" : "bg-red-50 text-red-600"
                 }`}>
                   {passwordMsg.type === "success"
                     ? <CheckCircle2 className="h-4 w-4 flex-shrink-0" />
@@ -253,7 +253,7 @@ export default function SchoolSettingsPage() {
                 </div>
               )}
               <Button onClick={handlePasswordChange} disabled={passwordLoading}
-                className="bg-green-600 hover:bg-green-700 text-white">
+                className="bg-ink-600 hover:bg-ink-700 text-white">
                 {passwordLoading
                   ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Updating…</>
                   : <><Lock className="h-4 w-4 mr-2" />Update Password</>}
@@ -294,7 +294,7 @@ export default function SchoolSettingsPage() {
                   <button
                     onClick={() => pref.setter(!pref.value)}
                     className={`relative flex-shrink-0 w-11 h-6 rounded-full transition-colors ${
-                      pref.value ? "bg-green-500" : "bg-gray-200"
+                      pref.value ? "bg-ink-500" : "bg-gray-200"
                     }`}
                   >
                     <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
@@ -305,13 +305,13 @@ export default function SchoolSettingsPage() {
               ))}
               <div className="flex items-center gap-3 pt-2">
                 <Button onClick={handleSaveNotifications} disabled={notifSaving}
-                  className="bg-green-600 hover:bg-green-700 text-white">
+                  className="bg-ink-600 hover:bg-ink-700 text-white">
                   {notifSaving
                     ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Saving…</>
                     : <><Bell className="h-4 w-4 mr-2" />Save Preferences</>}
                 </Button>
                 {notifMsg && (
-                  <span className="text-sm text-green-600 flex items-center gap-1">
+                  <span className="text-sm text-ink-600 flex items-center gap-1">
                     <CheckCircle2 className="h-4 w-4" />{notifMsg}
                   </span>
                 )}

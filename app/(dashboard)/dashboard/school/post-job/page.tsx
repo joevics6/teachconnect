@@ -148,7 +148,7 @@ function Toggle({
 }) {
   const colors = {
     blue: "bg-blue-600",
-    green: "bg-green-600",
+    green: "bg-ink-600",
     yellow: "bg-yellow-500",
     purple: "bg-purple-600",
   }
@@ -336,8 +336,8 @@ export default function PostJobPage() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
         <div className="bg-white rounded-2xl border border-gray-200 p-10 max-w-md w-full text-center shadow-sm">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-5">
-            <CheckCircle2 className="h-8 w-8 text-green-600" />
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-ink-100 rounded-full mb-5">
+            <CheckCircle2 className="h-8 w-8 text-ink-600" />
           </div>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">
             Job Posted Successfully
@@ -431,7 +431,7 @@ export default function PostJobPage() {
             />
             {aiError && <p className="text-red-500 text-xs mb-3">{aiError}</p>}
             {aiSuccess && (
-              <div className="flex items-center gap-2 text-green-700 text-sm mb-3 bg-green-50 border border-green-200 px-3 py-2 rounded-lg">
+              <div className="flex items-center gap-2 text-ink-700 text-sm mb-3 bg-ink-50 border border-ink-200 px-3 py-2 rounded-lg">
                 <CheckCircle2 className="h-4 w-4 flex-shrink-0" />
                 Form filled successfully. Review and adjust before posting.
               </div>
@@ -745,7 +745,7 @@ export default function PostJobPage() {
             <div className="flex items-center justify-between mb-2">
               <h2 className="font-bold text-gray-900 flex items-center gap-2">
                 Quiz Screening
-                <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full font-medium">
+                <span className="px-2 py-0.5 bg-ink-100 text-ink-700 text-xs rounded-full font-medium">
                   Recommended
                 </span>
               </h2>

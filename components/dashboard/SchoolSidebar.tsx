@@ -75,10 +75,10 @@ export function SchoolSidebar({ open, onClose }: { open: boolean; onClose: () =>
       >
         <div className="flex items-center justify-between p-5 border-b border-gray-100">
           <Link href="/" className="flex items-center gap-2">
-            <div className="bg-green-600 text-white p-1.5 rounded-lg"><GraduationCap className="h-4 w-4" /></div>
+            <div className="bg-ink-600 text-white p-1.5 rounded-lg"><GraduationCap className="h-4 w-4" /></div>
             <div className="flex flex-col leading-none">
               <span className="font-bold text-xs text-gray-900">JobMeter</span>
-              <span className="font-bold text-xs text-green-600">TeachConnect</span>
+              <span className="font-bold text-xs text-ink-600">ClassHire</span>
             </div>
           </Link>
           <button className="lg:hidden" onClick={onClose}><X className="h-5 w-5 text-gray-500" /></button>

@@ -39,11 +39,11 @@ export default function BlogPage() {
     <div className="min-h-screen bg-gray-50">
       <div className="bg-white border-b border-gray-100">
         <div className="max-w-5xl mx-auto px-4 py-12 text-center">
-          <div className="inline-flex items-center gap-2 text-green-600 mb-3">
+          <div className="inline-flex items-center gap-2 text-ink-600 mb-3">
             <Newspaper className="h-5 w-5" />
             <span className="text-sm font-semibold uppercase tracking-wide">Blog</span>
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">The TeachConnect Blog</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">The ClassHire Blog</h1>
           <p className="text-gray-500 max-w-xl mx-auto">
             News, updates, and stories from Nigeria&apos;s teaching community.
           </p>
@@ -52,7 +52,7 @@ export default function BlogPage() {
 
       <div className="max-w-5xl mx-auto px-4 py-10">
         {isLoading ? (
-          <div className="flex justify-center py-16"><Loader2 className="h-6 w-6 text-green-600 animate-spin" /></div>
+          <div className="flex justify-center py-16"><Loader2 className="h-6 w-6 text-ink-600 animate-spin" /></div>
         ) : posts.length === 0 ? (
           <div className="text-center text-gray-500 py-16">No posts yet — check back soon.</div>
         ) : (
@@ -66,8 +66,8 @@ export default function BlogPage() {
                 {post.cover_image_url ? (
                   <img src={post.cover_image_url} alt={post.title} className="w-full h-40 object-cover" />
                 ) : (
-                  <div className="w-full h-40 bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center">
-                    <Newspaper className="h-8 w-8 text-green-300" />
+                  <div className="w-full h-40 bg-gradient-to-br from-ink-50 to-blue-50 flex items-center justify-center">
+                    <Newspaper className="h-8 w-8 text-ink-300" />
                   </div>
                 )}
                 <div className="p-5 flex flex-col flex-1">

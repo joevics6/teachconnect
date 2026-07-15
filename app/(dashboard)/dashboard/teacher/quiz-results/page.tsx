@@ -84,7 +84,7 @@ function QuizResultCard({ result }: { result: QuizResult }) {
             {getModeLabel(result.mode)}
           </span>
           <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${
-            result.passed ? "bg-green-100 text-green-700" : "bg-red-100 text-red-600"
+            result.passed ? "bg-ink-100 text-ink-700" : "bg-red-100 text-red-600"
           }`}>
             {result.passed
               ? <><CheckCircle2 className="h-3 w-3" />Passed</>
@@ -96,7 +96,7 @@ function QuizResultCard({ result }: { result: QuizResult }) {
 
       <div className="grid grid-cols-3 gap-4 mb-4">
         <div className="text-center p-3 bg-gray-50 rounded-xl">
-          <p className={`text-2xl font-black ${result.passed ? "text-green-600" : "text-red-500"}`}>
+          <p className={`text-2xl font-black ${result.passed ? "text-ink-600" : "text-red-500"}`}>
             {result.score}%
           </p>
           <p className="text-xs text-gray-500 mt-0.5">Score</p>
@@ -148,7 +148,7 @@ function QuizResultCard({ result }: { result: QuizResult }) {
               <div className="flex items-start justify-between gap-3 mb-2">
                 <p className="text-xs font-medium text-gray-900">Q{i + 1}. {fb.question}</p>
                 <span className={`flex-shrink-0 text-xs font-bold px-2 py-0.5 rounded-full ${
-                  fb.score >= fb.max_score * 0.7 ? "bg-green-100 text-green-700"
+                  fb.score >= fb.max_score * 0.7 ? "bg-ink-100 text-ink-700"
                     : fb.score >= fb.max_score * 0.4 ? "bg-yellow-100 text-yellow-700"
                     : "bg-red-100 text-red-600"
                 }`}>
@@ -207,7 +207,7 @@ export default function QuizResultsPage() {
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               {[
                 { label: "Quizzes Taken", value: results.length, color: "text-blue-600", icon: BookOpen },
-                { label: "Passed", value: passedCount, color: "text-green-600", icon: CheckCircle2 },
+                { label: "Passed", value: passedCount, color: "text-ink-600", icon: CheckCircle2 },
                 { label: "Avg Score", value: `${avgScore}%`, color: "text-purple-600", icon: TrendingUp },
                 { label: "Best Score", value: `${bestScore}%`, color: "text-orange-600", icon: Star },
               ].map((stat) => (
@@ -222,7 +222,7 @@ export default function QuizResultsPage() {
           {/* Results List */}
           {isLoading ? (
             <div className="flex items-center justify-center py-16">
-              <Loader2 className="h-8 w-8 text-green-600 animate-spin" />
+              <Loader2 className="h-8 w-8 text-ink-600 animate-spin" />
             </div>
           ) : results.length === 0 ? (
             <div className="bg-white rounded-xl border border-gray-100 py-16 text-center">
@@ -231,7 +231,7 @@ export default function QuizResultsPage() {
               </div>
               <h3 className="font-bold text-gray-900 mb-2">No quiz results yet</h3>
               <p className="text-gray-500 text-sm mb-5">Apply for jobs with quiz screening to see your results here.</p>
-              <Link href="/jobs"><Button className="bg-green-600 hover:bg-green-700 text-white">Browse Jobs</Button></Link>
+              <Link href="/jobs"><Button className="bg-ink-600 hover:bg-ink-700 text-white">Browse Jobs</Button></Link>
             </div>
           ) : (
             <div className="space-y-4">

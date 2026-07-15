@@ -82,15 +82,15 @@ export default function ContactPage() {
                 href="https://wa.me/2347056928186"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-start gap-3 p-3 rounded-xl hover:bg-green-50 transition group"
+                className="flex items-start gap-3 p-3 rounded-xl hover:bg-ink-50 transition group"
               >
-                <div className="w-9 h-9 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-green-200 transition">
-                  <MessageCircle className="h-5 w-5 text-green-600" />
+                <div className="w-9 h-9 bg-ink-100 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-ink-200 transition">
+                  <MessageCircle className="h-5 w-5 text-ink-600" />
                 </div>
                 <div>
                   <p className="text-sm font-semibold text-gray-900">WhatsApp</p>
                   <p className="text-xs text-gray-500">+234 705 692 8186</p>
-                  <p className="text-xs text-green-600 mt-0.5">Chat with us →</p>
+                  <p className="text-xs text-ink-600 mt-0.5">Chat with us →</p>
                 </div>
               </a>
 
@@ -123,9 +123,9 @@ export default function ContactPage() {
           </div>
 
           {/* Response time notice */}
-          <div className="bg-green-50 border border-green-200 rounded-xl p-4">
-            <p className="text-sm font-semibold text-green-800 mb-1">Response time</p>
-            <p className="text-xs text-green-700">
+          <div className="bg-ink-50 border border-ink-200 rounded-xl p-4">
+            <p className="text-sm font-semibold text-ink-800 mb-1">Response time</p>
+            <p className="text-xs text-ink-700">
               We respond to all enquiries within 24 hours on weekdays.
               For urgent issues, WhatsApp is fastest.
             </p>
@@ -139,8 +139,8 @@ export default function ContactPage() {
 
             {success ? (
               <div className="flex flex-col items-center justify-center py-12 text-center">
-                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
-                  <CheckCircle2 className="h-8 w-8 text-green-600" />
+                <div className="w-16 h-16 bg-ink-100 rounded-full flex items-center justify-center mb-4">
+                  <CheckCircle2 className="h-8 w-8 text-ink-600" />
                 </div>
                 <h3 className="text-lg font-bold text-gray-900 mb-2">Message Sent!</h3>
                 <p className="text-gray-500 text-sm mb-6">
@@ -166,7 +166,7 @@ export default function ContactPage() {
                       value={form.name}
                       onChange={(e) => setForm({ ...form, name: e.target.value })}
                       placeholder="Your name"
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ink-500"
                     />
                   </div>
                   <div>
@@ -178,7 +178,7 @@ export default function ContactPage() {
                       value={form.email}
                       onChange={(e) => setForm({ ...form, email: e.target.value })}
                       placeholder="you@example.com"
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ink-500"
                     />
                   </div>
                 </div>
@@ -190,7 +190,7 @@ export default function ContactPage() {
                   <select
                     value={form.subject}
                     onChange={(e) => setForm({ ...form, subject: e.target.value })}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 bg-white"
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ink-500 bg-white"
                   >
                     <option value="">Select a subject...</option>
                     {SUBJECTS.map((s) => (
@@ -208,7 +208,7 @@ export default function ContactPage() {
                     onChange={(e) => setForm({ ...form, message: e.target.value })}
                     placeholder="Tell us how we can help..."
                     rows={6}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 resize-none"
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ink-500 resize-none"
                   />
                   <p className="text-xs text-gray-400 mt-1">{form.message.length}/1000</p>
                 </div>
@@ -223,7 +223,7 @@ export default function ContactPage() {
                 <Button
                   type="submit"
                   disabled={loading}
-                  className="w-full bg-green-600 hover:bg-green-700 text-white py-3 font-semibold"
+                  className="w-full bg-ink-600 hover:bg-ink-700 text-white py-3 font-semibold"
                 >
                   {loading ? (
                     <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Sending…</>

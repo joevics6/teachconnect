@@ -184,10 +184,10 @@ export default function SchoolRegisterPage() {
         {/* Logo */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2 mb-4">
-            <div className="bg-green-600 text-white p-2 rounded-xl">
+            <div className="bg-ink-600 text-white p-2 rounded-xl">
               <GraduationCap className="h-6 w-6" />
             </div>
-            <span className="font-bold text-gray-900 text-lg">TeachConnect</span>
+            <span className="font-bold text-gray-900 text-lg">ClassHire</span>
           </Link>
           <h1 className="text-2xl font-bold text-gray-900">Register Your School</h1>
           <p className="text-gray-500 text-sm mt-1">Start hiring pre-screened, qualified teachers</p>
@@ -540,7 +540,7 @@ export default function SchoolRegisterPage() {
 
         <p className="text-center text-xs text-gray-400 mt-6">
           Are you a teacher?{" "}
-          <Link href="/register/teacher" className="text-green-600 hover:underline">
+          <Link href="/register/teacher" className="text-ink-600 hover:underline">
             Create a teacher profile here
           </Link>
         </p>

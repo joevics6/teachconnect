@@ -29,7 +29,7 @@ export default function DashboardIndexPage() {
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
       <div className="flex flex-col items-center gap-3">
-        <Loader2 className="h-6 w-6 animate-spin text-green-600" />
+        <Loader2 className="h-6 w-6 animate-spin text-ink-600" />
         <p className="text-sm text-gray-500">Redirecting to your dashboard…</p>
       </div>
     </div>

@@ -55,7 +55,7 @@ function getStageInfo(stage: PipelineStage) {
     shortlisted: { label: "Shortlisted", color: "text-blue-700", bg: "bg-blue-100", icon: CheckCircle2 },
     interview: { label: "Interview", color: "text-purple-700", bg: "bg-purple-100", icon: Eye },
     offered: { label: "Offered", color: "text-orange-700", bg: "bg-orange-100", icon: Star },
-    hired: { label: "Hired 🎉", color: "text-green-700", bg: "bg-green-100", icon: CheckCircle2 },
+    hired: { label: "Hired 🎉", color: "text-ink-700", bg: "bg-ink-100", icon: CheckCircle2 },
     rejected: { label: "Rejected", color: "text-red-600", bg: "bg-red-100", icon: XCircle },
   }
   return map[stage] || map.applied
@@ -116,7 +116,7 @@ function ApplicationCard({ app }: { app: Application }) {
               </p>
               {app.quiz_score !== null && (
                 <span className={`flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full ${
-                  app.quiz_passed ? "bg-green-100 text-green-700" : "bg-red-100 text-red-600"
+                  app.quiz_passed ? "bg-ink-100 text-ink-700" : "bg-red-100 text-red-600"
                 }`}>
                   <QuizIcon className="h-3 w-3" />
                   Quiz: {app.quiz_score}%
@@ -151,7 +151,7 @@ function ApplicationCard({ app }: { app: Application }) {
           )}
 
           {app.pipeline_stage === "hired" && (
-            <div className="mt-3 flex items-center gap-2 p-2.5 bg-green-50 border border-green-100 rounded-lg text-xs text-green-700">
+            <div className="mt-3 flex items-center gap-2 p-2.5 bg-ink-50 border border-ink-100 rounded-lg text-xs text-ink-700">
               <CheckCircle2 className="h-3.5 w-3.5 flex-shrink-0" />
               Congratulations! You have been hired for this position.
             </div>
@@ -206,7 +206,7 @@ export default function ApplicationsPage() {
           <button className="lg:hidden" onClick={() => setSidebarOpen(true)}><Menu className="h-5 w-5 text-gray-600" /></button>
           <h1 className="text-lg font-bold text-gray-900">My Applications</h1>
           <Link href="/jobs" className="ml-auto">
-            <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white">Browse Jobs</Button>
+            <Button size="sm" className="bg-ink-600 hover:bg-ink-700 text-white">Browse Jobs</Button>
           </Link>
         </header>
 
@@ -217,7 +217,7 @@ export default function ApplicationsPage() {
               { label: "Total", value: stageCounts.all, color: "text-gray-700" },
               { label: "Shortlisted", value: stageCounts.shortlisted, color: "text-blue-600" },
               { label: "Offered", value: stageCounts.offered, color: "text-orange-600" },
-              { label: "Hired", value: stageCounts.hired, color: "text-green-600" },
+              { label: "Hired", value: stageCounts.hired, color: "text-ink-600" },
             ].map((stat) => (
               <div key={stat.label} className="bg-white rounded-xl border border-gray-200 p-4">
                 <div className={`text-2xl font-bold mb-1 ${stat.color}`}>{stat.value}</div>
@@ -233,11 +233,11 @@ export default function ApplicationsPage() {
                 key={stage}
                 onClick={() => setActiveFilter(stage)}
                 className={`px-3 py-2 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 capitalize ${
-                  activeFilter === stage ? "bg-green-600 text-white" : "text-gray-500 hover:bg-gray-50"
+                  activeFilter === stage ? "bg-ink-600 text-white" : "text-gray-500 hover:bg-gray-50"
                 }`}
               >
                 {stage}
-                <span className={`px-1.5 py-0.5 rounded-full text-xs ${activeFilter === stage ? "bg-green-500" : "bg-gray-100 text-gray-600"}`}>
+                <span className={`px-1.5 py-0.5 rounded-full text-xs ${activeFilter === stage ? "bg-ink-500" : "bg-gray-100 text-gray-600"}`}>
                   {stageCounts[stage]}
                 </span>
               </button>
@@ -247,7 +247,7 @@ export default function ApplicationsPage() {
           {/* Applications List */}
           {isLoading ? (
             <div className="flex items-center justify-center py-16">
-              <Loader2 className="h-8 w-8 text-green-600 animate-spin" />
+              <Loader2 className="h-8 w-8 text-ink-600 animate-spin" />
             </div>
           ) : filtered.length === 0 ? (
             <div className="bg-white rounded-xl border border-gray-100 py-16 text-center">
@@ -256,7 +256,7 @@ export default function ApplicationsPage() {
               </div>
               <h3 className="font-bold text-gray-900 mb-2">No applications yet</h3>
               <p className="text-gray-500 text-sm mb-5">Start applying to teaching jobs across Nigeria.</p>
-              <Link href="/jobs"><Button className="bg-green-600 hover:bg-green-700 text-white">Browse Jobs</Button></Link>
+              <Link href="/jobs"><Button className="bg-ink-600 hover:bg-ink-700 text-white">Browse Jobs</Button></Link>
             </div>
           ) : (
             <div className="space-y-4">

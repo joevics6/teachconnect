@@ -149,7 +149,7 @@ export default function ApplyPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 text-green-600 animate-spin" />
+        <Loader2 className="h-8 w-8 text-ink-600 animate-spin" />
       </div>
     )
   }
@@ -162,7 +162,7 @@ export default function ApplyPage() {
           <h2 className="text-xl font-bold text-gray-900 mb-2">Job Not Found</h2>
           <p className="text-gray-500 text-sm mb-6">{error}</p>
           <Link href="/jobs">
-            <Button className="bg-green-600 hover:bg-green-700 text-white">Browse Jobs</Button>
+            <Button className="bg-ink-600 hover:bg-ink-700 text-white">Browse Jobs</Button>
           </Link>
         </div>
       </div>
@@ -173,8 +173,8 @@ export default function ApplyPage() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
         <div className="bg-white rounded-2xl border border-gray-200 p-10 max-w-md w-full text-center shadow-sm">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-5">
-            <CheckCircle2 className="h-8 w-8 text-green-600" />
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-ink-100 rounded-full mb-5">
+            <CheckCircle2 className="h-8 w-8 text-ink-600" />
           </div>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Application Submitted!</h2>
           <p className="text-gray-500 text-sm mb-2">
@@ -186,7 +186,7 @@ export default function ApplyPage() {
           </p>
           <div className="flex flex-col gap-3">
             <Link href="/dashboard/teacher/applications">
-              <Button className="w-full bg-green-600 hover:bg-green-700 text-white">View My Applications</Button>
+              <Button className="w-full bg-ink-600 hover:bg-ink-700 text-white">View My Applications</Button>
             </Link>
             <Link href="/jobs">
               <Button variant="outline" className="w-full">Browse More Jobs</Button>
@@ -227,7 +227,7 @@ export default function ApplyPage() {
                 </div>
                 <div>
                   <h1 className="text-xl font-bold text-gray-900">{job?.title}</h1>
-                  <p className="text-green-600 text-sm">{job?.school_name}</p>
+                  <p className="text-ink-600 text-sm">{job?.school_name}</p>
                   <div className="flex items-center gap-3 mt-1 text-xs text-gray-500 flex-wrap">
                     <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{job?.school_lga}, {job?.school_state}</span>
                     <span className="flex items-center gap-1"><Briefcase className="h-3 w-3" />{job?.employment_type}</span>
@@ -238,11 +238,11 @@ export default function ApplyPage() {
 
               {/* Already Applied */}
               {alreadyApplied && (
-                <div className="flex items-center gap-3 p-4 bg-green-50 border border-green-200 rounded-xl mb-5">
-                  <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0" />
+                <div className="flex items-center gap-3 p-4 bg-ink-50 border border-ink-200 rounded-xl mb-5">
+                  <CheckCircle2 className="h-5 w-5 text-ink-600 flex-shrink-0" />
                   <div>
-                    <p className="font-semibold text-green-800 text-sm">Already Applied</p>
-                    <p className="text-green-600 text-xs">You have already submitted an application for this position.</p>
+                    <p className="font-semibold text-ink-800 text-sm">Already Applied</p>
+                    <p className="text-ink-600 text-xs">You have already submitted an application for this position.</p>
                   </div>
                 </div>
               )}
@@ -283,7 +283,7 @@ export default function ApplyPage() {
                       </div>
                       <div>
                         <p className="text-xs text-gray-400 mb-0.5">TRCN Status</p>
-                        <p className={`font-medium capitalize ${profile.trcn_status === "registered" ? "text-green-600" : "text-gray-700"}`}>
+                        <p className={`font-medium capitalize ${profile.trcn_status === "registered" ? "text-ink-600" : "text-gray-700"}`}>
                           {profile.trcn_status.replace("-", " ")}
                         </p>
                       </div>
@@ -320,7 +320,7 @@ export default function ApplyPage() {
                       onChange={(e) => setCoverLetter(e.target.value)}
                       rows={6}
                       placeholder="Tell the school why you are a great fit for this role. Mention your relevant experience, teaching approach, and why you are interested in this position..."
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-500 resize-none"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-ink-500 resize-none"
                     />
                     <p className="text-xs text-gray-400 mt-1">{coverLetter.length} characters</p>
                   </div>
@@ -332,7 +332,7 @@ export default function ApplyPage() {
                     <Button
                       type="submit"
                       disabled={isSubmitting}
-                      className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-2 px-6"
+                      className="bg-ink-600 hover:bg-ink-700 text-white flex items-center gap-2 px-6"
                     >
                       {isSubmitting ? (
                         <><Loader2 className="h-4 w-4 animate-spin" />Submitting...</>

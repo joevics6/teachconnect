@@ -103,7 +103,7 @@ export default function AdminBlogFormPage() {
   if (isLoading) {
     return (
       <AdminShell>
-        <div className="flex justify-center py-16"><Loader2 className="h-6 w-6 text-green-600 animate-spin" /></div>
+        <div className="flex justify-center py-16"><Loader2 className="h-6 w-6 text-ink-600 animate-spin" /></div>
       </AdminShell>
     )
   }
@@ -166,7 +166,7 @@ export default function AdminBlogFormPage() {
           <button
             onClick={handleSave}
             disabled={isSaving}
-            className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg disabled:opacity-60"
+            className="flex items-center gap-2 px-4 py-2 bg-ink-600 hover:bg-ink-700 text-white text-sm font-medium rounded-lg disabled:opacity-60"
           >
             {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
             {isNew ? "Create Post" : "Save Changes"}
@@ -177,7 +177,7 @@ export default function AdminBlogFormPage() {
   )
 }
 
-const inputClass = "w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+const inputClass = "w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ink-500"
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (

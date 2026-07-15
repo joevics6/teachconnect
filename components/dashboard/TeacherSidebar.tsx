@@ -93,10 +93,10 @@ export function TeacherSidebar({ open, onClose }: { open: boolean; onClose: () =
       >
         <div className="flex items-center justify-between p-5 border-b border-gray-100">
           <Link href="/" className="flex items-center gap-2">
-            <div className="bg-green-600 text-white p-1.5 rounded-lg"><GraduationCap className="h-4 w-4" /></div>
+            <div className="bg-ink-600 text-white p-1.5 rounded-lg"><GraduationCap className="h-4 w-4" /></div>
             <div className="flex flex-col leading-none">
               <span className="font-bold text-xs text-gray-900">JobMeter</span>
-              <span className="font-bold text-xs text-green-600">TeachConnect</span>
+              <span className="font-bold text-xs text-ink-600">ClassHire</span>
             </div>
           </Link>
           <button className="lg:hidden" onClick={onClose}><X className="h-5 w-5 text-gray-500" /></button>
@@ -104,11 +104,11 @@ export function TeacherSidebar({ open, onClose }: { open: boolean; onClose: () =
 
         <div className="p-5 border-b border-gray-100">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0 overflow-hidden">
+            <div className="w-10 h-10 rounded-full bg-ink-100 flex items-center justify-center flex-shrink-0 overflow-hidden">
               {profile?.photo_url ? (
                 <img src={profile.photo_url} alt={profile.full_name} className="w-10 h-10 rounded-full object-cover" />
               ) : (
-                <span className="text-green-700 font-bold text-sm">{profile ? getInitials(profile.full_name) : "?"}</span>
+                <span className="text-ink-700 font-bold text-sm">{profile ? getInitials(profile.full_name) : "?"}</span>
               )}
             </div>
             <div className="min-w-0">
@@ -134,7 +134,7 @@ export function TeacherSidebar({ open, onClose }: { open: boolean; onClose: () =
               disabled={togglingVisibility}
               className={`mt-4 w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-all ${
                 profile.is_visible
-                  ? "bg-green-50 text-green-700 border border-green-200"
+                  ? "bg-ink-50 text-ink-700 border border-ink-200"
                   : "bg-gray-100 text-gray-500 border border-gray-200"
               }`}
             >
@@ -158,7 +158,7 @@ export function TeacherSidebar({ open, onClose }: { open: boolean; onClose: () =
                 key={item.href}
                 href={item.href}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition mb-0.5 ${
-                  active ? "bg-green-50 text-green-700 font-medium" : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                  active ? "bg-ink-50 text-ink-700 font-medium" : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                 }`}
               >
                 <item.icon className="h-4 w-4 flex-shrink-0" />{item.label}

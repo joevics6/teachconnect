@@ -62,7 +62,7 @@ const CATEGORY_ICONS: Record<string, React.ElementType> = {
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
-  "Career Advice": "bg-green-100 text-green-700",
+  "Career Advice": "bg-ink-100 text-ink-700",
   "School Management": "bg-blue-100 text-blue-700",
   "TRCN Guide": "bg-purple-100 text-purple-700",
   "Salary Insights": "bg-orange-100 text-orange-700",
@@ -76,7 +76,7 @@ function PostCard({ post }: { post: Post }) {
 
   return (
     <Link href={`/resources/${post.slug}`}>
-      <div className="bg-white border border-gray-100 rounded-xl overflow-hidden hover:border-green-200 hover:shadow-md transition-all group">
+      <div className="bg-white border border-gray-100 rounded-xl overflow-hidden hover:border-ink-200 hover:shadow-md transition-all group">
         {/* Cover Image */}
         <div className="h-40 bg-gradient-to-br from-gray-100 to-gray-200 relative overflow-hidden">
           {post.cover_image_url ? (
@@ -100,7 +100,7 @@ function PostCard({ post }: { post: Post }) {
 
         {/* Content */}
         <div className="p-4">
-          <h3 className="font-bold text-gray-900 text-sm mb-2 line-clamp-2 group-hover:text-green-600 transition-colors">
+          <h3 className="font-bold text-gray-900 text-sm mb-2 line-clamp-2 group-hover:text-ink-600 transition-colors">
             {post.title}
           </h3>
           <p className="text-xs text-gray-500 line-clamp-2 mb-3 leading-relaxed">
@@ -124,7 +124,7 @@ function PostCard({ post }: { post: Post }) {
                 </p>
               )}
             </div>
-            <span className="text-xs text-green-600 font-medium flex items-center gap-1 group-hover:gap-2 transition-all">
+            <span className="text-xs text-ink-600 font-medium flex items-center gap-1 group-hover:gap-2 transition-all">
               Read more <ArrowRight className="h-3 w-3" />
             </span>
           </div>
@@ -158,10 +158,10 @@ function DownloadCard({ item }: { item: Download }) {
   }
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-5 hover:border-green-200 hover:shadow-sm transition-all">
+    <div className="bg-white border border-gray-200 rounded-xl p-5 hover:border-ink-200 hover:shadow-sm transition-all">
       <div className="flex items-start gap-4">
-        <div className="flex-shrink-0 w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
-          <FileText className="h-6 w-6 text-green-600" />
+        <div className="flex-shrink-0 w-12 h-12 bg-ink-100 rounded-xl flex items-center justify-center">
+          <FileText className="h-6 w-6 text-ink-600" />
         </div>
         <div className="flex-1 min-w-0">
           <h3 className="font-bold text-gray-900 text-sm mb-1">{item.title}</h3>
@@ -177,8 +177,8 @@ function DownloadCard({ item }: { item: Download }) {
               disabled={isDownloading}
               className={`text-xs h-7 flex items-center gap-1.5 ${
                 downloaded
-                  ? "bg-green-100 text-green-700 hover:bg-green-100"
-                  : "bg-green-600 hover:bg-green-700 text-white"
+                  ? "bg-ink-100 text-ink-700 hover:bg-ink-100"
+                  : "bg-ink-600 hover:bg-ink-700 text-white"
               }`}
             >
               {isDownloading ? (
@@ -227,14 +227,14 @@ function NewsletterSection() {
   }
 
   return (
-    <div className="bg-gradient-to-r from-green-600 to-green-700 rounded-2xl p-8 text-center">
+    <div className="bg-gradient-to-r from-ink-600 to-ink-700 rounded-2xl p-8 text-center">
       <div className="inline-flex items-center justify-center w-12 h-12 bg-white/20 rounded-full mb-4">
         <Mail className="h-6 w-6 text-white" />
       </div>
       <h3 className="text-xl font-bold text-white mb-2">
         Stay Updated on Teaching Jobs
       </h3>
-      <p className="text-green-100 text-sm mb-6 max-w-md mx-auto">
+      <p className="text-ink-100 text-sm mb-6 max-w-md mx-auto">
         Get weekly updates on new job postings, salary guides, and career tips
         delivered to your inbox.
       </p>
@@ -258,7 +258,7 @@ function NewsletterSection() {
           <Button
             type="submit"
             disabled={isSubmitting}
-            className="bg-white text-green-700 hover:bg-green-50 px-5 flex-shrink-0"
+            className="bg-white text-ink-700 hover:bg-ink-50 px-5 flex-shrink-0"
           >
             {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Subscribe"}
           </Button>
@@ -327,7 +327,7 @@ export default function ResourcesPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search articles..."
-              className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-ink-500 focus:border-transparent"
             />
           </div>
         </div>
@@ -338,7 +338,7 @@ export default function ResourcesPage() {
         {/* Downloads Section */}
         <div className="mb-12">
           <div className="flex items-center gap-2 mb-5">
-            <Download className="h-5 w-5 text-green-600" />
+            <Download className="h-5 w-5 text-ink-600" />
             <h2 className="text-xl font-bold text-gray-900">Free Downloads</h2>
           </div>
           {isLoading ? (
@@ -375,8 +375,8 @@ export default function ResourcesPage() {
               onClick={() => setActiveCategory(cat.value)}
               className={`px-4 py-2 rounded-xl text-sm font-medium border transition-all ${
                 activeCategory === cat.value
-                  ? "bg-green-600 text-white border-green-600"
-                  : "bg-white text-gray-600 border-gray-200 hover:border-green-300"
+                  ? "bg-ink-600 text-white border-ink-600"
+                  : "bg-white text-gray-600 border-gray-200 hover:border-ink-300"
               }`}
             >
               {cat.label}
@@ -408,9 +408,9 @@ export default function ResourcesPage() {
             {/* Featured Post */}
             {featuredPost && !search && activeCategory === "all" && (
               <Link href={`/resources/${featuredPost.slug}`} className="block mb-8">
-                <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden hover:border-green-200 hover:shadow-md transition-all group">
+                <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden hover:border-ink-200 hover:shadow-md transition-all group">
                   <div className="grid grid-cols-1 md:grid-cols-2">
-                    <div className="h-56 md:h-auto bg-gradient-to-br from-green-100 to-green-200 relative overflow-hidden">
+                    <div className="h-56 md:h-auto bg-gradient-to-br from-ink-100 to-ink-200 relative overflow-hidden">
                       {featuredPost.cover_image_url ? (
                         <img
                           src={featuredPost.cover_image_url}
@@ -419,11 +419,11 @@ export default function ResourcesPage() {
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center">
-                          <BookOpen className="h-16 w-16 text-green-300" />
+                          <BookOpen className="h-16 w-16 text-ink-300" />
                         </div>
                       )}
                       <div className="absolute top-4 left-4">
-                        <span className="px-3 py-1 bg-green-600 text-white text-xs rounded-full font-medium">
+                        <span className="px-3 py-1 bg-ink-600 text-white text-xs rounded-full font-medium">
                           Featured
                         </span>
                       </div>
@@ -432,7 +432,7 @@ export default function ResourcesPage() {
                       <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium w-fit mb-3 ${CATEGORY_COLORS[featuredPost.category] || "bg-gray-100 text-gray-600"}`}>
                         {featuredPost.category}
                       </span>
-                      <h2 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-green-600 transition-colors">
+                      <h2 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-ink-600 transition-colors">
                         {featuredPost.title}
                       </h2>
                       <p className="text-gray-500 text-sm leading-relaxed mb-4 line-clamp-3">
@@ -444,7 +444,7 @@ export default function ResourcesPage() {
                             day: "numeric", month: "long", year: "numeric"
                           })}
                         </p>
-                        <span className="text-sm text-green-600 font-medium flex items-center gap-1 group-hover:gap-2 transition-all">
+                        <span className="text-sm text-ink-600 font-medium flex items-center gap-1 group-hover:gap-2 transition-all">
                           Read more <ArrowRight className="h-4 w-4" />
                         </span>
                       </div>

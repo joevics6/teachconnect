@@ -384,7 +384,7 @@ export default function TeacherRegisterPage() {
   // ─────────────────────────────────────────────────────────────────────────
   // Render
   // ─────────────────────────────────────────────────────────────────────────
-  const inputClass = "w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+  const inputClass = "w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ink-500"
   const selectClass = `${inputClass} bg-white`
 
   return (
@@ -394,12 +394,12 @@ export default function TeacherRegisterPage() {
         {/* Logo */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2 mb-4">
-            <div className="bg-green-600 text-white p-2 rounded-xl">
+            <div className="bg-ink-600 text-white p-2 rounded-xl">
               <GraduationCap className="h-6 w-6" />
             </div>
             <div className="flex flex-col leading-none text-left">
               <span className="font-bold text-gray-900">JobMeter</span>
-              <span className="font-bold text-green-600">TeachConnect</span>
+              <span className="font-bold text-ink-600">ClassHire</span>
             </div>
           </Link>
           <h1 className="text-2xl font-bold text-gray-900">Create Teacher Profile</h1>
@@ -414,18 +414,18 @@ export default function TeacherRegisterPage() {
               <div key={s.number} className="flex items-center flex-1">
                 <div className="flex flex-col items-center">
                   <div className={`w-9 h-9 rounded-full flex items-center justify-center font-bold transition-all ${
-                    step > s.number     ? "bg-green-600 text-white"
-                    : step === s.number ? "bg-green-600 text-white ring-4 ring-green-100"
+                    step > s.number     ? "bg-ink-600 text-white"
+                    : step === s.number ? "bg-ink-600 text-white ring-4 ring-ink-100"
                     : "bg-gray-200 text-gray-500"
                   }`}>
                     {step > s.number ? <CheckCircle2 className="h-5 w-5" /> : <Icon className="h-4 w-4" />}
                   </div>
-                  <span className={`text-xs mt-1.5 font-medium hidden sm:block ${step >= s.number ? "text-green-600" : "text-gray-400"}`}>
+                  <span className={`text-xs mt-1.5 font-medium hidden sm:block ${step >= s.number ? "text-ink-600" : "text-gray-400"}`}>
                     {s.title}
                   </span>
                 </div>
                 {i < STEPS.length - 1 && (
-                  <div className={`flex-1 h-0.5 mx-2 transition-all ${step > s.number ? "bg-green-600" : "bg-gray-200"}`} />
+                  <div className={`flex-1 h-0.5 mx-2 transition-all ${step > s.number ? "bg-ink-600" : "bg-gray-200"}`} />
                 )}
               </div>
             )
@@ -464,9 +464,9 @@ export default function TeacherRegisterPage() {
               )}
 
               {parseSuccess && !isParsing && parsePreview && (
-                <div className="border border-green-200 rounded-xl overflow-hidden">
+                <div className="border border-ink-200 rounded-xl overflow-hidden">
                   {/* Header */}
-                  <div className="flex items-center gap-2 px-4 py-3 bg-green-600">
+                  <div className="flex items-center gap-2 px-4 py-3 bg-ink-600">
                     <CheckCircle2 className="h-4 w-4 text-white flex-shrink-0" />
                     <p className="text-sm font-semibold text-white">CV parsed — profile pre-filled</p>
                   </div>
@@ -514,7 +514,7 @@ export default function TeacherRegisterPage() {
                         <span className="text-xs text-gray-400 w-20 flex-shrink-0 pt-0.5">TRCN</span>
                         <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
                           parsePreview.trcn_status === "registered"
-                            ? "bg-green-100 text-green-700"
+                            ? "bg-ink-100 text-ink-700"
                             : parsePreview.trcn_status === "pending"
                             ? "bg-yellow-100 text-yellow-700"
                             : "bg-gray-100 text-gray-600"
@@ -528,7 +528,7 @@ export default function TeacherRegisterPage() {
                   </div>
 
                   {/* Subjects + Skills + counts */}
-                  <div className="bg-gray-50 border-t border-green-100 px-4 py-3 space-y-3">
+                  <div className="bg-gray-50 border-t border-ink-100 px-4 py-3 space-y-3">
                     {parsePreview.subjects.length > 0 && (
                       <div>
                         <p className="text-xs text-gray-400 mb-1.5">Subjects detected</p>
@@ -558,7 +558,7 @@ export default function TeacherRegisterPage() {
                           { label: "Certifications", count: parseMeta.certifications_count },
                         ].map(({ label, count }) => (
                           <div key={label} className="bg-white rounded-lg p-2 text-center border border-gray-200">
-                            <p className="text-base font-bold text-green-700">{count}</p>
+                            <p className="text-base font-bold text-ink-700">{count}</p>
                             <p className="text-xs text-gray-500">{label}</p>
                           </div>
                         ))}
@@ -566,8 +566,8 @@ export default function TeacherRegisterPage() {
                     )}
                   </div>
 
-                  <div className="bg-green-50 px-4 py-2 border-t border-green-100">
-                    <p className="text-xs text-green-700">Continue to review and adjust — all fields are editable.</p>
+                  <div className="bg-ink-50 px-4 py-2 border-t border-ink-100">
+                    <p className="text-xs text-ink-700">Continue to review and adjust — all fields are editable.</p>
                   </div>
                 </div>
               )}
@@ -584,32 +584,32 @@ export default function TeacherRegisterPage() {
               )}
 
               <label className={`cursor-pointer flex items-center gap-3 w-full border-2 border-dashed rounded-xl transition ${
-                parseSuccess ? "p-3 border-green-300 bg-green-50"
+                parseSuccess ? "p-3 border-ink-300 bg-ink-50"
                 : isParsing  ? "p-8 border-purple-300 bg-purple-50 cursor-not-allowed"
-                : cvFileName ? "p-8 border-green-400 bg-green-50"
-                : "p-10 flex-col justify-center border-gray-300 hover:border-green-400 hover:bg-green-50"
+                : cvFileName ? "p-8 border-ink-400 bg-ink-50"
+                : "p-10 flex-col justify-center border-gray-300 hover:border-ink-400 hover:bg-ink-50"
               }`}>
                 {parseSuccess ? (
                   <>
-                    <FileText className="h-5 w-5 text-green-600 flex-shrink-0" />
+                    <FileText className="h-5 w-5 text-ink-600 flex-shrink-0" />
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-green-700 truncate">{cvFileName}</p>
-                      <p className="text-xs text-green-500">Parsed ✓ — click to replace</p>
+                      <p className="text-sm font-medium text-ink-700 truncate">{cvFileName}</p>
+                      <p className="text-xs text-ink-500">Parsed ✓ — click to replace</p>
                     </div>
-                    <Upload className="h-4 w-4 text-green-400 flex-shrink-0" />
+                    <Upload className="h-4 w-4 text-ink-400 flex-shrink-0" />
                   </>
                 ) : cvFileName ? (
                   <div className="flex flex-col items-center gap-3 w-full">
-                    <FileText className="h-8 w-8 text-green-600" />
+                    <FileText className="h-8 w-8 text-ink-600" />
                     <div className="text-center">
-                      <p className="text-sm font-medium text-green-700">{cvFileName}</p>
-                      <p className="text-xs text-green-500 mt-0.5">Click to replace</p>
+                      <p className="text-sm font-medium text-ink-700">{cvFileName}</p>
+                      <p className="text-xs text-ink-500 mt-0.5">Click to replace</p>
                     </div>
                   </div>
                 ) : (
                   <div className="flex flex-col items-center gap-3 w-full">
-                    <div className="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center">
-                      <Upload className="h-6 w-6 text-green-600" />
+                    <div className="w-14 h-14 bg-ink-100 rounded-full flex items-center justify-center">
+                      <Upload className="h-6 w-6 text-ink-600" />
                     </div>
                     <div className="text-center">
                       <p className="text-sm font-semibold text-gray-700">Click to upload your CV</p>
@@ -624,7 +624,7 @@ export default function TeacherRegisterPage() {
               {!cvFileName && (
                 <p className="text-xs text-center text-gray-400">
                   No CV?{" "}
-                  <button type="button" className="text-green-600 underline" onClick={() => setStep(2)}>
+                  <button type="button" className="text-ink-600 underline" onClick={() => setStep(2)}>
                     Skip and fill manually
                   </button>
                 </p>
@@ -711,8 +711,8 @@ export default function TeacherRegisterPage() {
                     <button key={level.value} type="button" onClick={() => toggleArray("teaching_levels", level.value)}
                       className={`px-4 py-2 rounded-lg text-sm font-medium border transition-all ${
                         formData.teaching_levels.includes(level.value)
-                          ? "bg-green-600 text-white border-green-600"
-                          : "bg-white text-gray-600 border-gray-300 hover:border-green-400"
+                          ? "bg-ink-600 text-white border-ink-600"
+                          : "bg-white text-gray-600 border-gray-300 hover:border-ink-400"
                       }`}>
                       {level.label}
                     </button>
@@ -728,8 +728,8 @@ export default function TeacherRegisterPage() {
                     <button key={subject} type="button" onClick={() => toggleArray("subjects", subject)}
                       className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
                         formData.subjects.includes(subject)
-                          ? "bg-green-600 text-white border-green-600"
-                          : "bg-white text-gray-600 border-gray-300 hover:border-green-400"
+                          ? "bg-ink-600 text-white border-ink-600"
+                          : "bg-white text-gray-600 border-gray-300 hover:border-ink-400"
                       }`}>
                       {subject}
                     </button>
@@ -783,7 +783,7 @@ export default function TeacherRegisterPage() {
                       <p className="text-gray-500 text-xs mt-0.5">{t.desc}</p>
                     </div>
                     <button type="button" onClick={() => update(t.key, !formData[t.key])}
-                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${formData[t.key] ? "bg-green-600" : "bg-gray-200"}`}>
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${formData[t.key] ? "bg-ink-600" : "bg-gray-200"}`}>
                       <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${formData[t.key] ? "translate-x-6" : "translate-x-1"}`} />
                     </button>
                   </div>
@@ -800,8 +800,8 @@ export default function TeacherRegisterPage() {
                       <button key={s} type="button" onClick={() => toggleArray("preferred_states", s)}
                         className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
                           formData.preferred_states.includes(s)
-                            ? "bg-green-600 text-white border-green-600"
-                            : "bg-white text-gray-600 border-gray-300 hover:border-green-400"
+                            ? "bg-ink-600 text-white border-ink-600"
+                            : "bg-white text-gray-600 border-gray-300 hover:border-ink-400"
                         }`}>
                         {s}
                       </button>
@@ -870,18 +870,18 @@ export default function TeacherRegisterPage() {
 
               <p className="text-xs text-gray-400">
                 Need to change anything?{" "}
-                <button type="button" onClick={() => setStep(2)} className="text-green-600 underline">Go back</button>
+                <button type="button" onClick={() => setStep(2)} className="text-ink-600 underline">Go back</button>
               </p>
 
               {/* Talent Pool */}
               <div
                 onClick={() => update("talent_pool", !formData.talent_pool)}
                 className={`flex items-start gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all ${
-                  formData.talent_pool ? "border-green-500 bg-green-50" : "border-gray-200 bg-white hover:border-gray-300"
+                  formData.talent_pool ? "border-ink-500 bg-ink-50" : "border-gray-200 bg-white hover:border-gray-300"
                 }`}
               >
                 <div className={`w-5 h-5 rounded flex items-center justify-center flex-shrink-0 mt-0.5 border-2 transition-all ${
-                  formData.talent_pool ? "bg-green-600 border-green-600" : "border-gray-300"
+                  formData.talent_pool ? "bg-ink-600 border-ink-600" : "border-gray-300"
                 }`}>
                   {formData.talent_pool && <CheckCircle2 className="h-3.5 w-3.5 text-white" />}
                 </div>
@@ -921,7 +921,7 @@ export default function TeacherRegisterPage() {
                   className={`${inputClass} resize-none`} />
                 <div className="flex justify-between mt-1">
                   {errors.bio ? <p className="text-red-500 text-xs">{errors.bio}</p> : <span />}
-                  <p className={`text-xs ${formData.bio.length >= 100 ? "text-green-600" : "text-gray-400"}`}>
+                  <p className={`text-xs ${formData.bio.length >= 100 ? "text-ink-600" : "text-gray-400"}`}>
                     {formData.bio.length}/100 min
                   </p>
                 </div>
@@ -943,14 +943,14 @@ export default function TeacherRegisterPage() {
 
             {step < 5 ? (
               <Button type="button" onClick={nextStep} disabled={isParsing}
-                className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-2">
+                className="bg-ink-600 hover:bg-ink-700 text-white flex items-center gap-2">
                 {isParsing
                   ? <><Loader2 className="h-4 w-4 animate-spin" /> Parsing CV…</>
                   : <>Continue <ArrowRight className="h-4 w-4" /></>}
               </Button>
             ) : (
               <Button type="button" onClick={handleSubmit} disabled={isLoading}
-                className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-2">
+                className="bg-ink-600 hover:bg-ink-700 text-white flex items-center gap-2">
                 {isLoading
                   ? <><Loader2 className="h-4 w-4 animate-spin" /> Creating Profile…</>
                   : <><CheckCircle2 className="h-4 w-4" /> Create Profile</>}

@@ -39,8 +39,8 @@ export default function Navbar() {
         className={`${dim} rounded-full object-cover flex-shrink-0`}
       />
     ) : (
-      <div className={`${dim} rounded-full bg-green-100 flex items-center justify-center flex-shrink-0`}>
-        <span className={`text-green-700 font-bold ${txt}`}>{getInitials(user?.display_name || "U")}</span>
+      <div className={`${dim} rounded-full bg-ink-100 flex items-center justify-center flex-shrink-0`}>
+        <span className={`text-ink-700 font-bold ${txt}`}>{getInitials(user?.display_name || "U")}</span>
       </div>
     )
   }
@@ -52,16 +52,16 @@ export default function Navbar() {
 
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2">
-            <div className="bg-green-600 text-white p-1.5 rounded-lg">
+            <div className="bg-ink-600 text-white p-1.5 rounded-lg">
               <GraduationCap className="h-5 w-5" />
             </div>
-            <span className="font-bold text-base text-gray-900">Teach<span className="text-green-600">Connect</span></span>
+            <span className="font-bold text-base text-gray-900">Teach<span className="text-ink-600">Connect</span></span>
           </Link>
 
           {/* Desktop Nav */}
           <div className="hidden md:flex items-center gap-6">
             {!isLoading && user && (
-              <Link href={dashboardLink} className="text-sm font-semibold text-green-700 hover:text-green-800">
+              <Link href={dashboardLink} className="text-sm font-semibold text-ink-700 hover:text-ink-800">
                 Dashboard
               </Link>
             )}
@@ -136,7 +136,7 @@ export default function Navbar() {
                   <Button variant="ghost" size="sm">Log in</Button>
                 </Link>
                 <Link href="/register/teacher">
-                  <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white">Find Jobs</Button>
+                  <Button size="sm" className="bg-ink-600 hover:bg-ink-700 text-white">Find Jobs</Button>
                 </Link>
                 <Link href="/register/school">
                   <Button size="sm" className="bg-blue-700 hover:bg-blue-800 text-white">Hire Teachers</Button>
@@ -170,7 +170,7 @@ export default function Navbar() {
                 <Link
                   href={dashboardLink}
                   onClick={() => setIsOpen(false)}
-                  className="flex items-center gap-2 w-full px-3 py-2.5 bg-green-50 text-green-700 font-bold text-sm rounded-xl mb-1"
+                  className="flex items-center gap-2 w-full px-3 py-2.5 bg-ink-50 text-ink-700 font-bold text-sm rounded-xl mb-1"
                 >
                   <LayoutDashboard className="h-4 w-4" />
                   Dashboard
@@ -208,7 +208,7 @@ export default function Navbar() {
                       <Button variant="ghost" size="sm" className="w-full">Log in</Button>
                     </Link>
                     <Link href="/register/teacher" onClick={() => setIsOpen(false)}>
-                      <Button size="sm" className="w-full bg-green-600 hover:bg-green-700 text-white">Find Teaching Jobs</Button>
+                      <Button size="sm" className="w-full bg-ink-600 hover:bg-ink-700 text-white">Find Teaching Jobs</Button>
                     </Link>
                     <Link href="/register/school" onClick={() => setIsOpen(false)}>
                       <Button size="sm" className="w-full bg-blue-700 hover:bg-blue-800 text-white">Hire Teachers</Button>

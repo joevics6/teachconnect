@@ -25,7 +25,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
   if (status === "loading") {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 text-green-600 animate-spin" />
+        <Loader2 className="h-8 w-8 text-ink-600 animate-spin" />
       </div>
     )
   }
@@ -52,7 +52,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
                 key={item.href}
                 href={item.href}
                 className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 whitespace-nowrap transition ${
-                  active ? "border-green-600 text-green-700" : "border-transparent text-gray-500 hover:text-gray-800"
+                  active ? "border-ink-600 text-ink-700" : "border-transparent text-gray-500 hover:text-gray-800"
                 }`}
               >
                 <item.icon className="h-4 w-4" />

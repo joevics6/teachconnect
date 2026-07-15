@@ -110,10 +110,10 @@ function JobCard({ job }: { job: ActiveJob }) {
 
   return (
     <Link href={`/jobs/${job.id}`}>
-      <div className="p-4 border border-gray-100 rounded-xl hover:border-green-200 hover:bg-green-50/30 transition group">
+      <div className="p-4 border border-gray-100 rounded-xl hover:border-ink-200 hover:bg-ink-50/30 transition group">
         <div className="flex items-start justify-between gap-3 mb-2">
           <div>
-            <p className="font-semibold text-gray-900 text-sm group-hover:text-green-600 transition-colors">
+            <p className="font-semibold text-gray-900 text-sm group-hover:text-ink-600 transition-colors">
               {job.title}
             </p>
             <p className="text-xs text-gray-500 mt-0.5">{job.subject}</p>
@@ -121,7 +121,7 @@ function JobCard({ job }: { job: ActiveJob }) {
           <span
             className={`px-2 py-0.5 text-xs rounded-full font-medium flex-shrink-0 ${
               job.employment_type === "full-time"
-                ? "bg-green-100 text-green-700"
+                ? "bg-ink-100 text-ink-700"
                 : job.employment_type === "part-time"
                 ? "bg-purple-100 text-purple-700"
                 : "bg-orange-100 text-orange-700"
@@ -303,7 +303,7 @@ export default function SchoolProfilePage() {
                           {school?.school_name}
                         </h1>
                         {school?.verification_status === "verified" && (
-                          <span className="flex items-center gap-1 px-2.5 py-1 bg-green-100 text-green-700 text-xs rounded-full font-medium mt-1">
+                          <span className="flex items-center gap-1 px-2.5 py-1 bg-ink-100 text-ink-700 text-xs rounded-full font-medium mt-1">
                             <CheckCircle2 className="h-3 w-3" />
                             Verified School
                           </span>
@@ -355,7 +355,7 @@ export default function SchoolProfilePage() {
                 <>
                   {[
                     { label: "Jobs Posted",     value: stats.total_jobs,  icon: Briefcase,    color: "text-blue-600",   bg: "bg-blue-50" },
-                    { label: "Active Now",       value: stats.active_jobs, icon: CheckCircle2, color: "text-green-600",  bg: "bg-green-50" },
+                    { label: "Active Now",       value: stats.active_jobs, icon: CheckCircle2, color: "text-ink-600",  bg: "bg-ink-50" },
                     { label: "Teachers Hired",  value: stats.total_hired, icon: Users,        color: "text-purple-600", bg: "bg-purple-50" },
                   ].map((stat) => (
                     <div key={stat.label} className="bg-white rounded-xl border border-gray-200 p-4 text-center">
@@ -491,7 +491,7 @@ export default function SchoolProfilePage() {
                     <h3 className="font-bold text-gray-900 mb-3">Staff Benefits</h3>
                     <div className="flex flex-wrap gap-2">
                       {school.benefits.map((b) => (
-                        <span key={b} className="px-3 py-1 bg-green-50 text-green-700 text-xs rounded-full font-medium">{b}</span>
+                        <span key={b} className="px-3 py-1 bg-ink-50 text-ink-700 text-xs rounded-full font-medium">{b}</span>
                       ))}
                     </div>
                   </div>
@@ -601,7 +601,7 @@ export default function SchoolProfilePage() {
 
                   {jobs.length > 0 && (
                     <Link href={`/jobs?school=${school?.id}`}>
-                      <Button className="w-full bg-green-600 hover:bg-green-700 text-white flex items-center gap-2 text-sm">
+                      <Button className="w-full bg-ink-600 hover:bg-ink-700 text-white flex items-center gap-2 text-sm">
                         <Briefcase className="h-4 w-4" />
                         View All Jobs
                       </Button>
@@ -621,17 +621,17 @@ export default function SchoolProfilePage() {
             </div>
 
             {/* Register CTA for teachers */}
-            <div className="bg-green-50 border border-green-200 rounded-xl p-4 text-center">
-              <p className="text-sm font-semibold text-green-900 mb-1">
+            <div className="bg-ink-50 border border-ink-200 rounded-xl p-4 text-center">
+              <p className="text-sm font-semibold text-ink-900 mb-1">
                 Looking for a teaching job?
               </p>
-              <p className="text-xs text-green-600 mb-3">
+              <p className="text-xs text-ink-600 mb-3">
                 Create a free profile and apply to this school and others.
               </p>
               <Link href="/register/teacher">
                 <Button
                   size="sm"
-                  className="bg-green-600 hover:bg-green-700 text-white w-full"
+                  className="bg-ink-600 hover:bg-ink-700 text-white w-full"
                 >
                   Create Free Profile
                 </Button>

@@ -92,10 +92,10 @@ const PLANS: Plan[] = [
     period: "per term",
     description: "Best value for schools hiring every term.",
     icon: Zap,
-    color: "text-green-700",
-    bgColor: "bg-green-50",
-    borderColor: "border-green-300",
-    buttonColor: "bg-green-600 hover:bg-green-700",
+    color: "text-ink-700",
+    bgColor: "bg-ink-50",
+    borderColor: "border-ink-300",
+    buttonColor: "bg-ink-600 hover:bg-ink-700",
     badge: "Best Value",
     features: [
       "Unlimited postings for one term",
@@ -203,7 +203,7 @@ function PlanCard({
       {plan.badge && (
         <div
           className={`absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full text-xs font-bold text-white ${
-            plan.id === "standard" ? "bg-blue-600" : "bg-green-600"
+            plan.id === "standard" ? "bg-blue-600" : "bg-ink-600"
           }`}
         >
           {plan.badge}
@@ -277,7 +277,7 @@ function PlanCard({
                   ? "text-gray-500"
                   : plan.id === "standard"
                   ? "text-blue-600"
-                  : "text-green-600"
+                  : "text-ink-600"
               }`}
             />
             <span className="text-sm text-gray-700">{feature}</span>
@@ -312,7 +312,7 @@ const COMPARISON_ROWS = [
 ]
 
 function ComparisonCell({ value }: { value: boolean | string }) {
-  if (value === true) return <CheckCircle2 className="h-5 w-5 text-green-500 mx-auto" />
+  if (value === true) return <CheckCircle2 className="h-5 w-5 text-ink-500 mx-auto" />
   if (value === false) return <X className="h-4 w-4 text-gray-300 mx-auto" />
   return <span className="text-sm text-gray-700 text-center block">{value}</span>
 }
@@ -326,13 +326,13 @@ export default function PricingPage() {
       {/* Hero */}
       <div className="bg-white border-b border-gray-200 py-16 px-4 text-center">
         <div className="max-w-2xl mx-auto">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-green-100 text-green-700 text-sm font-medium rounded-full mb-6">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-ink-100 text-ink-700 text-sm font-medium rounded-full mb-6">
             <Star className="h-3.5 w-3.5" />
             Simple, transparent pricing
           </div>
           <h1 className="text-4xl font-black text-gray-900 mb-4">
             Hire Better Teachers,{" "}
-            <span className="text-green-600">Pay Only for What You Need</span>
+            <span className="text-ink-600">Pay Only for What You Need</span>
           </h1>
           <p className="text-gray-500 text-lg leading-relaxed">
             No subscriptions required to get started. Pay per posting or
@@ -352,18 +352,18 @@ export default function PricingPage() {
         </div>
 
         {/* For Teachers Banner */}
-        <div className="bg-gradient-to-r from-green-600 to-green-700 rounded-2xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4 mb-16">
+        <div className="bg-gradient-to-r from-ink-600 to-ink-700 rounded-2xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4 mb-16">
           <div className="text-white">
             <h3 className="font-bold text-xl mb-1">
               Are you a teacher? It&apos;s completely free.
             </h3>
-            <p className="text-green-100 text-sm">
+            <p className="text-ink-100 text-sm">
               Create your profile, browse jobs, take quizzes and apply — all
               at no cost, forever.
             </p>
           </div>
           <Link href="/register/teacher" className="flex-shrink-0">
-            <Button className="bg-white text-green-700 hover:bg-green-50 px-6">
+            <Button className="bg-white text-ink-700 hover:bg-ink-50 px-6">
               Create Free Profile
             </Button>
           </Link>
@@ -388,7 +388,7 @@ export default function PricingPage() {
                     <th className="text-center px-4 py-4 text-sm font-semibold text-blue-700 bg-blue-50">
                       Standard
                     </th>
-                    <th className="text-center px-4 py-4 text-sm font-semibold text-green-700">
+                    <th className="text-center px-4 py-4 text-sm font-semibold text-ink-700">
                       Term Plan
                     </th>
                   </tr>
@@ -501,7 +501,7 @@ export default function PricingPage() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/register/school">
-              <Button className="bg-green-600 hover:bg-green-700 text-white px-8">
+              <Button className="bg-ink-600 hover:bg-ink-700 text-white px-8">
                 Start for Free
               </Button>
             </Link>

@@ -22,7 +22,7 @@ export default function SchoolMeRedirect() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <Loader2 className="h-8 w-8 text-green-600 animate-spin" />
+      <Loader2 className="h-8 w-8 text-ink-600 animate-spin" />
     </div>
   )
 }

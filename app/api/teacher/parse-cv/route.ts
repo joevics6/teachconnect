@@ -11,7 +11,7 @@ const GEMINI_API_KEY = process.env.GEMINI_API_KEY!
 async function callGemini(model: string, base64Data: string, mimeType: string) {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`
 
-  const prompt = `You are an expert CV/resume parser for a Nigerian teacher recruitment platform called TeachConnect.
+  const prompt = `You are an expert CV/resume parser for a Nigerian teacher recruitment platform called ClassHire.
 Extract ALL available information from this CV and return a single valid JSON object.
 Be thorough — extract everything present, leave fields null or empty array [] if not found.
 Return ONLY raw JSON. No markdown, no backticks, no explanation, no preamble.

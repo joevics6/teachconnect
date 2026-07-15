@@ -73,7 +73,7 @@ export function StateLgaSelect({
   }
 
   const selectClass =
-    "w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 bg-white disabled:bg-gray-50 disabled:text-gray-400"
+    "w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ink-500 bg-white disabled:bg-gray-50 disabled:text-gray-400"
 
   const wrapper =
     layout === "grid" ? "grid grid-cols-1 sm:grid-cols-2 gap-5" : "space-y-5"

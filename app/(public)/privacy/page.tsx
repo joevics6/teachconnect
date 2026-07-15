@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
 
-export const metadata = { title: "Privacy Policy — TeachConnect" }
+export const metadata = { title: "Privacy Policy — ClassHire" }
 
 export default function PrivacyPage() {
   const updated = "1 July 2025"
@@ -20,7 +20,7 @@ export default function PrivacyPage() {
 
           <section>
             <h2 className="text-lg font-bold text-gray-900 mb-3">1. Who We Are</h2>
-            <p>TeachConnect is operated by JobMeter Nigeria. We run a teacher recruitment platform at <strong>teach.jobmeter.app</strong> that connects Nigerian schools with qualified teachers. Our contact email is <a href="mailto:hello@jobmeter.app" className="text-green-600 hover:underline">hello@jobmeter.app</a>.</p>
+            <p>ClassHire is operated by JobMeter Nigeria. We run a teacher recruitment platform at <strong>teach.jobmeter.app</strong> that connects Nigerian schools with qualified teachers. Our contact email is <a href="mailto:hello@jobmeter.app" className="text-ink-600 hover:underline">hello@jobmeter.app</a>.</p>
           </section>
 
           <section>
@@ -70,7 +70,7 @@ export default function PrivacyPage() {
               <li>Request deletion of your account and associated data</li>
               <li>Withdraw consent for us to display your profile to schools</li>
             </ul>
-            <p className="mt-3">To exercise any of these rights, email us at <a href="mailto:hello@jobmeter.app" className="text-green-600 hover:underline">hello@jobmeter.app</a>.</p>
+            <p className="mt-3">To exercise any of these rights, email us at <a href="mailto:hello@jobmeter.app" className="text-ink-600 hover:underline">hello@jobmeter.app</a>.</p>
           </section>
 
           <section>
@@ -85,7 +85,7 @@ export default function PrivacyPage() {
 
           <section>
             <h2 className="text-lg font-bold text-gray-900 mb-3">10. Contact</h2>
-            <p>For any privacy-related questions, email <a href="mailto:hello@jobmeter.app" className="text-green-600 hover:underline">hello@jobmeter.app</a> or use our <Link href="/contact" className="text-green-600 hover:underline">contact form</Link>.</p>
+            <p>For any privacy-related questions, email <a href="mailto:hello@jobmeter.app" className="text-ink-600 hover:underline">hello@jobmeter.app</a> or use our <Link href="/contact" className="text-ink-600 hover:underline">contact form</Link>.</p>
           </section>
 
         </div>

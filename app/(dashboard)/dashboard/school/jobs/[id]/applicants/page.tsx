@@ -80,7 +80,7 @@ const PIPELINE_STAGES: { value: PipelineStage; label: string; color: string; bg:
   { value: "shortlisted", label: "Shortlisted", color: "text-blue-700", bg: "bg-blue-100" },
   { value: "interview", label: "Interview", color: "text-purple-700", bg: "bg-purple-100" },
   { value: "offered", label: "Offered", color: "text-orange-700", bg: "bg-orange-100" },
-  { value: "hired", label: "Hired", color: "text-green-700", bg: "bg-green-100" },
+  { value: "hired", label: "Hired", color: "text-ink-700", bg: "bg-ink-100" },
   { value: "rejected", label: "Rejected", color: "text-red-600", bg: "bg-red-100" },
 ]
 
@@ -181,7 +181,7 @@ function StageSelector({
                 />
                 <span className={stage.color}>{stage.label}</span>
                 {current === stage.value && (
-                  <CheckCircle2 className="h-3 w-3 text-green-500 ml-auto" />
+                  <CheckCircle2 className="h-3 w-3 text-ink-500 ml-auto" />
                 )}
               </button>
             ))}
@@ -310,7 +310,7 @@ function ApplicantCard({
                   {applicant.teacher_name}
                 </h3>
                 {applicant.trcn_status === "registered" && (
-                  <span className="px-1.5 py-0.5 bg-green-100 text-green-700 text-xs rounded font-medium">
+                  <span className="px-1.5 py-0.5 bg-ink-100 text-ink-700 text-xs rounded font-medium">
                     TRCN ✓
                   </span>
                 )}
@@ -380,7 +380,7 @@ function ApplicantCard({
               <div
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border ${
                   applicant.quiz_passed
-                    ? "bg-green-50 border-green-200 text-green-700"
+                    ? "bg-ink-50 border-ink-200 text-ink-700"
                     : applicant.quiz_score !== null
                     ? "bg-red-50 border-red-200 text-red-600"
                     : "bg-gray-50 border-gray-200 text-gray-500"
@@ -629,7 +629,7 @@ export default function ApplicantsPage() {
               <p className="text-xs text-gray-500">
                 {jobInfo.subject} •{" "}
                 {jobInfo.status === "active" ? (
-                  <span className="text-green-600">Active</span>
+                  <span className="text-ink-600">Active</span>
                 ) : (
                   <span className="text-gray-400">Closed</span>
                 )}{" "}
@@ -653,7 +653,7 @@ export default function ApplicantsPage() {
                 {
                   label: "Passed Quiz",
                   value: jobInfo.quiz_enabled ? passedCount : "N/A",
-                  color: "text-green-600",
+                  color: "text-ink-600",
                 },
                 {
                   label: "Shortlisted",

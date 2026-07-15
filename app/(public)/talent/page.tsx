@@ -156,8 +156,8 @@ function TeacherCard({
               className="w-12 h-12 rounded-full object-cover border-2 border-gray-100"
             />
           ) : (
-            <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center border-2 border-green-50">
-              <span className="text-green-700 font-bold text-sm">
+            <div className="w-12 h-12 rounded-full bg-ink-100 flex items-center justify-center border-2 border-ink-50">
+              <span className="text-ink-700 font-bold text-sm">
                 {getInitials(teacher.full_name)}
               </span>
             </div>
@@ -187,14 +187,14 @@ function TeacherCard({
             <div className="flex flex-wrap gap-1.5">
               {teacher.match_score !== undefined && (
                 <span className={`px-1.5 py-0.5 text-xs rounded font-bold ${
-                  teacher.match_score >= 80 ? "bg-green-100 text-green-700"
+                  teacher.match_score >= 80 ? "bg-ink-100 text-ink-700"
                   : teacher.match_score >= 60 ? "bg-blue-50 text-blue-700"
                   : "bg-gray-100 text-gray-500"}`}>
                   {teacher.match_score}% match
                 </span>
               )}
               {teacher.trcn_status === "registered" && (
-                <span className="flex items-center gap-0.5 px-1.5 py-0.5 bg-green-100 text-green-700 text-xs rounded font-medium">
+                <span className="flex items-center gap-0.5 px-1.5 py-0.5 bg-ink-100 text-ink-700 text-xs rounded font-medium">
                   <CheckCircle2 className="h-3 w-3" />
                   TRCN
                 </span>
@@ -256,7 +256,7 @@ function TeacherCard({
           <p
             className={`text-xs font-medium ${
               teacher.availability === "immediate"
-                ? "text-green-600"
+                ? "text-ink-600"
                 : "text-gray-600"
             }`}
           >
@@ -702,7 +702,7 @@ export default function TalentPage() {
 
         {/* Invite Success Banner */}
         {inviteSuccess && (
-          <div className="mb-5 flex items-center gap-2 p-4 bg-green-50 border border-green-200 rounded-xl text-green-700 text-sm">
+          <div className="mb-5 flex items-center gap-2 p-4 bg-ink-50 border border-ink-200 rounded-xl text-ink-700 text-sm">
             <CheckCircle2 className="h-5 w-5 flex-shrink-0" />
             Invite sent successfully. The teacher will be notified.
           </div>
@@ -737,7 +737,7 @@ export default function TalentPage() {
               {totalCount} registered
             </span>
             <span className="flex items-center gap-1">
-              <Star className="h-3.5 w-3.5 text-green-500" />
+              <Star className="h-3.5 w-3.5 text-ink-500" />
               TRCN verified available
             </span>
             <span className="flex items-center gap-1">

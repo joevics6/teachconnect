@@ -68,7 +68,7 @@ function formatTime(seconds: number) {
 function getPercentileLabel(percentile: number) {
   if (percentile >= 95) return { label: "Top 5%", color: "text-yellow-600", bg: "bg-yellow-50 border-yellow-200" }
   if (percentile >= 90) return { label: "Top 10%", color: "text-orange-600", bg: "bg-orange-50 border-orange-200" }
-  if (percentile >= 75) return { label: "Top 25%", color: "text-green-600", bg: "bg-green-50 border-green-200" }
+  if (percentile >= 75) return { label: "Top 25%", color: "text-ink-600", bg: "bg-ink-50 border-ink-200" }
   if (percentile >= 50) return { label: "Above Average", color: "text-blue-600", bg: "bg-blue-50 border-blue-200" }
   if (percentile >= 25) return { label: "Below Average", color: "text-gray-600", bg: "bg-gray-50 border-gray-200" }
   return { label: "Bottom 25%", color: "text-red-500", bg: "bg-red-50 border-red-200" }
@@ -94,8 +94,8 @@ function SubjectSelectScreen({ onSelect }: { onSelect: (subject: string, level: 
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-12">
       <div className="max-w-lg w-full">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-14 h-14 bg-green-100 rounded-2xl mb-4">
-            <Zap className="h-7 w-7 text-green-600" />
+          <div className="inline-flex items-center justify-center w-14 h-14 bg-ink-100 rounded-2xl mb-4">
+            <Zap className="h-7 w-7 text-ink-600" />
           </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">
             Subject Mastery Quiz
@@ -118,7 +118,7 @@ function SubjectSelectScreen({ onSelect }: { onSelect: (subject: string, level: 
               { icon: RotateCcw, text: "Retake every 30 days to improve your rank" },
             ].map((item, i) => (
               <div key={i} className="flex items-center gap-3 text-sm text-gray-600">
-                <item.icon className="h-4 w-4 text-green-600 flex-shrink-0" />
+                <item.icon className="h-4 w-4 text-ink-600 flex-shrink-0" />
                 {item.text}
               </div>
             ))}
@@ -133,7 +133,7 @@ function SubjectSelectScreen({ onSelect }: { onSelect: (subject: string, level: 
           <select
             value={selected}
             onChange={(e) => setSelected(e.target.value)}
-            className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-500 bg-white"
+            className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-ink-500 bg-white"
           >
             <option value="">Choose a subject...</option>
             {quizSubjects.map((s) => (
@@ -156,7 +156,7 @@ function SubjectSelectScreen({ onSelect }: { onSelect: (subject: string, level: 
                 onClick={() => setSelectedLevel(l.value)}
                 className={`w-full text-left px-4 py-2.5 rounded-xl border text-sm font-medium transition-all ${
                   selectedLevel === l.value
-                    ? "border-green-500 bg-green-50 text-green-700"
+                    ? "border-ink-500 bg-ink-50 text-ink-700"
                     : "border-gray-200 text-gray-600 hover:border-gray-300"
                 }`}
               >
@@ -169,7 +169,7 @@ function SubjectSelectScreen({ onSelect }: { onSelect: (subject: string, level: 
         <Button
           onClick={() => selected && selectedLevel && onSelect(selected, selectedLevel)}
           disabled={!selected || !selectedLevel}
-          className="w-full bg-green-600 hover:bg-green-700 text-white py-3 text-base font-semibold"
+          className="w-full bg-ink-600 hover:bg-ink-700 text-white py-3 text-base font-semibold"
         >
           <Zap className="h-5 w-5 mr-2" />
           Start Quiz
@@ -210,8 +210,8 @@ function AlreadyAttemptedScreen({
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-12">
       <div className="max-w-md w-full">
         <div className="bg-white rounded-2xl border border-gray-200 p-8 text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-5">
-            <Trophy className="h-8 w-8 text-green-600" />
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-ink-100 rounded-full mb-5">
+            <Trophy className="h-8 w-8 text-ink-600" />
           </div>
           <h1 className="text-xl font-bold text-gray-900 mb-1">
             {subject} Quiz Result
@@ -221,7 +221,7 @@ function AlreadyAttemptedScreen({
 
           <div className="grid grid-cols-2 gap-4 mb-6">
             <div className="p-4 bg-gray-50 rounded-xl">
-              <p className="text-3xl font-black text-green-600">{attempt.score}%</p>
+              <p className="text-3xl font-black text-ink-600">{attempt.score}%</p>
               <p className="text-xs text-gray-500 mt-1">Your Score</p>
             </div>
             <div className={`p-4 rounded-xl border ${percentileInfo.bg}`}>
@@ -240,7 +240,7 @@ function AlreadyAttemptedScreen({
           {canRetakeNow ? (
             <Button
               onClick={onChooseDifferent}
-              className="w-full bg-green-600 hover:bg-green-700 text-white mb-3"
+              className="w-full bg-ink-600 hover:bg-ink-700 text-white mb-3"
             >
               <RotateCcw className="h-4 w-4 mr-2" />
               Retake Quiz
@@ -356,7 +356,7 @@ function QuizScreen({
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="h-10 w-10 text-green-600 animate-spin mx-auto mb-4" />
+          <Loader2 className="h-10 w-10 text-ink-600 animate-spin mx-auto mb-4" />
           <p className="text-gray-700 font-semibold">Calculating your rank...</p>
           <p className="text-gray-400 text-sm mt-1">Comparing your score with other teachers</p>
         </div>
@@ -370,8 +370,8 @@ function QuizScreen({
       <div className="bg-white border-b border-gray-200 px-4 py-3 sticky top-0 z-20">
         <div className="max-w-2xl mx-auto flex items-center justify-between gap-4">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="p-1.5 rounded-lg border bg-green-50 border-green-200">
-              <Zap className="h-4 w-4 text-green-600" />
+            <div className="p-1.5 rounded-lg border bg-ink-50 border-ink-200">
+              <Zap className="h-4 w-4 text-ink-600" />
             </div>
             <div className="min-w-0">
               <p className="text-sm font-semibold text-gray-900 truncate">
@@ -400,7 +400,7 @@ function QuizScreen({
           <div className="w-full bg-gray-100 rounded-full h-1.5">
             <div
               className={`h-1.5 rounded-full transition-all duration-1000 ${
-                isLowTime ? "bg-red-500" : "bg-green-500"
+                isLowTime ? "bg-red-500" : "bg-ink-500"
               }`}
               style={{ width: `${timerPercent}%` }}
             />
@@ -413,7 +413,7 @@ function QuizScreen({
         {current && (
           <div className="bg-white rounded-2xl border border-gray-200 p-6 mb-5">
             <div className="flex items-start gap-3 mb-6">
-              <span className="flex-shrink-0 w-8 h-8 rounded-full bg-green-100 text-green-700 text-sm font-bold flex items-center justify-center">
+              <span className="flex-shrink-0 w-8 h-8 rounded-full bg-ink-100 text-ink-700 text-sm font-bold flex items-center justify-center">
                 {currentIndex + 1}
               </span>
               <p className="text-gray-900 font-medium leading-relaxed pt-1">
@@ -430,14 +430,14 @@ function QuizScreen({
                     onClick={() => selectAnswer(current.id, opt.key)}
                     className={`w-full flex items-center gap-4 p-4 rounded-xl border text-left transition-all ${
                       isSelected
-                        ? "bg-green-50 border-green-400 text-green-800"
+                        ? "bg-ink-50 border-ink-400 text-ink-800"
                         : "bg-white border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-gray-700"
                     }`}
                   >
                     <span
                       className={`flex-shrink-0 w-7 h-7 rounded-full border-2 flex items-center justify-center text-xs font-bold uppercase ${
                         isSelected
-                          ? "border-green-500 bg-green-500 text-white"
+                          ? "border-ink-500 bg-ink-500 text-white"
                           : "border-gray-300 text-gray-400"
                       }`}
                     >
@@ -480,7 +480,7 @@ function QuizScreen({
             <Button
               onClick={handleSubmit}
               disabled={isSubmitting}
-              className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-2"
+              className="bg-ink-600 hover:bg-ink-700 text-white flex items-center gap-2"
             >
               {isSubmitting ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -500,9 +500,9 @@ function QuizScreen({
               onClick={() => setCurrentIndex(i)}
               className={`w-7 h-7 rounded-lg text-xs font-medium transition-all ${
                 i === currentIndex
-                  ? "bg-green-600 text-white"
+                  ? "bg-ink-600 text-white"
                   : answers[q.id]
-                  ? "bg-green-100 text-green-700"
+                  ? "bg-ink-100 text-ink-700"
                   : "bg-gray-100 text-gray-500 hover:bg-gray-200"
               }`}
             >
@@ -534,8 +534,8 @@ function ResultsScreen({
       <div className="max-w-md w-full space-y-4">
         {/* Main result card */}
         <div className="bg-white rounded-2xl border border-gray-200 p-8 text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-5">
-            <Trophy className="h-8 w-8 text-green-600" />
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-ink-100 rounded-full mb-5">
+            <Trophy className="h-8 w-8 text-ink-600" />
           </div>
 
           <h1 className="text-xl font-bold text-gray-900 mb-1">
@@ -549,7 +549,7 @@ function ResultsScreen({
           {/* Score & Percentile */}
           <div className="grid grid-cols-2 gap-4 mb-5">
             <div className="p-4 bg-gray-50 rounded-2xl">
-              <p className="text-4xl font-black text-green-600">{result.score}%</p>
+              <p className="text-4xl font-black text-ink-600">{result.score}%</p>
               <p className="text-xs text-gray-500 mt-1">Score</p>
               <p className="text-xs text-gray-400 mt-0.5">
                 {result.correct}/{result.total} correct
@@ -587,7 +587,7 @@ function ResultsScreen({
               Try Another Subject
             </Button>
             <Link href="/profile/teacher/me">
-              <Button className="w-full bg-green-600 hover:bg-green-700 text-white">
+              <Button className="w-full bg-ink-600 hover:bg-ink-700 text-white">
                 View My Profile
               </Button>
             </Link>
@@ -690,8 +690,8 @@ function SpecializationQuizPage() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="inline-flex items-center justify-center w-14 h-14 bg-green-100 rounded-2xl mb-4">
-            <Loader2 className="h-7 w-7 text-green-600 animate-spin" />
+          <div className="inline-flex items-center justify-center w-14 h-14 bg-ink-100 rounded-2xl mb-4">
+            <Loader2 className="h-7 w-7 text-ink-600 animate-spin" />
           </div>
           <p className="text-gray-700 font-semibold">Loading {selectedSubject} quiz...</p>
         </div>
@@ -708,7 +708,7 @@ function SpecializationQuizPage() {
           </div>
           <h2 className="text-xl font-bold text-gray-900 mb-2">Couldn't Load Quiz</h2>
           <p className="text-gray-500 text-sm mb-6">{errorMsg}</p>
-          <Button onClick={handleReset} className="bg-green-600 hover:bg-green-700 text-white">
+          <Button onClick={handleReset} className="bg-ink-600 hover:bg-ink-700 text-white">
             Try Again
           </Button>
         </div>
@@ -751,7 +751,7 @@ export default function SpecializationQuizPageWrapper() {
   return (
     <Suspense fallback={
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 text-green-600 animate-spin" />
+        <Loader2 className="h-8 w-8 text-ink-600 animate-spin" />
       </div>
     }>
       <SpecializationQuizPage />

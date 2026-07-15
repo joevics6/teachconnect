@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
 
-export const metadata = { title: "Terms of Service — TeachConnect" }
+export const metadata = { title: "Terms of Service — ClassHire" }
 
 export default function TermsPage() {
   const updated = "1 July 2025"
@@ -20,12 +20,12 @@ export default function TermsPage() {
 
           <section>
             <h2 className="text-lg font-bold text-gray-900 mb-3">1. Acceptance of Terms</h2>
-            <p>By creating an account or using TeachConnect (operated by JobMeter Nigeria at teach.jobmeter.app), you agree to these Terms of Service. If you do not agree, do not use the platform.</p>
+            <p>By creating an account or using ClassHire (operated by JobMeter Nigeria at teach.jobmeter.app), you agree to these Terms of Service. If you do not agree, do not use the platform.</p>
           </section>
 
           <section>
-            <h2 className="text-lg font-bold text-gray-900 mb-3">2. Who Can Use TeachConnect</h2>
-            <p className="mb-3">TeachConnect is available to:</p>
+            <h2 className="text-lg font-bold text-gray-900 mb-3">2. Who Can Use ClassHire</h2>
+            <p className="mb-3">ClassHire is available to:</p>
             <ul className="list-disc pl-5 space-y-2">
               <li><strong>Teachers:</strong> Individuals qualified to teach in Nigerian schools, whether registered with TRCN or in the process of registering.</li>
               <li><strong>Schools:</strong> Registered Nigerian educational institutions looking to hire qualified teaching staff.</li>
@@ -76,12 +76,12 @@ export default function TermsPage() {
 
           <section>
             <h2 className="text-lg font-bold text-gray-900 mb-3">7. Intellectual Property</h2>
-            <p>TeachConnect and its content (design, code, copy, quiz questions) are owned by JobMeter Nigeria. You may not reproduce, distribute, or create derivative works without written permission. Your profile content remains yours — you grant us a licence to display it on the platform while your account is active.</p>
+            <p>ClassHire and its content (design, code, copy, quiz questions) are owned by JobMeter Nigeria. You may not reproduce, distribute, or create derivative works without written permission. Your profile content remains yours — you grant us a licence to display it on the platform while your account is active.</p>
           </section>
 
           <section>
             <h2 className="text-lg font-bold text-gray-900 mb-3">8. Limitation of Liability</h2>
-            <p>TeachConnect is a platform that connects teachers and schools. We do not guarantee employment outcomes, interview invitations, or hiring decisions. We are not liable for any disputes arising between teachers and schools, including salary disagreements, contract terms, or employment conditions. Use of the platform is at your own risk.</p>
+            <p>ClassHire is a platform that connects teachers and schools. We do not guarantee employment outcomes, interview invitations, or hiring decisions. We are not liable for any disputes arising between teachers and schools, including salary disagreements, contract terms, or employment conditions. Use of the platform is at your own risk.</p>
           </section>
 
           <section>
@@ -101,7 +101,7 @@ export default function TermsPage() {
 
           <section>
             <h2 className="text-lg font-bold text-gray-900 mb-3">12. Contact</h2>
-            <p>Questions about these terms? Email <a href="mailto:hello@jobmeter.app" className="text-green-600 hover:underline">hello@jobmeter.app</a> or use our <Link href="/contact" className="text-green-600 hover:underline">contact form</Link>.</p>
+            <p>Questions about these terms? Email <a href="mailto:hello@jobmeter.app" className="text-ink-600 hover:underline">hello@jobmeter.app</a> or use our <Link href="/contact" className="text-ink-600 hover:underline">contact form</Link>.</p>
           </section>
 
         </div>

@@ -157,7 +157,7 @@ function ProfileCompletionBar({
         </h3>
         <span
           className={`text-sm font-bold ${
-            percentage >= 80 ? "text-green-600" : "text-orange-500"
+            percentage >= 80 ? "text-ink-600" : "text-orange-500"
           }`}
         >
           {percentage}%
@@ -166,7 +166,7 @@ function ProfileCompletionBar({
       <div className="w-full bg-gray-100 rounded-full h-2 mb-3">
         <div
           className={`h-2 rounded-full transition-all ${
-            percentage >= 80 ? "bg-green-500" : "bg-orange-400"
+            percentage >= 80 ? "bg-ink-500" : "bg-orange-400"
           }`}
           style={{ width: `${percentage}%` }}
         />
@@ -176,7 +176,7 @@ function ProfileCompletionBar({
           Complete your profile to appear higher in school searches.{" "}
           <Link
             href="/dashboard/teacher/edit-profile"
-            className="text-green-600 hover:underline font-medium"
+            className="text-ink-600 hover:underline font-medium"
           >
             Complete now →
           </Link>
@@ -313,7 +313,7 @@ export default function TeacherProfilePage() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="h-8 w-8 text-green-600 animate-spin mx-auto mb-3" />
+          <Loader2 className="h-8 w-8 text-ink-600 animate-spin mx-auto mb-3" />
           <p className="text-gray-500 text-sm">Loading profile...</p>
         </div>
       </div>
@@ -334,7 +334,7 @@ export default function TeacherProfilePage() {
             {error || "This teacher profile could not be found."}
           </p>
           <Link href="/talent">
-            <Button className="bg-green-600 hover:bg-green-700 text-white">
+            <Button className="bg-ink-600 hover:bg-ink-700 text-white">
               Browse Teachers
             </Button>
           </Link>
@@ -391,7 +391,7 @@ export default function TeacherProfilePage() {
                 disabled={isTogglingVisibility}
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium border transition-all ${
                   profile.is_visible
-                    ? "bg-green-50 border-green-200 text-green-700"
+                    ? "bg-ink-50 border-ink-200 text-ink-700"
                     : "bg-gray-100 border-gray-200 text-gray-500"
                 }`}
               >
@@ -407,7 +407,7 @@ export default function TeacherProfilePage() {
               <Link href="/dashboard/teacher/edit-profile">
                 <Button
                   size="sm"
-                  className="bg-green-600 hover:bg-green-700 text-white"
+                  className="bg-ink-600 hover:bg-ink-700 text-white"
                 >
                   Edit Profile
                 </Button>
@@ -440,8 +440,8 @@ export default function TeacherProfilePage() {
                       className="w-20 h-20 rounded-full object-cover border-2 border-gray-100"
                     />
                   ) : (
-                    <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center border-2 border-green-50">
-                      <span className="text-green-700 font-black text-xl">
+                    <div className="w-20 h-20 rounded-full bg-ink-100 flex items-center justify-center border-2 border-ink-50">
+                      <span className="text-ink-700 font-black text-xl">
                         {getInitials(profile.full_name)}
                       </span>
                     </div>
@@ -467,7 +467,7 @@ export default function TeacherProfilePage() {
                   {/* Badges */}
                   <div className="flex flex-wrap gap-2">
                     {profile.trcn_status === "registered" && (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-green-100 text-green-700 text-xs rounded-full font-medium">
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-ink-100 text-ink-700 text-xs rounded-full font-medium">
                         <CheckCircle2 className="h-3 w-3" />
                         TRCN Registered
                       </span>
@@ -492,7 +492,7 @@ export default function TeacherProfilePage() {
                     <span
                       className={`px-2.5 py-1 text-xs rounded-full font-medium ${
                         profile.availability === "immediate"
-                          ? "bg-green-100 text-green-700"
+                          ? "bg-ink-100 text-ink-700"
                           : "bg-gray-100 text-gray-600"
                       }`}
                     >
@@ -571,7 +571,7 @@ export default function TeacherProfilePage() {
                     <p
                       className={`text-sm font-semibold ${
                         profile.trcn_status === "registered"
-                          ? "text-green-600"
+                          ? "text-ink-600"
                           : profile.trcn_status === "pending"
                           ? "text-yellow-600"
                           : "text-gray-500"
@@ -611,7 +611,7 @@ export default function TeacherProfilePage() {
                   <p
                     className={`text-sm font-semibold ${
                       profile.availability === "immediate"
-                        ? "text-green-600"
+                        ? "text-ink-600"
                         : "text-gray-700"
                     }`}
                   >
@@ -644,7 +644,7 @@ export default function TeacherProfilePage() {
             {specializationResults.length > 0 && (
               <div className="bg-white rounded-xl border border-gray-200 p-6">
                 <h2 className="font-bold text-gray-900 mb-1 text-lg flex items-center gap-2">
-                  <Trophy className="h-5 w-5 text-green-500" />
+                  <Trophy className="h-5 w-5 text-ink-500" />
                   Subject Mastery
                 </h2>
                 <p className="text-xs text-gray-400 mb-4">Percentile rank vs all teachers on this platform</p>
@@ -655,7 +655,7 @@ export default function TeacherProfilePage() {
                     const colorClass = pct >= 95
                       ? "text-yellow-600 bg-yellow-50 border-yellow-200"
                       : pct >= 75
-                      ? "text-green-600 bg-green-50 border-green-200"
+                      ? "text-ink-600 bg-ink-50 border-ink-200"
                       : pct >= 50
                       ? "text-blue-600 bg-blue-50 border-blue-200"
                       : "text-gray-500 bg-gray-50 border-gray-200"
@@ -664,7 +664,7 @@ export default function TeacherProfilePage() {
                       : pct >= 75 ? "Top 25%"
                       : pct >= 50 ? "Above Average"
                       : "Below Average"
-                    const scoreColor = pct >= 75 ? "text-green-600" : pct >= 50 ? "text-blue-600" : "text-gray-500"
+                    const scoreColor = pct >= 75 ? "text-ink-600" : pct >= 50 ? "text-blue-600" : "text-gray-500"
                     return (
                       <div key={result.id} className="flex items-center justify-between p-4 border border-gray-100 rounded-xl">
                         <div>
@@ -688,7 +688,7 @@ export default function TeacherProfilePage() {
                 </div>
                 {isOwnProfile && (
                   <Link href="/dashboard/teacher/specialization-quiz" className="block mt-4">
-                    <div className="flex items-center gap-2 text-xs text-green-600 hover:underline">
+                    <div className="flex items-center gap-2 text-xs text-ink-600 hover:underline">
                       <Zap className="h-3.5 w-3.5" />
                       Take quiz for another subject or retake
                     </div>
@@ -744,7 +744,7 @@ export default function TeacherProfilePage() {
                         <span
                           className={`text-lg font-black ${
                             result.passed
-                              ? "text-green-600"
+                              ? "text-ink-600"
                               : "text-red-500"
                           }`}
                         >
@@ -753,7 +753,7 @@ export default function TeacherProfilePage() {
                         <span
                           className={`px-2 py-0.5 text-xs font-medium rounded-full ${
                             result.passed
-                              ? "bg-green-100 text-green-700"
+                              ? "bg-ink-100 text-ink-700"
                               : "bg-red-100 text-red-600"
                           }`}
                         >
@@ -814,7 +814,7 @@ export default function TeacherProfilePage() {
                     )}
                   </div>
                   {inviteSuccess ? (
-                    <div className="flex items-center justify-center gap-2 p-3 bg-green-50 border border-green-200 rounded-xl text-sm text-green-700">
+                    <div className="flex items-center justify-center gap-2 p-3 bg-ink-50 border border-ink-200 rounded-xl text-sm text-ink-700">
                       <CheckCircle2 className="h-4 w-4" />
                       Invite sent! Teacher has been notified.
                     </div>
@@ -889,7 +889,7 @@ export default function TeacherProfilePage() {
                     </a>
                   )}
                   <Link href="/jobs">
-                    <Button className="w-full bg-green-600 hover:bg-green-700 text-white flex items-center gap-2 text-sm">
+                    <Button className="w-full bg-ink-600 hover:bg-ink-700 text-white flex items-center gap-2 text-sm">
                       <Briefcase className="h-4 w-4" />
                       Browse Jobs
                     </Button>
@@ -899,9 +899,9 @@ export default function TeacherProfilePage() {
 
               {/* Subject Mastery sidebar widget */}
               {isOwnProfile && (
-                <div className="mb-5 p-4 bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 rounded-xl">
+                <div className="mb-5 p-4 bg-gradient-to-br from-ink-50 to-emerald-50 border border-ink-200 rounded-xl">
                   <div className="flex items-center gap-2 mb-2">
-                    <Zap className="h-4 w-4 text-green-600" />
+                    <Zap className="h-4 w-4 text-ink-600" />
                     <p className="text-sm font-bold text-gray-900">Subject Mastery</p>
                   </div>
                   {specializationResults.length > 0 ? (
@@ -910,12 +910,12 @@ export default function TeacherProfilePage() {
                         {specializationResults.slice(0, 2).map((r) => (
                           <div key={r.id} className="flex items-center justify-between text-xs">
                             <span className="text-gray-600 truncate">{r.subject} <span className="text-gray-400 text-xs">({LEVEL_LABELS[r.level] || r.level})</span></span>
-                            <span className="font-bold text-green-600 flex-shrink-0 ml-2">{r.percentile}th %ile</span>
+                            <span className="font-bold text-ink-600 flex-shrink-0 ml-2">{r.percentile}th %ile</span>
                           </div>
                         ))}
                       </div>
                       <Link href="/dashboard/teacher/specialization-quiz">
-                        <Button size="sm" variant="outline" className="w-full text-xs border-green-300 text-green-700 hover:bg-green-50">
+                        <Button size="sm" variant="outline" className="w-full text-xs border-ink-300 text-ink-700 hover:bg-ink-50">
                           <TrendingUp className="h-3.5 w-3.5 mr-1.5" />
                           Take Another Subject
                         </Button>
@@ -927,7 +927,7 @@ export default function TeacherProfilePage() {
                         Take a 5-min quiz to show your rank vs other teachers.
                       </p>
                       <Link href="/dashboard/teacher/specialization-quiz">
-                        <Button size="sm" className="w-full bg-green-600 hover:bg-green-700 text-white text-xs">
+                        <Button size="sm" className="w-full bg-ink-600 hover:bg-ink-700 text-white text-xs">
                           <Zap className="h-3.5 w-3.5 mr-1.5" />
                           Take Mastery Quiz
                         </Button>
@@ -939,15 +939,15 @@ export default function TeacherProfilePage() {
 
               {/* Subject mastery results visible to schools */}
               {viewerRole === "school" && specializationResults.length > 0 && (
-                <div className="mb-5 p-4 bg-green-50 border border-green-200 rounded-xl">
+                <div className="mb-5 p-4 bg-ink-50 border border-ink-200 rounded-xl">
                   <div className="flex items-center gap-2 mb-3">
-                    <Trophy className="h-4 w-4 text-green-600" />
+                    <Trophy className="h-4 w-4 text-ink-600" />
                     <p className="text-sm font-bold text-gray-900">Subject Mastery</p>
                   </div>
                   <div className="space-y-2">
                     {specializationResults.map((r) => {
                       const pct = r.percentile
-                      const color = pct >= 75 ? "text-green-600" : pct >= 50 ? "text-blue-600" : "text-gray-500"
+                      const color = pct >= 75 ? "text-ink-600" : pct >= 50 ? "text-blue-600" : "text-gray-500"
                       const label = pct >= 95 ? "Top 5%" : pct >= 90 ? "Top 10%" : pct >= 75 ? "Top 25%" : pct >= 50 ? "Above Avg" : "Below Avg"
                       return (
                         <div key={r.id} className="flex items-center justify-between text-xs">

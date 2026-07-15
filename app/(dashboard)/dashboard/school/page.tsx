@@ -61,7 +61,7 @@ function getInitials(name: string) {
 }
 function getStageBadge(stage: string) {
   switch (stage) {
-    case "shortlisted": return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700"><CheckCircle2 className="h-3 w-3" />Shortlisted</span>
+    case "shortlisted": return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-ink-100 text-ink-700"><CheckCircle2 className="h-3 w-3" />Shortlisted</span>
     case "applied":     return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700"><Clock className="h-3 w-3" />Applied</span>
     case "hired":       return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700"><Star className="h-3 w-3" />Hired</span>
     default:            return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">{stage}</span>
@@ -273,7 +273,7 @@ export default function SchoolDashboardPage() {
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               {[
                 { label: "Active Jobs",      value: activeJobs,      color: "text-blue-600"   },
-                { label: "Total Applicants", value: totalApplicants, color: "text-green-600"  },
+                { label: "Total Applicants", value: totalApplicants, color: "text-ink-600"  },
                 { label: "Passed Quiz",      value: totalPassed,     color: "text-purple-600" },
                 {
                   label: "Pass Rate",
@@ -295,7 +295,7 @@ export default function SchoolDashboardPage() {
               {[
                 { label: "Interviews",    value: metrics.interviews, color: "text-blue-600",   icon: TrendingUp  },
                 { label: "Offers Sent",   value: metrics.offers,     color: "text-purple-600", icon: Star        },
-                { label: "Teachers Hired",value: metrics.hired,      color: "text-green-600",  icon: BookOpen    },
+                { label: "Teachers Hired",value: metrics.hired,      color: "text-ink-600",  icon: BookOpen    },
                 { label: "Avg Quiz Score",value: metrics.avgScore > 0 ? `${metrics.avgScore}%` : "—", color: "text-orange-600", icon: TrendingUp },
               ].map((m) => (
                 <div key={m.label} className="bg-white rounded-xl border border-gray-200 p-4">
@@ -354,10 +354,10 @@ export default function SchoolDashboardPage() {
                           <p className="text-xs text-gray-500">Applicants</p>
                           <p className="text-sm font-bold text-gray-900">
                             {job.applicants_count}
-                            <span className="text-green-600 font-normal text-xs ml-1">({job.passed_quiz_count} passed)</span>
+                            <span className="text-ink-600 font-normal text-xs ml-1">({job.passed_quiz_count} passed)</span>
                           </p>
                         </div>
-                        <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${job.status === "active" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>
+                        <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${job.status === "active" ? "bg-ink-100 text-ink-700" : "bg-gray-100 text-gray-500"}`}>
                           {job.status}
                         </span>
                         <Link href={`/dashboard/school/jobs/${job.id}/applicants`}>
@@ -440,7 +440,7 @@ export default function SchoolDashboardPage() {
                         <div>
                           <div className="flex items-center gap-2">
                             <p className="font-semibold text-gray-900 text-sm">{applicant.name}</p>
-                            {applicant.trcn && <span className="px-1.5 py-0.5 bg-green-100 text-green-700 text-xs rounded font-medium">TRCN</span>}
+                            {applicant.trcn && <span className="px-1.5 py-0.5 bg-ink-100 text-ink-700 text-xs rounded font-medium">TRCN</span>}
                           </div>
                           <p className="text-xs text-gray-500">{applicant.job_title} • {applicant.experience} • {applicant.location}</p>
                         </div>
@@ -449,7 +449,7 @@ export default function SchoolDashboardPage() {
                         {applicant.quiz_score !== null && (
                           <div className="text-right hidden sm:block">
                             <p className="text-xs text-gray-500">Quiz</p>
-                            <p className={`text-sm font-bold ${applicant.quiz_passed ? "text-green-600" : "text-red-500"}`}>{applicant.quiz_score}%</p>
+                            <p className={`text-sm font-bold ${applicant.quiz_passed ? "text-ink-600" : "text-red-500"}`}>{applicant.quiz_score}%</p>
                           </div>
                         )}
                         {getStageBadge(applicant.stage)}

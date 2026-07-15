@@ -27,7 +27,7 @@ interface Invite {
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, { label: string; color: string; icon: React.ElementType }> = {
     pending:  { label: "Pending",  color: "bg-yellow-100 text-yellow-700", icon: Clock         },
-    accepted: { label: "Accepted", color: "bg-green-100 text-green-700",   icon: CheckCircle2  },
+    accepted: { label: "Accepted", color: "bg-ink-100 text-ink-700",   icon: CheckCircle2  },
     declined: { label: "Declined", color: "bg-red-100 text-red-500",       icon: XCircle       },
   }
   const s = map[status] || map.pending
@@ -104,7 +104,7 @@ export default function TeacherInvitesPage() {
             </button>
           </Link>
           <div className="flex items-center gap-2">
-            <Bell className="h-5 w-5 text-green-600" />
+            <Bell className="h-5 w-5 text-ink-600" />
             <h1 className="text-lg font-bold text-gray-900">Job Invites</h1>
             {pendingCount > 0 && (
               <span className="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
@@ -123,8 +123,8 @@ export default function TeacherInvitesPage() {
               onClick={() => setFilter(f)}
               className={`px-4 py-1.5 rounded-full text-sm font-medium capitalize transition ${
                 filter === f
-                  ? "bg-green-600 text-white"
-                  : "bg-white border border-gray-200 text-gray-600 hover:border-green-400"
+                  ? "bg-ink-600 text-white"
+                  : "bg-white border border-gray-200 text-gray-600 hover:border-ink-400"
               }`}>
               {f} {f === "all" ? `(${invites.length})` : f === "pending" ? `(${pendingCount})` : ""}
             </button>
@@ -133,7 +133,7 @@ export default function TeacherInvitesPage() {
 
         {loading ? (
           <div className="flex items-center justify-center py-16">
-            <Loader2 className="h-6 w-6 animate-spin text-green-600" />
+            <Loader2 className="h-6 w-6 animate-spin text-ink-600" />
           </div>
         ) : filtered.length === 0 ? (
           <div className="text-center py-16">
@@ -152,7 +152,7 @@ export default function TeacherInvitesPage() {
             {filtered.map((invite) => (
               <div key={invite.id}
                 className={`bg-white rounded-xl border p-5 transition ${
-                  invite.status === "pending" ? "border-green-200 shadow-sm" : "border-gray-100"
+                  invite.status === "pending" ? "border-ink-200 shadow-sm" : "border-gray-100"
                 }`}>
 
                 {/* School + Status */}
@@ -166,7 +166,7 @@ export default function TeacherInvitesPage() {
                     </div>
                     <div>
                       <Link href={`/schools/${invite.school_id}`}
-                        className="font-bold text-gray-900 text-sm hover:text-green-700 transition">
+                        className="font-bold text-gray-900 text-sm hover:text-ink-700 transition">
                         {invite.school_name}
                       </Link>
                       {invite.school_state && (
@@ -213,7 +213,7 @@ export default function TeacherInvitesPage() {
                     <Button
                       onClick={() => handleRespond(invite.id, "accepted")}
                       disabled={responding === invite.id}
-                      className="flex-1 bg-green-600 hover:bg-green-700 text-white flex items-center gap-2"
+                      className="flex-1 bg-ink-600 hover:bg-ink-700 text-white flex items-center gap-2"
                     >
                       {responding === invite.id
                         ? <Loader2 className="h-4 w-4 animate-spin" />

@@ -64,10 +64,10 @@ export async function generateMetadata(
 ): Promise<Metadata> {
   const { slug } = await params
   const data = await getResource(slug)
-  if (!data) return { title: "Resource Not Found — TeachConnect" }
+  if (!data) return { title: "Resource Not Found — ClassHire" }
 
   const { resource } = data
-  const title       = resource.seo_title || `${resource.title} — TeachConnect`
+  const title       = resource.seo_title || `${resource.title} — ClassHire`
   const description = resource.seo_description || resource.excerpt
   const url         = `https://teachconnect.com.ng/resources/${resource.slug}`
   const image       = resource.cover_image_url || "https://teachconnect.com.ng/og-default.png"
@@ -81,7 +81,7 @@ export async function generateMetadata(
       title,
       description,
       url,
-      siteName: "TeachConnect Nigeria",
+      siteName: "ClassHire Nigeria",
       images:   [{ url: image, width: 1200, height: 630, alt: resource.title }],
       type:     "article",
       publishedTime: resource.published_at,
@@ -99,7 +99,7 @@ export async function generateMetadata(
 // ─── Constants ────────────────────────────────────────────────
 
 const CATEGORY_COLORS: Record<string, string> = {
-  "Career Advice":     "bg-green-100 text-green-700",
+  "Career Advice":     "bg-ink-100 text-ink-700",
   "School Management": "bg-blue-100 text-blue-700",
   "TRCN Guide":        "bg-purple-100 text-purple-700",
   "Salary Insights":   "bg-orange-100 text-orange-700",
@@ -124,11 +124,11 @@ function ArticleSchema({ resource }: { resource: Resource }) {
     description:    resource.seo_description || resource.excerpt,
     author: {
       "@type": "Person",
-      name: resource.author || "TeachConnect Editorial",
+      name: resource.author || "ClassHire Editorial",
     },
     publisher: {
       "@type": "Organization",
-      name: "TeachConnect Nigeria",
+      name: "ClassHire Nigeria",
       logo: {
         "@type": "ImageObject",
         url: "https://teachconnect.com.ng/logo.png",
@@ -191,7 +191,7 @@ function FAQSchema({ resource }: { resource: Resource }) {
         name: `Is ${resource.title} free to download?`,
         acceptedAnswer: {
           "@type": "Answer",
-          text: "Yes. All resources on TeachConnect are free for Nigerian teachers to access and download.",
+          text: "Yes. All resources on ClassHire are free for Nigerian teachers to access and download.",
         },
       },
     ],
@@ -211,17 +211,17 @@ function Breadcrumbs({ resource }: { resource: Resource }) {
     <nav aria-label="Breadcrumb" className="bg-white border-b border-gray-200 px-4 py-3">
       <ol className="max-w-4xl mx-auto flex items-center gap-1.5 text-sm text-gray-500 flex-wrap">
         <li>
-          <Link href="/" className="hover:text-green-600 transition">Home</Link>
+          <Link href="/" className="hover:text-ink-600 transition">Home</Link>
         </li>
         <li className="text-gray-300">/</li>
         <li>
-          <Link href="/resources" className="hover:text-green-600 transition">Resources</Link>
+          <Link href="/resources" className="hover:text-ink-600 transition">Resources</Link>
         </li>
         <li className="text-gray-300">/</li>
         <li>
           <Link
             href={`/resources?category=${encodeURIComponent(resource.category)}`}
-            className="hover:text-green-600 transition"
+            className="hover:text-ink-600 transition"
           >
             {resource.category}
           </Link>
@@ -328,7 +328,7 @@ export default async function ResourceDetailPage({ params }: { params: Promise<{
               </div>
 
               {/* Excerpt / lede */}
-              <p className="text-gray-700 text-base leading-relaxed mb-6 border-l-4 border-green-400 pl-4 italic">
+              <p className="text-gray-700 text-base leading-relaxed mb-6 border-l-4 border-ink-400 pl-4 italic">
                 {resource.excerpt}
               </p>
 
@@ -352,7 +352,7 @@ export default async function ResourceDetailPage({ params }: { params: Promise<{
                     prose-h2:text-gray-900 prose-h2:font-bold prose-h2:text-lg prose-h2:mt-8 prose-h2:mb-3
                     prose-h3:text-gray-800 prose-h3:font-semibold prose-h3:mt-6 prose-h3:mb-2
                     prose-p:mb-4 prose-ul:mb-4 prose-ol:mb-4
-                    prose-li:mb-1 prose-a:text-green-600 prose-a:no-underline hover:prose-a:underline"
+                    prose-li:mb-1 prose-a:text-ink-600 prose-a:no-underline hover:prose-a:underline"
                   dangerouslySetInnerHTML={{ __html: resource.body }}
                 />
               )}
@@ -391,7 +391,7 @@ export default async function ResourceDetailPage({ params }: { params: Promise<{
                   <div className="space-y-3">
                     {related.map((r) => (
                       <Link key={r.id} href={`/resources/${r.slug}`} className="block group">
-                        <p className="text-sm font-medium text-gray-800 group-hover:text-green-600 transition line-clamp-2">
+                        <p className="text-sm font-medium text-gray-800 group-hover:text-ink-600 transition line-clamp-2">
                           {r.title}
                         </p>
                         <p className="text-xs text-gray-400 mt-0.5">{r.category}</p>
@@ -402,13 +402,13 @@ export default async function ResourceDetailPage({ params }: { params: Promise<{
               )}
 
               {/* Jobs CTA */}
-              <div className="bg-gradient-to-br from-green-600 to-green-700 rounded-xl p-5 text-white">
+              <div className="bg-gradient-to-br from-ink-600 to-ink-700 rounded-xl p-5 text-white">
                 <h3 className="font-bold mb-1 text-sm">Looking for teaching jobs?</h3>
-                <p className="text-xs text-green-100 mb-3">
+                <p className="text-xs text-ink-100 mb-3">
                   Browse hundreds of teaching roles across Nigeria.
                 </p>
                 <Link href="/jobs">
-                  <span className="block w-full text-center bg-white text-green-700 hover:bg-green-50 text-xs font-semibold py-2 rounded-lg transition">
+                  <span className="block w-full text-center bg-white text-ink-700 hover:bg-ink-50 text-xs font-semibold py-2 rounded-lg transition">
                     Browse Jobs
                   </span>
                 </Link>

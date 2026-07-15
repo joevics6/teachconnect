@@ -56,7 +56,7 @@ export default function ResourceAccessPanel({
       <div className="bg-white rounded-xl border border-gray-200 p-5">
         <Button variant="outline" onClick={handleShare} className="w-full text-sm">
           {copied
-            ? <><CheckCircle2 className="h-4 w-4 mr-2 text-green-600" />Link Copied!</>
+            ? <><CheckCircle2 className="h-4 w-4 mr-2 text-ink-600" />Link Copied!</>
             : <><Share2 className="h-4 w-4 mr-2" />Share this article</>}
         </Button>
       </div>
@@ -75,7 +75,7 @@ export default function ResourceAccessPanel({
       <Button
         onClick={handleAccess}
         disabled={accessing}
-        className="w-full bg-green-600 hover:bg-green-700 text-white mb-3"
+        className="w-full bg-ink-600 hover:bg-ink-700 text-white mb-3"
       >
         {accessing ? (
           <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Opening…</>
@@ -90,7 +90,7 @@ export default function ResourceAccessPanel({
 
       <Button variant="outline" onClick={handleShare} className="w-full text-sm mb-3">
         {copied
-          ? <><CheckCircle2 className="h-4 w-4 mr-2 text-green-600" />Link Copied!</>
+          ? <><CheckCircle2 className="h-4 w-4 mr-2 text-ink-600" />Link Copied!</>
           : <><Share2 className="h-4 w-4 mr-2" />Share</>}
       </Button>
 

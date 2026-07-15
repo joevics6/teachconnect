@@ -65,10 +65,10 @@ const PLANS = [
     period: "per term",
     description: "Unlimited postings for a full school term",
     icon: Zap,
-    color: "text-green-700",
-    bg: "bg-green-50",
-    border: "border-green-400",
-    button: "bg-green-600 hover:bg-green-700",
+    color: "text-ink-700",
+    bg: "bg-ink-50",
+    border: "border-ink-400",
+    button: "bg-ink-600 hover:bg-ink-700",
     badge: "Best Value",
     features: [
       "Unlimited postings",
@@ -125,7 +125,7 @@ function CurrentPlanCard({
   const planColors: Record<string, string> = {
     free: "from-gray-700 to-gray-800",
     standard: "from-blue-700 to-blue-800",
-    term: "from-green-600 to-green-700",
+    term: "from-ink-600 to-ink-700",
   }
 
   return (
@@ -227,7 +227,7 @@ function PlanPurchaseCard({
       className={`relative bg-white rounded-2xl border-2 p-5 ${plan.border}`}
     >
       {plan.badge && (
-        <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 bg-green-600 text-white text-xs font-bold rounded-full">
+        <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 bg-ink-600 text-white text-xs font-bold rounded-full">
           {plan.badge}
         </div>
       )}
@@ -252,7 +252,7 @@ function PlanPurchaseCard({
       <div className="space-y-2 mb-5">
         {plan.features.map((feature) => (
           <div key={feature} className="flex items-center gap-2 text-xs text-gray-600">
-            <CheckCircle2 className="h-3.5 w-3.5 text-green-500 flex-shrink-0" />
+            <CheckCircle2 className="h-3.5 w-3.5 text-ink-500 flex-shrink-0" />
             {feature}
           </div>
         ))}
@@ -389,11 +389,11 @@ function SubscriptionPageInner() {
 
           {/* Payment Success */}
           {paymentSuccess && (
-            <div className="mb-6 flex items-center gap-3 p-4 bg-green-50 border border-green-200 rounded-xl text-green-700">
+            <div className="mb-6 flex items-center gap-3 p-4 bg-ink-50 border border-ink-200 rounded-xl text-ink-700">
               <CheckCircle2 className="h-5 w-5 flex-shrink-0" />
               <div>
                 <p className="font-semibold">Payment successful!</p>
-                <p className="text-sm text-green-600">
+                <p className="text-sm text-ink-600">
                   Your plan has been activated. You can now post jobs and access
                   all features.
                 </p>
@@ -476,14 +476,14 @@ function SubscriptionPageInner() {
                           <div
                             className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${
                               item.plan_type === "term"
-                                ? "bg-green-100"
+                                ? "bg-ink-100"
                                 : "bg-blue-100"
                             }`}
                           >
                             <CreditCard
                               className={`h-4 w-4 ${
                                 item.plan_type === "term"
-                                  ? "text-green-600"
+                                  ? "text-ink-600"
                                   : "text-blue-600"
                               }`}
                             />
@@ -505,7 +505,7 @@ function SubscriptionPageInner() {
                           <span
                             className={`text-xs font-medium px-2 py-0.5 rounded-full ${
                               item.is_active
-                                ? "bg-green-100 text-green-700"
+                                ? "bg-ink-100 text-ink-700"
                                 : "bg-gray-100 text-gray-500"
                             }`}
                           >

@@ -55,7 +55,7 @@ export default function BlogPostPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 text-green-600 animate-spin" />
+        <Loader2 className="h-8 w-8 text-ink-600 animate-spin" />
       </div>
     )
   }
@@ -66,7 +66,7 @@ export default function BlogPostPage() {
         <div className="text-center">
           <Newspaper className="h-10 w-10 text-gray-300 mx-auto mb-3" />
           <p className="text-gray-700 mb-4">Post not found.</p>
-          <Link href="/blog" className="text-green-600 hover:underline text-sm">Back to Blog</Link>
+          <Link href="/blog" className="text-ink-600 hover:underline text-sm">Back to Blog</Link>
         </div>
       </div>
     )
