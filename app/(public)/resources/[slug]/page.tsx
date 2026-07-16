@@ -69,8 +69,8 @@ export async function generateMetadata(
   const { resource } = data
   const title       = resource.seo_title || `${resource.title} — ClassHire`
   const description = resource.seo_description || resource.excerpt
-  const url         = `https://teachconnect.com.ng/resources/${resource.slug}`
-  const image       = resource.cover_image_url || "https://teachconnect.com.ng/og-default.png"
+  const url         = `https://teach.jobmeter.app/resources/${resource.slug}`
+  const image       = resource.cover_image_url || "https://teach.jobmeter.app/og-default.png"
 
   return {
     title,
@@ -131,17 +131,17 @@ function ArticleSchema({ resource }: { resource: Resource }) {
       name: "ClassHire Nigeria",
       logo: {
         "@type": "ImageObject",
-        url: "https://teachconnect.com.ng/logo.png",
+        url: "https://teach.jobmeter.app/logo.png",
       },
     },
     datePublished: resource.published_at,
     dateModified:  resource.published_at,
-    image:         resource.cover_image_url || "https://teachconnect.com.ng/og-default.png",
-    url:           `https://teachconnect.com.ng/resources/${resource.slug}`,
+    image:         resource.cover_image_url || "https://teach.jobmeter.app/og-default.png",
+    url:           `https://teach.jobmeter.app/resources/${resource.slug}`,
     keywords:      resource.tags?.join(", "),
     mainEntityOfPage: {
       "@type": "WebPage",
-      "@id":   `https://teachconnect.com.ng/resources/${resource.slug}`,
+      "@id":   `https://teach.jobmeter.app/resources/${resource.slug}`,
     },
   }
   return (
@@ -157,10 +157,10 @@ function BreadcrumbSchema({ resource }: { resource: Resource }) {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Home",      item: "https://teachconnect.com.ng" },
-      { "@type": "ListItem", position: 2, name: "Resources", item: "https://teachconnect.com.ng/resources" },
-      { "@type": "ListItem", position: 3, name: resource.category, item: `https://teachconnect.com.ng/resources?category=${encodeURIComponent(resource.category)}` },
-      { "@type": "ListItem", position: 4, name: resource.title, item: `https://teachconnect.com.ng/resources/${resource.slug}` },
+      { "@type": "ListItem", position: 1, name: "Home",      item: "https://teach.jobmeter.app" },
+      { "@type": "ListItem", position: 2, name: "Resources", item: "https://teach.jobmeter.app/resources" },
+      { "@type": "ListItem", position: 3, name: resource.category, item: `https://teach.jobmeter.app/resources?category=${encodeURIComponent(resource.category)}` },
+      { "@type": "ListItem", position: 4, name: resource.title, item: `https://teach.jobmeter.app/resources/${resource.slug}` },
     ],
   }
   return (

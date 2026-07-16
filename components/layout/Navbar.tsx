@@ -55,7 +55,7 @@ export default function Navbar() {
             <div className="bg-ink-600 text-white p-1.5 rounded-lg">
               <GraduationCap className="h-5 w-5" />
             </div>
-            <span className="font-bold text-base text-gray-900">Teach<span className="text-ink-600">Connect</span></span>
+            <span className="font-bold text-base text-gray-900">Class<span className="text-ink-600">Hire</span></span>
           </Link>
 
           {/* Desktop Nav */}

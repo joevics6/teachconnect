@@ -89,8 +89,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Get initial user — getUser() verifies with the Supabase server rather
     // than trusting whatever session getSession() finds in local storage,
     // which was the actual cause of the navbar showing "logged out" for
-    // people who were, in fact, logged in.
-    supabase.auth.getUser().then(async ({ data: { user: authUser } }) => {
+    // people who were, in fact, logged in. getUser() makes a network call
+    // though, so it can fail transiently (cold start, brief network blip);
+    // if it errors, fall back to getSession() rather than concluding
+    // "not logged in" from a request that never actually completed.
+    const checkAuth = async () => {
+      const { data: { user: authUser }, error } = await supabase.auth.getUser()
       if (authUser) {
         const u = await loadUserProfile(
           authUser.id,
@@ -98,9 +102,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           authUser.user_metadata || {}
         )
         setUser(u)
+        setIsLoading(false)
+        return
+      }
+      if (error) {
+        console.warn("auth.getUser() failed, falling back to cached session:", error.message)
+        const { data: { session } } = await supabase.auth.getSession()
+        if (session?.user) {
+          const u = await loadUserProfile(
+            session.user.id,
+            session.user.email || "",
+            session.user.user_metadata || {}
+          )
+          setUser(u)
+          setIsLoading(false)
+          return
+        }
       }
       setIsLoading(false)
-    })
+    }
+    checkAuth()
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
