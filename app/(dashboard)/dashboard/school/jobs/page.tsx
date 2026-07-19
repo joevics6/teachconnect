@@ -1,7 +1,8 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense, useCallback } from "react"
 import Link from "next/link"
+import { useSearchParams } from "next/navigation"
 import {
   Briefcase,
   CheckCircle2,
@@ -16,6 +17,7 @@ import {
   XCircle,
   AlertCircle,
   MoreVertical,
+  CalendarPlus,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { SchoolSidebar } from "@/components/dashboard/SchoolSidebar"
@@ -71,10 +73,12 @@ function JobActionsMenu({
   job,
   onClose,
   onDuplicate,
+  onAddonPurchase,
 }: {
   job: Job
   onClose: (id: string) => void
   onDuplicate: (id: string) => void
+  onAddonPurchase: (id: string, addonType: "featured" | "extended") => void
 }) {
   const [open, setOpen] = useState(false)
 
@@ -89,7 +93,7 @@ function JobActionsMenu({
       {open && (
         <>
           <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 top-full mt-1 w-40 bg-white border border-gray-200 rounded-xl shadow-lg z-20 overflow-hidden">
+          <div className="absolute right-0 top-full mt-1 w-48 bg-white border border-gray-200 rounded-xl shadow-lg z-20 overflow-hidden">
             <Link
               href={`/dashboard/school/jobs/${job.id}/applicants`}
               className="flex items-center gap-2 px-3 py-2.5 text-xs text-gray-700 hover:bg-gray-50 transition"
@@ -106,6 +110,24 @@ function JobActionsMenu({
               <Eye className="h-3.5 w-3.5 text-gray-400" />
               Preview Listing
             </Link>
+            {job.status === "active" && !job.is_featured && (
+              <button
+                onClick={() => { onAddonPurchase(job.id, "featured"); setOpen(false) }}
+                className="flex items-center gap-2 px-3 py-2.5 text-xs text-gray-700 hover:bg-gray-50 transition w-full"
+              >
+                <Star className="h-3.5 w-3.5 text-yellow-500" />
+                Feature This Job — ₦10,000
+              </button>
+            )}
+            {job.status === "active" && (
+              <button
+                onClick={() => { onAddonPurchase(job.id, "extended"); setOpen(false) }}
+                className="flex items-center gap-2 px-3 py-2.5 text-xs text-gray-700 hover:bg-gray-50 transition w-full"
+              >
+                <CalendarPlus className="h-3.5 w-3.5 text-ink-500" />
+                Extend +15 Days — ₦5,000
+              </button>
+            )}
             <button
               onClick={() => { onDuplicate(job.id); setOpen(false) }}
               className="flex items-center gap-2 px-3 py-2.5 text-xs text-gray-700 hover:bg-gray-50 transition w-full"
@@ -129,19 +151,17 @@ function JobActionsMenu({
   )
 }
 
-export default function SchoolJobsPage() {
+function SchoolJobsContent() {
+  const searchParams = useSearchParams()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [jobs, setJobs] = useState<Job[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [activeFilter, setActiveFilter] = useState<"all" | "active" | "closed" | "draft">("all")
   const [actionLoading, setActionLoading] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState("")
+  const [addonError, setAddonError] = useState("")
 
-  useEffect(() => {
-    fetchJobs()
-  }, [])
-
-  const fetchJobs = async () => {
+  const fetchJobs = useCallback(async () => {
     setIsLoading(true)
     try {
       const response = await fetch("/api/school/jobs")
@@ -152,7 +172,40 @@ export default function SchoolJobsPage() {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [])
+
+  useEffect(() => {
+    fetchJobs()
+  }, [fetchJobs])
+
+  // Paystack redirects back here after a job add-on purchase
+  useEffect(() => {
+    const reference = searchParams.get("reference")
+    const jobId = searchParams.get("addon_job_id")
+    if (!reference || !jobId) return
+
+    fetch(`/api/school/jobs/${jobId}/addon/verify`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ reference }),
+    })
+      .then(async (res) => {
+        const data = await res.json()
+        if (!res.ok) {
+          setAddonError(data.error || "Payment verification failed. Contact support.")
+          return
+        }
+        setSuccessMessage(
+          data.addon_type === "featured"
+            ? "Job is now featured!"
+            : "Posting extended by 15 days!"
+        )
+        setTimeout(() => setSuccessMessage(""), 4000)
+        fetchJobs()
+      })
+      .catch(() => setAddonError("Could not verify payment. Contact support."))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const handleClose = async (jobId: string) => {
     setActionLoading(jobId)
@@ -189,6 +242,26 @@ export default function SchoolJobsPage() {
     } catch (err) {
       console.error(err)
     } finally {
+      setActionLoading(null)
+    }
+  }
+
+  const handleAddonPurchase = async (jobId: string, addonType: "featured" | "extended") => {
+    setActionLoading(jobId)
+    setAddonError("")
+    try {
+      const response = await fetch(`/api/school/jobs/${jobId}/addon/initiate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ addon_type: addonType }),
+      })
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.error || "Failed to start payment")
+      if (data.authorization_url) {
+        window.location.href = data.authorization_url
+      }
+    } catch (err) {
+      setAddonError(err instanceof Error ? err.message : "Failed to start payment")
       setActionLoading(null)
     }
   }
@@ -234,6 +307,13 @@ export default function SchoolJobsPage() {
             <div className="flex items-center gap-2 p-3 bg-ink-50 border border-ink-200 rounded-xl text-ink-700 text-sm">
               <CheckCircle2 className="h-4 w-4 flex-shrink-0" />
               {successMessage}
+            </div>
+          )}
+
+          {addonError && (
+            <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
+              <AlertCircle className="h-4 w-4 flex-shrink-0" />
+              {addonError}
             </div>
           )}
 
@@ -312,7 +392,7 @@ export default function SchoolJobsPage() {
                         {actionLoading === job.id ? (
                           <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
                         ) : (
-                          <JobActionsMenu job={job} onClose={handleClose} onDuplicate={handleDuplicate} />
+                          <JobActionsMenu job={job} onClose={handleClose} onDuplicate={handleDuplicate} onAddonPurchase={handleAddonPurchase} />
                         )}
                       </div>
                     </div>
@@ -378,5 +458,13 @@ export default function SchoolJobsPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function SchoolJobsPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gray-50 flex items-center justify-center"><Loader2 className="h-8 w-8 text-blue-600 animate-spin" /></div>}>
+      <SchoolJobsContent />
+    </Suspense>
   )
 }

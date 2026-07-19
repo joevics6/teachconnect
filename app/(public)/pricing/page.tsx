@@ -484,6 +484,13 @@ export default function PricingPage() {
               </div>
             ))}
           </div>
+          <p className="text-center text-sm text-gray-400 mt-5">
+            Purchase add-ons for any active job from{" "}
+            <Link href="/dashboard/school/jobs" className="text-ink-600 hover:underline font-medium">
+              My Jobs
+            </Link>{" "}
+            in your dashboard.
+          </p>
         </div>
 
         {/* FAQs */}
