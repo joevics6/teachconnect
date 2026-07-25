@@ -3,13 +3,14 @@
 import { useState, useEffect, type ReactNode } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Mail, Users, BookOpen, Newspaper, Loader2, AlertCircle, Send } from "lucide-react"
+import { Mail, Users, BookOpen, Newspaper, Loader2, AlertCircle, Send, HelpCircle } from "lucide-react"
 
 const ADMIN_NAV = [
   { href: "/admin/contact",     label: "Messages",     icon: Mail },
   { href: "/admin/users",       label: "Users",        icon: Users },
   { href: "/admin/resources",   label: "Resources",    icon: BookOpen },
   { href: "/admin/blog",        label: "Blog",         icon: Newspaper },
+  { href: "/admin/quiz-bank",   label: "Quiz Bank",    icon: HelpCircle },
   { href: "/admin/newsletter",  label: "Newsletter",   icon: Send },
 ]
 
