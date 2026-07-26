@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
 import { SchoolSidebar } from "@/components/dashboard/SchoolSidebar"
 import { LogoutButton } from "@/components/layout/LogoutButton"
+import { getCached, setCached } from "@/lib/client-cache"
 
 interface Job {
   id: string; title: string; subject: string
@@ -89,7 +90,15 @@ export default function SchoolDashboardPage() {
 
   // ── Load all data via API routes (same pattern as teacher dashboard) ──
   useEffect(() => {
-    // School profile
+    // School profile — cached first for instant paint on repeat visits
+    // within this tab, then always refetched in the background. The
+    // school edit-profile page clears this key on save.
+    const cachedSchool = getCached<{ school_name?: string }>("school:profile")
+    if (cachedSchool?.school_name) {
+      setSchoolName(cachedSchool.school_name)
+      setLoadingProfile(false)
+    }
+
     fetch("/api/school/profile")
       .then(async (res) => {
         if (res.status === 401) { router.push("/login"); return }
@@ -101,6 +110,7 @@ export default function SchoolDashboardPage() {
         const data = await res.json()
         if (data.school) {
           setSchoolName(data.school.school_name || "School")
+          setCached("school:profile", data.school)
         }
       })
       .catch(console.error)

@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
 import { TeacherSidebar } from "@/components/dashboard/TeacherSidebar"
 import { LogoutButton } from "@/components/layout/LogoutButton"
+import { getCached, setCached } from "@/lib/client-cache"
 
 interface TeacherProfile {
   id: string
@@ -171,9 +172,72 @@ export default function TeacherDashboardPage() {
 
   // ── Load all dashboard data via API routes (same pattern as profile page) ──
   useEffect(() => {
-    // Profile — call the API route exactly like the profile page does
-    // The server handles auth via cookies; no client-side session gate needed
-    setLoadingProfile(true)
+    // Profile — call the API route exactly like the profile page does.
+    // The server handles auth via cookies; no client-side session gate needed.
+    //
+    // Cached first (instant paint on repeat visits within this tab),
+    // then always refetched in the background to confirm/update — see
+    // lib/client-cache.ts. Edit-profile pages clear this key on save so
+    // a real change is never masked by stale cached data.
+    const applyProfileResponse = (p: Record<string, unknown> | null | undefined) => {
+      if (!p) return
+      setUserName((p.full_name as string) || "Teacher")
+      setAuthChecked(true)
+
+      setProfile({
+        id: p.id as string,
+        full_name: p.full_name as string,
+        state: p.state as string,
+        lga: (p.lga as string | null) ?? null,
+        subjects: (p.subjects as string[]) ?? [],
+        teaching_levels: (p.teaching_levels as string[]) ?? [],
+        photo_url: (p.photo_url as string | null) ?? null,
+        profile_completion: (p.profile_completion as number) ?? 0,
+        is_visible: (p.is_visible as boolean) ?? true,
+        trcn_status: (p.trcn_status as string) ?? "",
+        bio: (p.bio as string | null) ?? null,
+        cv_url: (p.cv_url as string | null) ?? null,
+        phone: (p.phone as string) ?? "",
+        trcn_number: (p.trcn_number as string | null) ?? null,
+        years_experience: (p.years_experience as number) ?? 0,
+        availability: (p.availability as string | null) ?? null,
+        salary_min: (p.salary_min as number | null) ?? null,
+        willing_to_relocate: (p.willing_to_relocate as boolean | null) ?? null,
+      })
+
+      // The API already merges onboarding fields into the profile object
+      setOnboarding({
+        cv_name:                      (p.cv_name as string | null) ?? null,
+        cv_summary:                   (p.cv_summary as string | null) ?? null,
+        cv_skills:                    (p.cv_skills as string[]) ?? [],
+        cv_roles:                     (p.cv_roles as string[]) ?? [],
+        cv_languages:                 (p.cv_languages as string[]) ?? [],
+        cv_certifications:            (p.cv_certifications as string[]) ?? [],
+        cv_linkedin:                  (p.cv_linkedin as string | null) ?? null,
+        cv_work_experience:           (p.cv_work_experience as OnboardingData["cv_work_experience"]) ?? [],
+        cv_education:                 (p.cv_education as OnboardingData["cv_education"]) ?? [],
+        cv_awards:                    (p.cv_awards as string[]) ?? [],
+        cv_interests:                 (p.cv_interests as string[]) ?? [],
+        curriculum_experience:        (p.curriculum_experience as string[]) ?? [],
+        teaching_style:               (p.teaching_style as string[]) ?? [],
+        lesson_delivery_mode:         (p.lesson_delivery_mode as string[]) ?? [],
+        talent_pool:                  (p.talent_pool as boolean | null) ?? null,
+        years_of_teaching_experience: (p.years_of_teaching_experience as number | null) ?? null,
+        experience_level:             (p.experience_level as string | null) ?? null,
+        preferred_states:             (p.preferred_states as string[]) ?? [],
+        accommodation_needed:         (p.accommodation_needed as boolean | null) ?? null,
+        sector:                       (p.sector as string | null) ?? null,
+        job_type:                     (p.job_type as string | null) ?? null,
+      })
+    }
+
+    const cachedProfile = getCached<Record<string, unknown>>("teacher:profile")
+    if (cachedProfile) {
+      applyProfileResponse(cachedProfile)
+    } else {
+      setLoadingProfile(true)
+    }
+
     fetch("/api/teacher/profile")
       .then(async (res) => {
         if (res.status === 401) {
@@ -192,56 +256,8 @@ export default function TeacherDashboardPage() {
         const data = await res.json()
         const p = data.profile
         if (!p) return
-
-        // Set user name from profile
-        setUserName(p.full_name || "Teacher")
-        setAuthChecked(true)
-
-        setProfile({
-          id: p.id,
-          full_name: p.full_name,
-          state: p.state,
-          lga: p.lga ?? null,
-          subjects: p.subjects ?? [],
-          teaching_levels: p.teaching_levels ?? [],
-          photo_url: p.photo_url ?? null,
-          profile_completion: p.profile_completion ?? 0,
-          is_visible: p.is_visible ?? true,
-          trcn_status: p.trcn_status ?? "",
-          bio: p.bio ?? null,
-          cv_url: p.cv_url ?? null,
-          phone: p.phone ?? "",
-          trcn_number: p.trcn_number ?? null,
-          years_experience: p.years_experience ?? 0,
-          availability: p.availability ?? null,
-          salary_min: p.salary_min ?? null,
-          willing_to_relocate: p.willing_to_relocate ?? null,
-        })
-
-        // The API already merges onboarding fields into the profile object
-        setOnboarding({
-          cv_name:                      p.cv_name ?? null,
-          cv_summary:                   p.cv_summary ?? null,
-          cv_skills:                    p.cv_skills ?? [],
-          cv_roles:                     p.cv_roles ?? [],
-          cv_languages:                 p.cv_languages ?? [],
-          cv_certifications:            p.cv_certifications ?? [],
-          cv_linkedin:                  p.cv_linkedin ?? null,
-          cv_work_experience:           p.cv_work_experience ?? [],
-          cv_education:                 p.cv_education ?? [],
-          cv_awards:                    p.cv_awards ?? [],
-          cv_interests:                 p.cv_interests ?? [],
-          curriculum_experience:        p.curriculum_experience ?? [],
-          teaching_style:               p.teaching_style ?? [],
-          lesson_delivery_mode:         p.lesson_delivery_mode ?? [],
-          talent_pool:                  p.talent_pool ?? null,
-          years_of_teaching_experience: p.years_of_teaching_experience ?? null,
-          experience_level:             p.experience_level ?? null,
-          preferred_states:             p.preferred_states ?? [],
-          accommodation_needed:         p.accommodation_needed ?? null,
-          sector:                       p.sector ?? null,
-          job_type:                     p.job_type ?? null,
-        })
+        applyProfileResponse(p)
+        setCached("teacher:profile", p)
       })
       .catch((err) => console.error("Profile load error:", err))
       .finally(() => setLoadingProfile(false))

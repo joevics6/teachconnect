@@ -6,6 +6,7 @@ import { Menu, X, GraduationCap, ChevronDown, LogOut, User, LayoutDashboard } fr
 import { Button } from "@/components/ui/button"
 import { createClient } from "@/lib/supabase/client"
 import { useAuth } from "@/lib/auth-context"
+import { clearAllUserCache } from "@/lib/client-cache"
 
 export default function Navbar() {
   const { user, isLoading, dashboardLink } = useAuth()
@@ -22,6 +23,7 @@ export default function Navbar() {
     } catch (err) {
       console.error("Logout error:", err)
     } finally {
+      clearAllUserCache()
       window.location.href = "/"
     }
   }

@@ -3,12 +3,15 @@
 import { useState } from "react"
 import { LogOut, Loader2 } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
+import { clearAllUserCache } from "@/lib/client-cache"
 
 // Shared logout control for every dashboard sidebar. Always signs out via
-// the Supabase client SDK, then does a *hard* redirect to the homepage
-// (window.location.href, not router.push) so every bit of client state
-// and cached data is thrown away — this is what makes logout reliable
-// across teacher and school dashboards.
+// the Supabase client SDK, clears cached user data (sessionStorage
+// survives a hard reload, so this has to be explicit), then does a
+// *hard* redirect to the homepage (window.location.href, not
+// router.push) so every bit of client state and cached data is thrown
+// away — this is what makes logout reliable across teacher and school
+// dashboards.
 export function LogoutButton({
   className,
   label = "Log Out",
@@ -28,6 +31,7 @@ export function LogoutButton({
     } catch (err) {
       console.error("Logout error:", err)
     } finally {
+      clearAllUserCache()
       // Always redirect, even if signOut() failed — a hard navigation to a
       // protected-by-default app forces middleware to re-check auth, and a
       // stuck client-side session is worse than a stale one that gets

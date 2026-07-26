@@ -10,6 +10,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { StateLgaSelect } from "@/components/ui/StateLgaSelect"
 import { TEACHING_LEVELS } from "@/lib/constants"
+import { clearCached } from "@/lib/client-cache"
 
 const SCHOOL_TYPES = [
   { value: "private",       label: "Private"       },
@@ -151,6 +152,10 @@ export default function EditSchoolProfilePage() {
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || "Save failed")
+      // school_name/logo also feed the navbar and the dashboard overview
+      // page — clear their caches so the change shows up immediately.
+      clearCached("school:profile")
+      clearCached("auth:me")
       setSuccess(true)
       if (data.school?.verification_status) setVerificationStatus(data.school.verification_status)
       setTimeout(() => router.push("/dashboard/school"), 1200)

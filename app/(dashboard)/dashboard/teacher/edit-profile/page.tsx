@@ -7,6 +7,7 @@ import { ArrowLeft, Save, Loader2, CheckCircle2, AlertCircle, Camera, X, FileTex
 import { Button } from "@/components/ui/button"
 import { StateLgaSelect } from "@/components/ui/StateLgaSelect"
 import { SUBJECTS, TEACHING_LEVELS, NIGERIAN_STATES } from "@/lib/constants"
+import { clearCached } from "@/lib/client-cache"
 
 interface ProfileForm {
   full_name: string
@@ -193,6 +194,11 @@ export default function EditTeacherProfilePage() {
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || "Save failed")
+      // Editable fields here (name, photo) also feed the navbar and the
+      // dashboard overview page — clear their caches so the change shows
+      // up immediately instead of waiting for a stale cache to expire.
+      clearCached("teacher:profile")
+      clearCached("auth:me")
       setSuccess(true)
       setTimeout(() => {
         router.push("/dashboard/teacher")

@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, useCallback } from "react"
 import { createClient } from "@/lib/supabase/client"
+import { getCached, setCached, clearAllUserCache } from "@/lib/client-cache"
 
 export interface AuthUser {
   id: string
@@ -29,28 +30,24 @@ export function useAuth() {
   return useContext(AuthContext)
 }
 
+const CACHE_KEY = "auth:me"
+
 // Fetches login state from a same-origin API route (server-side, cookie
 // based) instead of calling supabase.auth.getSession()/getUser() directly
 // from the browser. Two real problems with the direct-from-browser
 // approach: (1) if the auth cookie is httpOnly, browser-side Supabase JS
 // can't read it at all — getSession() and getUser() both silently come
-// back empty regardless of how they're ordered or wrapped; (2) getUser()
-// specifically requires a live cross-origin network call to *.supabase.co,
-// which is exactly the kind of request that fails on mobile (flaky data,
-// in-app browsers, DNS filtering). Dashboard pages never had this bug
-// because they already fetch their own data through a same-origin API
-// route rather than calling Supabase directly from the browser — this
-// applies that same pattern to the navbar.
+// back empty; (2) getUser() specifically requires a live cross-origin
+// network call to *.supabase.co, which is exactly the kind of request
+// that fails on mobile. Dashboard pages never had this bug because they
+// already fetch their own data through a same-origin API route rather
+// than calling Supabase directly from the browser — this applies that
+// same pattern to the navbar.
 async function fetchAuthUser(): Promise<AuthUser | null> {
-  try {
-    const res = await fetch("/api/auth/me", { cache: "no-store" })
-    if (!res.ok) return null
-    const data = await res.json()
-    return data.user ?? null
-  } catch (err) {
-    console.warn("fetchAuthUser() failed:", err)
-    return null
-  }
+  const res = await fetch("/api/auth/me", { cache: "no-store" })
+  if (!res.ok) return null
+  const data = await res.json()
+  return data.user ?? null
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -58,39 +55,61 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
 
   const refresh = useCallback(async () => {
-    const u = await fetchAuthUser()
-    setUser(u)
+    try {
+      const u = await fetchAuthUser()
+      setUser(u)
+      if (u) setCached(CACHE_KEY, u)
+    } catch (err) {
+      console.warn("refresh() failed:", err)
+    }
   }, [])
 
   useEffect(() => {
     let cancelled = false
 
-    fetchAuthUser().then((u) => {
-      if (!cancelled) {
+    // Stale-while-revalidate: a cached user (from earlier this tab
+    // session) paints instantly — no loading flash on every navigation —
+    // while a fresh fetch confirms/updates in the background. This is
+    // what was making the navbar feel slow: every full page load was
+    // waiting on a network round trip before showing anything.
+    const cachedUser = getCached<AuthUser>(CACHE_KEY)
+    if (cachedUser) {
+      setUser(cachedUser)
+      setIsLoading(false)
+    }
+
+    fetchAuthUser()
+      .then((u) => {
+        if (cancelled) return
         setUser(u)
         setIsLoading(false)
-      }
-    })
+        if (u) setCached(CACHE_KEY, u)
+        else clearAllUserCache()
+      })
+      .catch((err) => {
+        console.warn("fetchAuthUser() failed:", err)
+        if (!cancelled && !cachedUser) setIsLoading(false)
+      })
 
     // Still listen for in-tab auth changes (e.g. a session refresh or an
-    // explicit sign-out triggered elsewhere on the page) so the navbar
-    // updates immediately without needing a full reload. Login/logout
+    // explicit sign-out triggered elsewhere on the page). Login/logout
     // themselves already do a hard navigation (window.location.href),
-    // which re-runs the fetch above from scratch on the fresh page load,
-    // so this listener is a nice-to-have, not load-bearing.
+    // which re-runs the fetch above fresh on the new page load, so this
+    // listener is a nice-to-have, not load-bearing.
     const supabase = createClient()
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event) => {
         if (event === "SIGNED_OUT") {
           setUser(null)
           setIsLoading(false)
+          clearAllUserCache()
         } else if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED" || event === "USER_UPDATED") {
           fetchAuthUser().then((u) => {
-            if (!cancelled) {
-              setUser(u)
-              setIsLoading(false)
-            }
-          })
+            if (cancelled) return
+            setUser(u)
+            setIsLoading(false)
+            if (u) setCached(CACHE_KEY, u)
+          }).catch((err) => console.warn("onAuthStateChange refetch failed:", err))
         }
       }
     )
