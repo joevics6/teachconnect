@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import Link from "next/link"
 import {
   GraduationCap, Loader2, ArrowLeft, ArrowRight, CheckCircle2,
@@ -79,6 +79,7 @@ export default function TeacherRegisterPage() {
   const [errors, setErrors] = useState<Record<string, string>>({})
 
   // CV
+  const cvInputRef = useRef<HTMLInputElement>(null)
   const [cvFile, setCvFile] = useState<File | null>(null)
   const [cvFileName, setCvFileName] = useState("")
   const [isParsing, setIsParsing] = useState(false)
@@ -204,12 +205,24 @@ export default function TeacherRegisterPage() {
 
   const prevStep = () => setStep((s) => s - 1)
 
+  // Every step transition (next, back, "Skip and fill manually", "Go back"
+  // from review) should land the person at the top of the new step's
+  // content, not wherever the previous step happened to be scrolled to —
+  // on mobile the Continue button sits at the bottom, so without this a
+  // person lands on the bottom of the next step looking like nothing
+  // changed.
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior })
+  }, [step])
+
   // ── CV Upload ─────────────────────────────────────────────────────────────
+  const ALLOWED_CV_TYPES = ["application/pdf", "image/jpeg", "image/jpg", "image/png", "image/webp"]
+
   const handleCvUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
-    if (file.type !== "application/pdf") {
-      setErrors((p) => ({ ...p, cv_file: "Only PDF files are allowed" }))
+    if (!ALLOWED_CV_TYPES.includes(file.type)) {
+      setErrors((p) => ({ ...p, cv_file: "Only PDF, JPG, or PNG files are allowed" }))
       return
     }
     if (file.size > 5 * 1024 * 1024) {
@@ -550,16 +563,16 @@ export default function TeacherRegisterPage() {
                       </div>
                     )}
                     {parseMeta && (
-                      <div className="grid grid-cols-4 gap-2 pt-1">
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
                         {[
                           { label: "Skills",         count: parseMeta.skills_count },
                           { label: "Work roles",     count: parseMeta.work_experience_count },
                           { label: "Qualifications", count: parseMeta.education_count },
                           { label: "Certifications", count: parseMeta.certifications_count },
                         ].map(({ label, count }) => (
-                          <div key={label} className="bg-white rounded-lg p-2 text-center border border-gray-200">
+                          <div key={label} className="bg-white rounded-lg p-2 text-center border border-gray-200 min-w-0">
                             <p className="text-base font-bold text-ink-700">{count}</p>
-                            <p className="text-xs text-gray-500">{label}</p>
+                            <p className="text-xs text-gray-500 break-words">{label}</p>
                           </div>
                         ))}
                       </div>
@@ -583,27 +596,32 @@ export default function TeacherRegisterPage() {
                 </div>
               )}
 
-              <label className={`cursor-pointer flex items-center gap-3 w-full border-2 border-dashed rounded-xl transition ${
-                parseSuccess ? "p-3 border-ink-300 bg-ink-50"
-                : isParsing  ? "p-8 border-purple-300 bg-purple-50 cursor-not-allowed"
-                : cvFileName ? "p-8 border-ink-400 bg-ink-50"
-                : "p-10 flex-col justify-center border-gray-300 hover:border-ink-400 hover:bg-ink-50"
-              }`}>
+              <div
+                onClick={() => !isParsing && cvInputRef.current?.click()}
+                className={`flex items-center gap-3 w-full border-2 border-dashed rounded-xl transition ${
+                  isParsing ? "cursor-not-allowed" : "cursor-pointer"
+                } ${
+                  parseSuccess ? "p-3 border-ink-300 bg-ink-50"
+                  : isParsing  ? "p-8 border-purple-300 bg-purple-50"
+                  : cvFileName ? "p-8 border-ink-400 bg-ink-50"
+                  : "p-8 sm:p-10 flex-col justify-center border-gray-300 hover:border-ink-400 hover:bg-ink-50"
+                }`}
+              >
                 {parseSuccess ? (
                   <>
                     <FileText className="h-5 w-5 text-ink-600 flex-shrink-0" />
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-ink-700 truncate">{cvFileName}</p>
-                      <p className="text-xs text-ink-500">Parsed ✓ — click to replace</p>
+                      <p className="text-sm font-medium text-ink-700 break-words">{cvFileName}</p>
+                      <p className="text-xs text-ink-500">Parsed ✓ — tap to replace</p>
                     </div>
                     <Upload className="h-4 w-4 text-ink-400 flex-shrink-0" />
                   </>
                 ) : cvFileName ? (
-                  <div className="flex flex-col items-center gap-3 w-full">
-                    <FileText className="h-8 w-8 text-ink-600" />
-                    <div className="text-center">
-                      <p className="text-sm font-medium text-ink-700">{cvFileName}</p>
-                      <p className="text-xs text-ink-500 mt-0.5">Click to replace</p>
+                  <div className="flex flex-col items-center gap-3 w-full min-w-0">
+                    <FileText className="h-8 w-8 text-ink-600 flex-shrink-0" />
+                    <div className="text-center w-full min-w-0 px-2">
+                      <p className="text-sm font-medium text-ink-700 break-words">{cvFileName}</p>
+                      <p className="text-xs text-ink-500 mt-0.5">{isParsing ? "Parsing…" : "Tap to replace"}</p>
                     </div>
                   </div>
                 ) : (
@@ -612,13 +630,27 @@ export default function TeacherRegisterPage() {
                       <Upload className="h-6 w-6 text-ink-600" />
                     </div>
                     <div className="text-center">
-                      <p className="text-sm font-semibold text-gray-700">Click to upload your CV</p>
-                      <p className="text-xs text-gray-400 mt-1">PDF only · Max 5MB</p>
+                      <p className="text-sm font-semibold text-gray-700">Tap to upload your CV</p>
+                      <p className="text-xs text-gray-400 mt-1">PDF, JPG or PNG · Max 5MB</p>
                     </div>
+                    <Button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); cvInputRef.current?.click() }}
+                      className="bg-ink-600 hover:bg-ink-700 text-white mt-1"
+                    >
+                      <Upload className="h-4 w-4" /> Upload CV
+                    </Button>
                   </div>
                 )}
-                <input type="file" accept="application/pdf" onChange={handleCvUpload} disabled={isParsing} className="hidden" />
-              </label>
+                <input
+                  ref={cvInputRef}
+                  type="file"
+                  accept="application/pdf,image/jpeg,image/jpg,image/png,image/webp"
+                  onChange={handleCvUpload}
+                  disabled={isParsing}
+                  className="hidden"
+                />
+              </div>
               {errors.cv_file && <p className="text-red-500 text-xs">{errors.cv_file}</p>}
 
               {!cvFileName && (
@@ -930,27 +962,30 @@ export default function TeacherRegisterPage() {
           )}
 
           {/* ── Navigation ────────────────────────────────────────────────── */}
-          <div className="flex justify-between mt-8 pt-6 border-t border-gray-100">
+          <div className="flex justify-between items-center mt-8 pt-6 border-t border-gray-100">
             {step > 1 ? (
               <Button type="button" variant="outline" onClick={prevStep} className="flex items-center gap-2">
                 <ArrowLeft className="h-4 w-4" /> Back
               </Button>
+            ) : !cvFileName ? (
+              <p className="text-sm text-gray-500">
+                Already have an account?{" "}
+                <Link href="/login" className="text-ink-600 font-medium underline">Sign in</Link>
+              </p>
             ) : (
-              <Link href="/login">
-                <Button variant="ghost" className="text-gray-500">Already have an account?</Button>
-              </Link>
+              <span />
             )}
 
             {step < 5 ? (
               <Button type="button" onClick={nextStep} disabled={isParsing}
-                className="bg-ink-600 hover:bg-ink-700 text-white flex items-center gap-2">
+                className="bg-ink-600 hover:bg-ink-700 text-white flex items-center gap-2 shadow-md">
                 {isParsing
                   ? <><Loader2 className="h-4 w-4 animate-spin" /> Parsing CV…</>
                   : <>Continue <ArrowRight className="h-4 w-4" /></>}
               </Button>
             ) : (
               <Button type="button" onClick={handleSubmit} disabled={isLoading}
-                className="bg-ink-600 hover:bg-ink-700 text-white flex items-center gap-2">
+                className="bg-ink-600 hover:bg-ink-700 text-white flex items-center gap-2 shadow-md">
                 {isLoading
                   ? <><Loader2 className="h-4 w-4 animate-spin" /> Creating Profile…</>
                   : <><CheckCircle2 className="h-4 w-4" /> Create Profile</>}

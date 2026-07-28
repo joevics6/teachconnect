@@ -146,10 +146,12 @@ export async function POST(request: Request) {
       )
     }
 
-    // Validate file type
-    if (file.type !== "application/pdf") {
+    // Validate file type — PDF or a photo of a CV (Gemini vision handles
+    // both natively via inline_data, so no separate OCR step is needed)
+    const ALLOWED_TYPES = ["application/pdf", "image/jpeg", "image/jpg", "image/png", "image/webp"]
+    if (!ALLOWED_TYPES.includes(file.type)) {
       return NextResponse.json(
-        { error: "Only PDF files are supported" },
+        { error: "Only PDF, JPG, or PNG files are supported" },
         { status: 400 }
       )
     }

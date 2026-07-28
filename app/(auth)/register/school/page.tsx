@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import {
   GraduationCap, Loader2, ArrowLeft, ArrowRight,
@@ -113,6 +113,13 @@ export default function SchoolRegisterPage() {
 
   const nextStep = () => { if (validateStep()) setStep((s) => s + 1) }
   const prevStep = () => setStep((s) => s - 1)
+
+  // Land at the top of each new step instead of wherever the previous
+  // step happened to be scrolled to — see the same fix on the teacher
+  // registration wizard for the full reasoning.
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior })
+  }, [step])
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -510,25 +517,26 @@ export default function SchoolRegisterPage() {
           )}
 
           {/* Navigation */}
-          <div className="flex justify-between mt-8 pt-6 border-t border-gray-100">
+          <div className="flex justify-between items-center mt-8 pt-6 border-t border-gray-100">
             {step > 1 ? (
               <Button type="button" variant="outline" onClick={prevStep} className="flex items-center gap-2">
                 <ArrowLeft className="h-4 w-4" />Back
               </Button>
             ) : (
-              <Link href="/login">
-                <Button variant="ghost" className="text-gray-500">Already have an account?</Button>
-              </Link>
+              <p className="text-sm text-gray-500">
+                Already have an account?{" "}
+                <Link href="/login" className="text-blue-700 font-medium underline">Sign in</Link>
+              </p>
             )}
 
             {step < 3 ? (
               <Button type="button" onClick={nextStep}
-                className="bg-blue-700 hover:bg-blue-800 text-white flex items-center gap-2">
+                className="bg-blue-700 hover:bg-blue-800 text-white flex items-center gap-2 shadow-md">
                 Continue <ArrowRight className="h-4 w-4" />
               </Button>
             ) : (
               <Button type="button" onClick={handleSubmit} disabled={isLoading}
-                className="bg-blue-700 hover:bg-blue-800 text-white flex items-center gap-2">
+                className="bg-blue-700 hover:bg-blue-800 text-white flex items-center gap-2 shadow-md">
                 {isLoading
                   ? <><Loader2 className="h-4 w-4 animate-spin" />Registering…</>
                   : <><CheckCircle2 className="h-4 w-4" />Complete Registration</>
