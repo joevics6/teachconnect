@@ -146,9 +146,13 @@ export default function HomePage() {
   return (
     <div className="flex flex-col">
 
-      {/* Hero — asymmetric: thesis statement on the left, the actual
-          screening mechanic shown (not described) on the right. */}
-      <section className="bg-white pt-16 pb-24 px-4 sm:pt-20 sm:pb-28">
+      {/* Hero — thesis statement on the left; on the right, a layered
+          composition: a real photo (transparent PNG, dropped in by the
+          person running the site — see public/images/README.md) with
+          the ranking-card mockup anchored over it, so the product
+          visual and a human presence share the same frame instead of
+          competing for attention. */}
+      <section className="relative bg-white pt-16 pb-24 px-4 sm:pt-20 sm:pb-28 overflow-hidden">
         <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-16 items-center">
           <div>
             <div className="inline-flex items-center gap-2 text-ink-700 text-xs font-semibold uppercase tracking-wide mb-6">
@@ -156,11 +160,11 @@ export default function HomePage() {
               Built for Nigerian schools & teachers
             </div>
             <h1 className="font-display text-4xl sm:text-5xl lg:text-[3.4rem] text-ink-950 leading-[1.08] mb-6">
-              Teacher hiring,<br />
-              <span className="italic text-ink-600">done properly.</span>
+              Stop drowning in CVs.<br />
+              <span className="italic text-ink-600">Start hiring teachers who can actually teach.</span>
             </h1>
             <p className="text-lg text-gray-600 mb-3 leading-relaxed max-w-lg">
-              Schools post vacancies with a built-in subject quiz — only teachers who pass reach the shortlist.
+              A subject quiz screens every applicant automatically — schools open a ranked shortlist, not a 200-CV inbox.
             </p>
             <p className="text-base text-gray-500 mb-10 max-w-lg">
               Teachers build a profile once and get matched to schools hiring for their subject and level.
@@ -168,8 +172,23 @@ export default function HomePage() {
             <HeroCTAs />
           </div>
 
-          <div className="flex justify-center lg:justify-end">
-            <RankingCard />
+          <div className="relative flex justify-center lg:justify-end">
+            {/* Soft field the transparent PNG sits into — keeps the
+                composition intentional even before the image is added */}
+            <div className="absolute -inset-x-8 -inset-y-12 -z-10 bg-gradient-to-br from-brass-50 via-ink-50/60 to-transparent rounded-[3rem] blur-2xl" />
+
+            <div className="relative w-full max-w-sm h-[420px] sm:h-[480px]">
+              {/* Hero photo — transparent background, drop the file at
+                  public/images/hero-teacher.png. Empty until then. */}
+              <img
+                src="/images/hero-teacher.png"
+                alt=""
+                className="absolute inset-x-0 bottom-0 mx-auto h-full w-auto max-w-none object-contain object-bottom pointer-events-none select-none hidden sm:block"
+              />
+              <div className="absolute left-1/2 -translate-x-1/2 sm:left-auto sm:translate-x-0 sm:right-0 bottom-6">
+                <RankingCard />
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -183,7 +202,7 @@ export default function HomePage() {
               <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-4">The old way</p>
               <ul className="space-y-3">
                 {[
-                  "Weeks spent opening CVs that go nowhere",
+                  "Reading through 200 CVs, one at a time",
                   "No way to verify a claimed subject skill",
                   "Interviews before you know who's qualified",
                 ].map((t) => (
