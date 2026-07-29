@@ -5,9 +5,10 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import {
   ArrowLeft, Star, Clock, MessageSquare, UserCheck,
-  Loader2, User, MapPin, BookOpen, GraduationCap,
+  Loader2, User, MapPin, BookOpen, GraduationCap, Menu,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { SchoolSidebar } from "@/components/dashboard/SchoolSidebar"
 
 const FOLDERS = [
   { value: "",               label: "All Saved",         icon: Star       },
@@ -57,6 +58,7 @@ function AvailabilityBadge({ value }: { value: string }) {
 export default function SavedTeachersPage() {
   const router = useRouter()
   const [activeFolder, setActiveFolder] = useState("")
+  const [sidebarOpen, setSidebarOpen]   = useState(false)
   const [saved, setSaved]               = useState<SavedTeacher[]>([])
   const [loading, setLoading]           = useState(true)
 
@@ -98,10 +100,16 @@ export default function SavedTeachersPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex">
+      <SchoolSidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+
+      <div className="flex-1 min-w-0">
       {/* Header */}
       <div className="bg-white border-b sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center gap-3">
+          <button className="lg:hidden p-2 -ml-2 rounded-lg hover:bg-gray-100 transition" onClick={() => setSidebarOpen(true)}>
+            <Menu className="h-5 w-5 text-gray-600" />
+          </button>
           <Link href="/dashboard/school">
             <button className="p-2 rounded-lg hover:bg-gray-100 transition">
               <ArrowLeft className="h-5 w-5 text-gray-600" />
@@ -201,6 +209,7 @@ export default function SavedTeachersPage() {
             })}
           </div>
         )}
+      </div>
       </div>
     </div>
   )

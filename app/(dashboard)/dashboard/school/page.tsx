@@ -116,22 +116,33 @@ export default function SchoolDashboardPage() {
       .catch(console.error)
       .finally(() => setLoadingProfile(false))
 
-    // Subscription
+    // Subscription — cached first, refetched in background
+    const cachedPlan = getCached<"free" | "standard" | "term">("school:plan-type")
+    if (cachedPlan) setPlanType(cachedPlan)
     fetch("/api/school/subscription")
       .then(async (res) => {
         if (!res.ok) return
         const data = await res.json()
-        setPlanType(data.subscription?.plan_type || "free")
+        const plan = data.subscription?.plan_type || "free"
+        setPlanType(plan)
+        setCached("school:plan-type", plan)
       })
       .catch(console.error)
 
-    // Jobs
+    // Jobs — cached first, refetched in background. Applicants for the
+    // first active job are always fetched fresh (job-dependent, cheap).
+    const cachedJobs = getCached<Job[]>("school:jobs")
+    if (cachedJobs) {
+      setJobs(cachedJobs)
+      setLoadingJobs(false)
+    }
     fetch("/api/school/jobs")
       .then(async (res) => {
         if (!res.ok) return
         const data = await res.json()
         const jobList: Job[] = (data.jobs || []).slice(0, 3)
         setJobs(jobList)
+        setCached("school:jobs", jobList)
 
         // Load applicants for first active job
         const activeJob = jobList.find((j) => j.status === "active")
@@ -169,21 +180,31 @@ export default function SchoolDashboardPage() {
       .catch(console.error)
       .finally(() => setLoadingJobs(false))
 
-    // Recruiter metrics from applications
+    // Recruiter metrics from applications — cached first, refetched in background
+    const cachedMetrics = getCached<{ interviews: number; offers: number; hired: number; avgScore: number }>("school:metrics")
+    if (cachedMetrics) setMetrics(cachedMetrics)
     fetch("/api/school/metrics")
       .then(async (res) => {
         if (!res.ok) return
         const data = await res.json()
-        setMetrics(data.metrics || { interviews: 0, offers: 0, hired: 0, avgScore: 0 })
+        const metrics = data.metrics || { interviews: 0, offers: 0, hired: 0, avgScore: 0 }
+        setMetrics(metrics)
+        setCached("school:metrics", metrics)
       })
       .catch(console.error)
 
-    // Notifications
+    // Notifications — cached first, refetched in background
+    const cachedNotifs = getCached<Notification[]>("school:notifications")
+    if (cachedNotifs) {
+      setNotifications(cachedNotifs)
+      setLoadingNotifications(false)
+    }
     fetch("/api/teacher/notifications")
       .then(async (res) => {
         if (!res.ok) return
         const data = await res.json()
         setNotifications(data.notifications || [])
+        setCached("school:notifications", data.notifications || [])
       })
       .catch(() => {})
       .finally(() => setLoadingNotifications(false))
@@ -198,7 +219,11 @@ export default function SchoolDashboardPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ mark_all_read: true }),
       })
-      setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })))
+      setNotifications((prev) => {
+        const updated = prev.map((n) => ({ ...n, is_read: true }))
+        setCached("school:notifications", updated)
+        return updated
+      })
     } catch (err) {
       console.error("Mark all read error:", err)
     }

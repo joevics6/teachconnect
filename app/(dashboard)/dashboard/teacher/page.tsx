@@ -262,8 +262,15 @@ export default function TeacherDashboardPage() {
       .catch((err) => console.error("Profile load error:", err))
       .finally(() => setLoadingProfile(false))
 
-    // Applications
-    setLoadingApplications(true)
+    // Applications — cached first, refetched in background
+    const cachedApps = getCached<Application[]>("teacher:applications")
+    if (cachedApps) {
+      setTotalApplicationsCount(cachedApps.length)
+      setApplications(cachedApps.slice(0, 3))
+      setLoadingApplications(false)
+    } else {
+      setLoadingApplications(true)
+    }
     fetch("/api/teacher/applications")
       .then(async (res) => {
         if (!res.ok) return
@@ -271,48 +278,67 @@ export default function TeacherDashboardPage() {
         const all = data.applications || []
         setTotalApplicationsCount(all.length)
         setApplications(all.slice(0, 3))
+        setCached("teacher:applications", all)
       })
       .catch((err) => console.error("Applications load error:", err))
       .finally(() => setLoadingApplications(false))
 
-    // Notifications
-    setLoadingNotifications(true)
+    // Notifications — cached first, refetched in background
+    const cachedNotifs = getCached<Notification[]>("teacher:notifications")
+    if (cachedNotifs) {
+      setNotifications(cachedNotifs)
+      setLoadingNotifications(false)
+    } else {
+      setLoadingNotifications(true)
+    }
     fetch("/api/teacher/notifications")
       .then(async (res) => {
         if (!res.ok) return
         const data = await res.json()
         setNotifications(data.notifications || [])
+        setCached("teacher:notifications", data.notifications || [])
       })
       .catch(() => {
         // Notifications API may not exist yet — silently ignore
       })
       .finally(() => setLoadingNotifications(false))
 
-    // Saved jobs count
+    // Saved jobs count — cached first, refetched in background
+    const cachedSavedCount = getCached<number>("teacher:saved-jobs-count")
+    if (cachedSavedCount !== null) setSavedJobsCount(cachedSavedCount)
     fetch("/api/teacher/saved-jobs")
       .then(async (res) => {
         if (!res.ok) return
         const data = await res.json()
-        setSavedJobsCount(data.saved_jobs?.length || 0)
+        const count = data.saved_jobs?.length || 0
+        setSavedJobsCount(count)
+        setCached("teacher:saved-jobs-count", count)
       })
       .catch((err) => console.error("Saved jobs error:", err))
 
-    // Invites count
+    // Invites count — cached first, refetched in background
+    const cachedInvitesCount = getCached<number>("teacher:invites-count")
+    if (cachedInvitesCount !== null) setInvitesCount(cachedInvitesCount)
     fetch("/api/teacher/invites")
       .then(async (res) => {
         if (!res.ok) return
         const data = await res.json()
-        setInvitesCount(data.pending || 0)
+        const count = data.pending || 0
+        setInvitesCount(count)
+        setCached("teacher:invites-count", count)
       })
       .catch((err) => console.error("Invites error:", err))
 
     // Subject Mastery quiz results — used to mark the profile-completion item done
+    const cachedQuizSubjects = getCached<string[]>("teacher:quiz-subjects")
+    if (cachedQuizSubjects) setQuizCompletedSubjects(cachedQuizSubjects)
     fetch("/api/teacher/specialization-quiz/results")
       .then(async (res) => {
         if (!res.ok) return
         const data = await res.json()
         const subjects = ((data.results || []) as Array<{ subject: string }>).map((r) => r.subject)
         setQuizCompletedSubjects(subjects)
+        setCached("teacher:quiz-subjects", subjects)
       })
       .catch((err) => console.error("Quiz results error:", err))
 
@@ -327,7 +353,9 @@ export default function TeacherDashboardPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ mark_all_read: true }),
       })
-      setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })))
+      const updated = notifications.map((n) => ({ ...n, is_read: true }))
+      setNotifications(updated)
+      setCached("teacher:notifications", updated)
     } catch (err) {
       console.error("Mark all read error:", err)
     }

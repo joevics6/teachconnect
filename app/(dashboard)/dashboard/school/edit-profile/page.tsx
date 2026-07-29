@@ -5,12 +5,13 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 import {
   ArrowLeft, Save, Loader2, CheckCircle2, AlertCircle,
-  Camera, X, Upload, Building2,
+  Camera, X, Upload, Building2, Menu,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { StateLgaSelect } from "@/components/ui/StateLgaSelect"
 import { TEACHING_LEVELS } from "@/lib/constants"
 import { clearCached } from "@/lib/client-cache"
+import { SchoolSidebar } from "@/components/dashboard/SchoolSidebar"
 
 const SCHOOL_TYPES = [
   { value: "private",       label: "Private"       },
@@ -67,6 +68,7 @@ export default function EditSchoolProfilePage() {
 
   const [verificationStatus, setVerificationStatus] = useState("unverified")
   const [loading, setLoading]           = useState(true)
+  const [sidebarOpen, setSidebarOpen]   = useState(false)
   const [saving, setSaving]             = useState(false)
   const [success, setSuccess]           = useState(false)
   const [error, setError]               = useState("")
@@ -185,11 +187,17 @@ export default function EditSchoolProfilePage() {
   )
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex">
+      <SchoolSidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+
+      <div className="flex-1 min-w-0">
       {/* Header */}
       <div className="bg-white border-b sticky top-0 z-10">
         <div className="max-w-2xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
+            <button className="lg:hidden p-2 -ml-2 rounded-lg hover:bg-gray-100 transition" onClick={() => setSidebarOpen(true)}>
+              <Menu className="h-5 w-5 text-gray-600" />
+            </button>
             <Link href="/dashboard/school">
               <button className="p-2 rounded-lg hover:bg-gray-100 transition">
                 <ArrowLeft className="h-5 w-5 text-gray-600" />
@@ -463,6 +471,7 @@ export default function EditSchoolProfilePage() {
               : <><Save className="h-5 w-5 mr-2" />Save Changes</>}
           </Button>
         </div>
+      </div>
       </div>
     </div>
   )

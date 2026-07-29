@@ -16,9 +16,11 @@ import {
   RotateCcw,
   TrendingUp,
   Award,
+  Menu,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { SUBJECTS } from "@/lib/constants"
+import { TeacherSidebar } from "@/components/dashboard/TeacherSidebar"
 
 // ─── Levels ──────────────────────────────────────────────────
 const LEVELS = [
@@ -85,14 +87,40 @@ function getOrdinal(n: number) {
 function SubjectSelectScreen({ onSelect }: { onSelect: (subject: string, level: string) => void }) {
   const [selected,      setSelected]      = useState("")
   const [selectedLevel, setSelectedLevel] = useState("")
+  const [sidebarOpen,   setSidebarOpen]   = useState(false)
 
   const quizSubjects = SUBJECTS.filter((s) =>
     !["Nursery Activities", "Primary Activities"].includes(s)
   )
 
+  // Nursery and Primary each only have one real "subject" — rather than
+  // making the person pick from a dropdown that doesn't even list it
+  // (Nursery/Primary Activities are intentionally excluded from the
+  // general subject list above), pin it automatically the moment that
+  // level is chosen.
+  const pinnedSubject =
+    selectedLevel === "nursery" ? "Nursery Activities" :
+    selectedLevel === "primary" ? "Primary Activities" :
+    null
+
+  const handleLevelSelect = (levelValue: string) => {
+    setSelectedLevel(levelValue)
+    if (levelValue === "nursery") setSelected("Nursery Activities")
+    else if (levelValue === "primary") setSelected("Primary Activities")
+    else if (pinnedSubject) setSelected("") // leaving a pinned level — clear so they pick a real subject
+  }
+
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-12">
+    <div className="min-h-screen bg-gray-50 flex">
+      <TeacherSidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+
+      <div className="flex-1 min-w-0 flex items-center justify-center px-4 py-12">
       <div className="max-w-lg w-full">
+        <div className="flex items-center gap-3 mb-2 lg:hidden">
+          <button className="p-2 -ml-2 rounded-lg hover:bg-gray-100 transition" onClick={() => setSidebarOpen(true)}>
+            <Menu className="h-5 w-5 text-gray-600" />
+          </button>
+        </div>
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-14 h-14 bg-ink-100 rounded-2xl mb-4">
             <Zap className="h-7 w-7 text-ink-600" />
@@ -125,26 +153,8 @@ function SubjectSelectScreen({ onSelect }: { onSelect: (subject: string, level: 
           </div>
         </div>
 
-        {/* Subject selector */}
-        <div className="bg-white rounded-xl border border-gray-200 p-5 mb-5">
-          <label className="block text-sm font-bold text-gray-900 mb-3">
-            Select your subject
-          </label>
-          <select
-            value={selected}
-            onChange={(e) => setSelected(e.target.value)}
-            className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-ink-500 bg-white"
-          >
-            <option value="">Choose a subject...</option>
-            {quizSubjects.map((s) => (
-              <option key={s} value={s}>
-                {s}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Level selector */}
+        {/* Level selector — moved above subject so a nursery/primary pick
+            can pin the subject before the subject field even matters */}
         <div className="bg-white rounded-xl border border-gray-200 p-5 mb-5">
           <label className="block text-sm font-bold text-gray-900 mb-3">
             Teaching level
@@ -153,7 +163,7 @@ function SubjectSelectScreen({ onSelect }: { onSelect: (subject: string, level: 
             {LEVELS.map((l) => (
               <button
                 key={l.value}
-                onClick={() => setSelectedLevel(l.value)}
+                onClick={() => handleLevelSelect(l.value)}
                 className={`w-full text-left px-4 py-2.5 rounded-xl border text-sm font-medium transition-all ${
                   selectedLevel === l.value
                     ? "border-ink-500 bg-ink-50 text-ink-700"
@@ -165,6 +175,33 @@ function SubjectSelectScreen({ onSelect }: { onSelect: (subject: string, level: 
             ))}
           </div>
         </div>
+
+        {/* Subject selector — hidden once a nursery/primary level has
+            pinned the only subject that applies */}
+        {pinnedSubject ? (
+          <div className="bg-ink-50 border border-ink-200 rounded-xl p-5 mb-5">
+            <p className="text-xs text-ink-500 mb-1">Subject (set automatically for this level)</p>
+            <p className="text-sm font-bold text-ink-700">{pinnedSubject}</p>
+          </div>
+        ) : (
+          <div className="bg-white rounded-xl border border-gray-200 p-5 mb-5">
+            <label className="block text-sm font-bold text-gray-900 mb-3">
+              Select your subject
+            </label>
+            <select
+              value={selected}
+              onChange={(e) => setSelected(e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-ink-500 bg-white"
+            >
+              <option value="">Choose a subject...</option>
+              {quizSubjects.map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
 
         <Button
           onClick={() => selected && selectedLevel && onSelect(selected, selectedLevel)}
@@ -181,6 +218,7 @@ function SubjectSelectScreen({ onSelect }: { onSelect: (subject: string, level: 
         >
           Back to dashboard
         </Link>
+      </div>
       </div>
     </div>
   )

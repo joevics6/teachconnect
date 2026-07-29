@@ -3,11 +3,12 @@
 import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { ArrowLeft, Save, Loader2, CheckCircle2, AlertCircle, Camera, X, FileText, Upload } from "lucide-react"
+import { ArrowLeft, Save, Loader2, CheckCircle2, AlertCircle, Camera, X, FileText, Upload, Menu } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { StateLgaSelect } from "@/components/ui/StateLgaSelect"
 import { SUBJECTS, TEACHING_LEVELS, NIGERIAN_STATES } from "@/lib/constants"
 import { clearCached } from "@/lib/client-cache"
+import { TeacherSidebar } from "@/components/dashboard/TeacherSidebar"
 
 interface ProfileForm {
   full_name: string
@@ -49,6 +50,7 @@ export default function EditTeacherProfilePage() {
     demo_video_url: "",
   })
   const [loading, setLoading]       = useState(true)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const [saving, setSaving]         = useState(false)
   const [success, setSuccess]       = useState(false)
   const [error, setError]           = useState("")
@@ -219,11 +221,17 @@ export default function EditTeacherProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex">
+      <TeacherSidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+
+      <div className="flex-1 min-w-0">
       {/* Header */}
       <div className="bg-white border-b sticky top-0 z-10">
         <div className="max-w-2xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
+            <button className="lg:hidden p-2 -ml-2 rounded-lg hover:bg-gray-100 transition" onClick={() => setSidebarOpen(true)}>
+              <Menu className="h-5 w-5 text-gray-600" />
+            </button>
             <Link href="/dashboard/teacher">
               <button className="p-2 rounded-lg hover:bg-gray-100 transition">
                 <ArrowLeft className="h-5 w-5 text-gray-600" />
@@ -650,6 +658,7 @@ export default function EditTeacherProfilePage() {
           </Button>
         </div>
 
+      </div>
       </div>
     </div>
   )
