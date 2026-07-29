@@ -134,7 +134,7 @@ function JobCard({ job }: { job: ActiveJob }) {
           {job.teaching_levels.map((level) => (
             <span
               key={level}
-              className="px-2 py-0.5 bg-blue-50 text-blue-600 text-xs rounded uppercase"
+              className="px-2 py-0.5 bg-ink-50 text-ink-600 text-xs rounded uppercase"
             >
               {level}
             </span>
@@ -224,7 +224,7 @@ export default function SchoolProfilePage() {
           <h2 className="text-xl font-bold text-gray-900 mb-2">School Not Found</h2>
           <p className="text-gray-500 text-sm mb-6">{error}</p>
           <Link href="/jobs">
-            <Button className="bg-blue-700 hover:bg-blue-800 text-white">Browse Jobs</Button>
+            <Button className="bg-ink-700 hover:bg-ink-800 text-white">Browse Jobs</Button>
           </Link>
         </div>
       </div>
@@ -248,7 +248,7 @@ export default function SchoolProfilePage() {
             <Link href="/dashboard/school/edit-profile">
               <Button
                 size="sm"
-                className="bg-blue-700 hover:bg-blue-800 text-white"
+                className="bg-ink-700 hover:bg-ink-800 text-white"
               >
                 Edit School Profile
               </Button>
@@ -276,8 +276,8 @@ export default function SchoolProfilePage() {
                       className="w-20 h-20 rounded-xl object-contain border-2 border-gray-100 p-2"
                     />
                   ) : (
-                    <div className="w-20 h-20 rounded-xl bg-blue-100 flex items-center justify-center border-2 border-blue-50">
-                      <span className="text-blue-700 font-black text-xl">
+                    <div className="w-20 h-20 rounded-xl bg-ink-100 flex items-center justify-center border-2 border-ink-50">
+                      <span className="text-ink-700 font-black text-xl">
                         {getInitials(school?.school_name ?? "")}
                       </span>
                     </div>
@@ -346,7 +346,7 @@ export default function SchoolProfilePage() {
               ) : (
                 <>
                   {[
-                    { label: "Jobs Posted",     value: stats.total_jobs,  icon: Briefcase,    color: "text-blue-600",   bg: "bg-blue-50" },
+                    { label: "Jobs Posted",     value: stats.total_jobs,  icon: Briefcase,    color: "text-ink-600",   bg: "bg-ink-50" },
                     { label: "Active Now",       value: stats.active_jobs, icon: CheckCircle2, color: "text-ink-600",  bg: "bg-ink-50" },
                     { label: "Teachers Hired",  value: stats.total_hired, icon: Users,        color: "text-purple-600", bg: "bg-purple-50" },
                   ].map((stat) => (
@@ -399,7 +399,7 @@ export default function SchoolProfilePage() {
                           href={school.website}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-sm text-blue-600 hover:underline"
+                          className="text-sm text-ink-600 hover:underline"
                         >
                           {school.website.replace(/^https?:\/\//, "")}
                         </a>
@@ -473,7 +473,7 @@ export default function SchoolProfilePage() {
                     <h3 className="font-bold text-gray-900 mb-3">Curriculum</h3>
                     <div className="flex flex-wrap gap-2">
                       {school.curriculum.map((c) => (
-                        <span key={c} className="px-3 py-1 bg-blue-50 text-blue-700 text-xs rounded-full font-medium">{c}</span>
+                        <span key={c} className="px-3 py-1 bg-ink-50 text-ink-700 text-xs rounded-full font-medium">{c}</span>
                       ))}
                     </div>
                   </div>
@@ -502,7 +502,7 @@ export default function SchoolProfilePage() {
                 </h2>
                 <Link
                   href={school ? `/jobs?school=${school.id}` : "/jobs"}
-                  className="text-sm text-blue-600 hover:underline flex items-center gap-1"
+                  className="text-sm text-ink-600 hover:underline flex items-center gap-1"
                 >
                   View all <ChevronRight className="h-3.5 w-3.5" />
                 </Link>
@@ -567,9 +567,9 @@ export default function SchoolProfilePage() {
               ) : (
                 <>
                   {school?.is_verified && (
-                    <div className="flex items-center gap-2 mb-4 p-3 bg-blue-50 border border-blue-100 rounded-xl">
-                      <Star className="h-4 w-4 text-blue-600 flex-shrink-0" />
-                      <p className="text-xs text-blue-700 font-medium">
+                    <div className="flex items-center gap-2 mb-4 p-3 bg-ink-50 border border-ink-100 rounded-xl">
+                      <Star className="h-4 w-4 text-ink-600 flex-shrink-0" />
+                      <p className="text-xs text-ink-700 font-medium">
                         Verified School — Identity confirmed
                       </p>
                     </div>
@@ -602,7 +602,7 @@ export default function SchoolProfilePage() {
 
                   {isOwnProfile && (
                     <Link href="/dashboard/school/post-job">
-                      <Button className="w-full bg-blue-700 hover:bg-blue-800 text-white flex items-center gap-2 text-sm mt-3">
+                      <Button className="w-full bg-ink-700 hover:bg-ink-800 text-white flex items-center gap-2 text-sm mt-3">
                         <Briefcase className="h-4 w-4" />
                         Post a Job
                       </Button>

@@ -99,7 +99,7 @@ function JobActionsMenu({
               className="flex items-center gap-2 px-3 py-2.5 text-xs text-gray-700 hover:bg-gray-50 transition"
               onClick={() => setOpen(false)}
             >
-              <Eye className="h-3.5 w-3.5 text-blue-500" />
+              <Eye className="h-3.5 w-3.5 text-ink-500" />
               View Applicants
             </Link>
             <Link
@@ -294,7 +294,7 @@ function SchoolJobsContent() {
           <button className="lg:hidden" onClick={() => setSidebarOpen(true)}><Menu className="h-5 w-5 text-gray-600" /></button>
           <h1 className="text-lg font-bold text-gray-900">My Jobs</h1>
           <Link href="/dashboard/school/post-job" className="ml-auto">
-            <Button size="sm" className="bg-blue-700 hover:bg-blue-800 text-white flex items-center gap-1.5">
+            <Button size="sm" className="bg-ink-700 hover:bg-ink-800 text-white flex items-center gap-1.5">
               <Plus className="h-4 w-4" />Post a Job
             </Button>
           </Link>
@@ -320,7 +320,7 @@ function SchoolJobsContent() {
           {/* Stats */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {[
-              { label: "Total Jobs", value: jobs.length, color: "text-blue-600" },
+              { label: "Total Jobs", value: jobs.length, color: "text-ink-600" },
               { label: "Active", value: counts.active, color: "text-ink-600" },
               { label: "Total Applicants", value: totalApplicants, color: "text-purple-600" },
               { label: "Passed Quiz", value: totalPassed, color: "text-orange-600" },
@@ -339,11 +339,11 @@ function SchoolJobsContent() {
                 key={filter}
                 onClick={() => setActiveFilter(filter)}
                 className={`px-3 py-2 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 capitalize flex-1 justify-center ${
-                  activeFilter === filter ? "bg-blue-700 text-white" : "text-gray-500 hover:bg-gray-50"
+                  activeFilter === filter ? "bg-ink-700 text-white" : "text-gray-500 hover:bg-gray-50"
                 }`}
               >
                 {filter}
-                <span className={`px-1.5 py-0.5 rounded-full text-xs ${activeFilter === filter ? "bg-blue-600" : "bg-gray-100 text-gray-600"}`}>
+                <span className={`px-1.5 py-0.5 rounded-full text-xs ${activeFilter === filter ? "bg-ink-600" : "bg-gray-100 text-gray-600"}`}>
                   {counts[filter]}
                 </span>
               </button>
@@ -353,7 +353,7 @@ function SchoolJobsContent() {
           {/* Jobs List */}
           {isLoading ? (
             <div className="flex items-center justify-center py-16">
-              <Loader2 className="h-8 w-8 text-blue-600 animate-spin" />
+              <Loader2 className="h-8 w-8 text-ink-600 animate-spin" />
             </div>
           ) : filtered.length === 0 ? (
             <div className="bg-white rounded-xl border border-gray-100 py-16 text-center">
@@ -363,7 +363,7 @@ function SchoolJobsContent() {
               <h3 className="font-bold text-gray-900 mb-2">No jobs yet</h3>
               <p className="text-gray-500 text-sm mb-5">Post your first teaching vacancy to start receiving applications.</p>
               <Link href="/dashboard/school/post-job">
-                <Button className="bg-blue-700 hover:bg-blue-800 text-white">Post a Job</Button>
+                <Button className="bg-ink-700 hover:bg-ink-800 text-white">Post a Job</Button>
               </Link>
             </div>
           ) : (
@@ -408,7 +408,7 @@ function SchoolJobsContent() {
                         <p className="text-xs text-gray-500">Passed Quiz</p>
                       </div>
                       <div className="p-2.5 bg-gray-50 rounded-lg text-center">
-                        <p className="text-lg font-bold text-blue-600">{job.views}</p>
+                        <p className="text-lg font-bold text-ink-600">{job.views}</p>
                         <p className="text-xs text-gray-500">Views</p>
                       </div>
                       <div className="p-2.5 bg-gray-50 rounded-lg text-center">
@@ -443,7 +443,7 @@ function SchoolJobsContent() {
                           {new Date(job.created_at).toLocaleDateString("en-NG", { day: "numeric", month: "short" })}
                         </span>
                         <Link href={`/dashboard/school/jobs/${job.id}/applicants`}>
-                          <Button size="sm" className="text-xs h-7 bg-blue-700 hover:bg-blue-800 text-white flex items-center gap-1">
+                          <Button size="sm" className="text-xs h-7 bg-ink-700 hover:bg-ink-800 text-white flex items-center gap-1">
                             <Users className="h-3 w-3" />
                             Review Applicants
                           </Button>
@@ -463,7 +463,7 @@ function SchoolJobsContent() {
 
 export default function SchoolJobsPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-gray-50 flex items-center justify-center"><Loader2 className="h-8 w-8 text-blue-600 animate-spin" /></div>}>
+    <Suspense fallback={<div className="min-h-screen bg-gray-50 flex items-center justify-center"><Loader2 className="h-8 w-8 text-ink-600 animate-spin" /></div>}>
       <SchoolJobsContent />
     </Suspense>
   )

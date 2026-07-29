@@ -203,7 +203,7 @@ export default function JobDetailPage() {
                       >
                         {job.school_name}
                         {job.school_is_verified && (
-                          <Star className="h-3.5 w-3.5 text-blue-500" />
+                          <Star className="h-3.5 w-3.5 text-ink-500" />
                         )}
                       </Link>
                     </div>
@@ -265,7 +265,7 @@ export default function JobDetailPage() {
                 {job.teaching_levels.map((level) => (
                   <span
                     key={level}
-                    className="px-3 py-1 bg-blue-100 text-blue-700 text-xs rounded-full font-medium capitalize"
+                    className="px-3 py-1 bg-ink-100 text-ink-700 text-xs rounded-full font-medium capitalize"
                   >
                     {level.toUpperCase()}
                   </span>
@@ -571,7 +571,7 @@ export default function JobDetailPage() {
                       {job.school_type}
                     </span>
                     {job.school_is_verified && (
-                      <span className="px-1.5 py-0.5 bg-blue-50 text-blue-600 text-xs rounded flex items-center gap-0.5">
+                      <span className="px-1.5 py-0.5 bg-ink-50 text-ink-600 text-xs rounded flex items-center gap-0.5">
                         <Star className="h-2.5 w-2.5" />
                         Verified
                       </span>

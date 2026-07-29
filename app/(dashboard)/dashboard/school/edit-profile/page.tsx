@@ -168,7 +168,7 @@ export default function EditSchoolProfilePage() {
     }
   }
 
-  const inputClass = "w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+  const inputClass = "w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ink-500"
 
   const VerificationBadge = () => {
     const map: Record<string, { label: string; color: string }> = {
@@ -182,7 +182,7 @@ export default function EditSchoolProfilePage() {
 
   if (loading) return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
+      <Loader2 className="h-6 w-6 animate-spin text-ink-600" />
     </div>
   )
 
@@ -209,7 +209,7 @@ export default function EditSchoolProfilePage() {
             </div>
           </div>
           <Button onClick={handleSave} disabled={saving || success}
-            className="bg-blue-700 hover:bg-blue-800 text-white flex items-center gap-2">
+            className="bg-ink-700 hover:bg-ink-800 text-white flex items-center gap-2">
             {saving ? <><Loader2 className="h-4 w-4 animate-spin" />Saving…</>
               : success ? <><CheckCircle2 className="h-4 w-4" />Saved!</>
               : <><Save className="h-4 w-4" />Save</>}
@@ -243,7 +243,7 @@ export default function EditSchoolProfilePage() {
                 className="hidden" onChange={handleLogoUpload} />
               <button type="button" onClick={() => logoInputRef.current?.click()}
                 disabled={uploadingLogo}
-                className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg text-sm text-gray-700 hover:border-blue-400 hover:text-blue-700 transition disabled:opacity-50">
+                className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg text-sm text-gray-700 hover:border-ink-400 hover:text-ink-700 transition disabled:opacity-50">
                 <Camera className="h-4 w-4" />
                 {uploadingLogo ? "Uploading…" : logoPreview ? "Change Logo" : "Upload Logo"}
               </button>
@@ -277,8 +277,8 @@ export default function EditSchoolProfilePage() {
                   onClick={() => setForm({ ...form, school_type: t.value })}
                   className={`px-3 py-1.5 rounded-full text-sm border transition ${
                     form.school_type === t.value
-                      ? "bg-blue-700 text-white border-blue-700"
-                      : "bg-white text-gray-600 border-gray-200 hover:border-blue-400"}`}>
+                      ? "bg-ink-700 text-white border-ink-700"
+                      : "bg-white text-gray-600 border-gray-200 hover:border-ink-400"}`}>
                   {t.label}
                 </button>
               ))}
@@ -293,8 +293,8 @@ export default function EditSchoolProfilePage() {
                   onClick={() => setForm({ ...form, school_category: c.value })}
                   className={`px-3 py-1.5 rounded-full text-sm border transition ${
                     form.school_category === c.value
-                      ? "bg-blue-700 text-white border-blue-700"
-                      : "bg-white text-gray-600 border-gray-200 hover:border-blue-400"}`}>
+                      ? "bg-ink-700 text-white border-ink-700"
+                      : "bg-white text-gray-600 border-gray-200 hover:border-ink-400"}`}>
                   {c.label}
                 </button>
               ))}
@@ -309,8 +309,8 @@ export default function EditSchoolProfilePage() {
                   onClick={() => setForm({ ...form, school_levels: toggle(form.school_levels, l.value) })}
                   className={`px-3 py-1.5 rounded-full text-sm border transition ${
                     form.school_levels.includes(l.value)
-                      ? "bg-blue-700 text-white border-blue-700"
-                      : "bg-white text-gray-600 border-gray-200 hover:border-blue-400"}`}>
+                      ? "bg-ink-700 text-white border-ink-700"
+                      : "bg-white text-gray-600 border-gray-200 hover:border-ink-400"}`}>
                   {l.label}
                 </button>
               ))}
@@ -325,8 +325,8 @@ export default function EditSchoolProfilePage() {
                   onClick={() => setForm({ ...form, curriculum: toggle(form.curriculum, c) })}
                   className={`px-3 py-1.5 rounded-full text-sm border transition ${
                     form.curriculum.includes(c)
-                      ? "bg-blue-700 text-white border-blue-700"
-                      : "bg-white text-gray-600 border-gray-200 hover:border-blue-400"}`}>
+                      ? "bg-ink-700 text-white border-ink-700"
+                      : "bg-white text-gray-600 border-gray-200 hover:border-ink-400"}`}>
                   {c}
                 </button>
               ))}
@@ -397,8 +397,8 @@ export default function EditSchoolProfilePage() {
                   onClick={() => setForm({ ...form, benefits: toggle(form.benefits, b) })}
                   className={`px-3 py-1.5 rounded-full text-sm border transition ${
                     form.benefits.includes(b)
-                      ? "bg-blue-700 text-white border-blue-700"
-                      : "bg-white text-gray-600 border-gray-200 hover:border-blue-400"}`}>
+                      ? "bg-ink-700 text-white border-ink-700"
+                      : "bg-white text-gray-600 border-gray-200 hover:border-ink-400"}`}>
                   {b}
                 </button>
               ))}
@@ -465,7 +465,7 @@ export default function EditSchoolProfilePage() {
         {/* Save */}
         <div className="pb-8">
           <Button onClick={handleSave} disabled={saving || success}
-            className="w-full bg-blue-700 hover:bg-blue-800 text-white py-6 text-base">
+            className="w-full bg-ink-700 hover:bg-ink-800 text-white py-6 text-base">
             {saving ? <><Loader2 className="h-5 w-5 animate-spin mr-2" />Saving…</>
               : success ? <><CheckCircle2 className="h-5 w-5 mr-2" />Saved!</>
               : <><Save className="h-5 w-5 mr-2" />Save Changes</>}

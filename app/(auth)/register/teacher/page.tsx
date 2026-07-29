@@ -547,7 +547,7 @@ export default function TeacherRegisterPage() {
                         <p className="text-xs text-gray-400 mb-1.5">Subjects detected</p>
                         <div className="flex flex-wrap gap-1.5">
                           {parsePreview.subjects.map((s) => (
-                            <span key={s} className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full font-medium">{s}</span>
+                            <span key={s} className="px-2 py-0.5 bg-ink-100 text-ink-700 text-xs rounded-full font-medium">{s}</span>
                           ))}
                         </div>
                       </div>
@@ -996,7 +996,7 @@ export default function TeacherRegisterPage() {
 
         <p className="text-center text-xs text-gray-400 mt-6">
           Are you a school?{" "}
-          <Link href="/register/school" className="text-blue-600 hover:underline">Register your school here</Link>
+          <Link href="/register/school" className="text-ink-600 hover:underline">Register your school here</Link>
         </p>
       </div>
     </div>

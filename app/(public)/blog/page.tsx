@@ -66,7 +66,7 @@ export default function BlogPage() {
                 {post.cover_image_url ? (
                   <img src={post.cover_image_url} alt={post.title} className="w-full h-40 object-cover" />
                 ) : (
-                  <div className="w-full h-40 bg-gradient-to-br from-ink-50 to-blue-50 flex items-center justify-center">
+                  <div className="w-full h-40 bg-gradient-to-br from-ink-50 to-ink-50 flex items-center justify-center">
                     <Newspaper className="h-8 w-8 text-ink-300" />
                   </div>
                 )}

@@ -71,7 +71,7 @@ function getPercentileLabel(percentile: number) {
   if (percentile >= 95) return { label: "Top 5%", color: "text-yellow-600", bg: "bg-yellow-50 border-yellow-200" }
   if (percentile >= 90) return { label: "Top 10%", color: "text-orange-600", bg: "bg-orange-50 border-orange-200" }
   if (percentile >= 75) return { label: "Top 25%", color: "text-ink-600", bg: "bg-ink-50 border-ink-200" }
-  if (percentile >= 50) return { label: "Above Average", color: "text-blue-600", bg: "bg-blue-50 border-blue-200" }
+  if (percentile >= 50) return { label: "Above Average", color: "text-ink-600", bg: "bg-ink-50 border-ink-200" }
   if (percentile >= 25) return { label: "Below Average", color: "text-gray-600", bg: "bg-gray-50 border-gray-200" }
   return { label: "Bottom 25%", color: "text-red-500", bg: "bg-red-50 border-red-200" }
 }

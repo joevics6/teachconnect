@@ -479,7 +479,7 @@ export default function TeacherProfilePage() {
                       </span>
                     )}
                     {profile.willing_to_relocate && (
-                      <span className="px-2.5 py-1 bg-blue-100 text-blue-700 text-xs rounded-full font-medium">
+                      <span className="px-2.5 py-1 bg-ink-100 text-ink-700 text-xs rounded-full font-medium">
                         Open to Relocate
                       </span>
                     )}
@@ -546,7 +546,7 @@ export default function TeacherProfilePage() {
                     {profile.teaching_levels.map((level) => (
                       <span
                         key={level}
-                        className="px-3 py-1.5 bg-blue-50 text-blue-700 text-sm rounded-lg font-medium"
+                        className="px-3 py-1.5 bg-ink-50 text-ink-700 text-sm rounded-lg font-medium"
                       >
                         {getLevelLabel(level)}
                       </span>
@@ -630,7 +630,7 @@ export default function TeacherProfilePage() {
                       {profile.preferred_states.map((state) => (
                         <span
                           key={state}
-                          className="px-2.5 py-1 bg-blue-50 text-blue-600 text-xs rounded-lg"
+                          className="px-2.5 py-1 bg-ink-50 text-ink-600 text-xs rounded-lg"
                         >
                           {state}
                         </span>
@@ -657,14 +657,14 @@ export default function TeacherProfilePage() {
                       : pct >= 75
                       ? "text-ink-600 bg-ink-50 border-ink-200"
                       : pct >= 50
-                      ? "text-blue-600 bg-blue-50 border-blue-200"
+                      ? "text-ink-600 bg-ink-50 border-ink-200"
                       : "text-gray-500 bg-gray-50 border-gray-200"
                     const rankLabel = pct >= 95 ? "Top 5%"
                       : pct >= 90 ? "Top 10%"
                       : pct >= 75 ? "Top 25%"
                       : pct >= 50 ? "Above Average"
                       : "Below Average"
-                    const scoreColor = pct >= 75 ? "text-ink-600" : pct >= 50 ? "text-blue-600" : "text-gray-500"
+                    const scoreColor = pct >= 75 ? "text-ink-600" : pct >= 50 ? "text-ink-600" : "text-gray-500"
                     return (
                       <div key={result.id} className="flex items-center justify-between p-4 border border-gray-100 rounded-xl">
                         <div>
@@ -824,7 +824,7 @@ export default function TeacherProfilePage() {
                         <select
                           value={selectedJobId}
                           onChange={(e) => setSelectedJobId(e.target.value)}
-                          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ink-400"
                         >
                           {schoolJobs.map((j) => (
                             <option key={j.id} value={j.id}>{j.title}</option>
@@ -841,7 +841,7 @@ export default function TeacherProfilePage() {
                       <Button
                         onClick={handleInvite}
                         disabled={isInviting || schoolJobs.length === 0}
-                        className="w-full bg-blue-700 hover:bg-blue-800 text-white flex items-center gap-2"
+                        className="w-full bg-ink-700 hover:bg-ink-800 text-white flex items-center gap-2"
                       >
                         {isInviting ? (
                           <Loader2 className="h-4 w-4 animate-spin" />
@@ -947,7 +947,7 @@ export default function TeacherProfilePage() {
                   <div className="space-y-2">
                     {specializationResults.map((r) => {
                       const pct = r.percentile
-                      const color = pct >= 75 ? "text-ink-600" : pct >= 50 ? "text-blue-600" : "text-gray-500"
+                      const color = pct >= 75 ? "text-ink-600" : pct >= 50 ? "text-ink-600" : "text-gray-500"
                       const label = pct >= 95 ? "Top 5%" : pct >= 90 ? "Top 10%" : pct >= 75 ? "Top 25%" : pct >= 50 ? "Above Avg" : "Below Avg"
                       return (
                         <div key={r.id} className="flex items-center justify-between text-xs">
@@ -976,7 +976,7 @@ export default function TeacherProfilePage() {
                   </span>
                 </div>
                 {profile.willing_to_relocate && (
-                  <div className="flex items-center gap-2 text-sm text-blue-600">
+                  <div className="flex items-center gap-2 text-sm text-ink-600">
                     <ChevronRight className="h-4 w-4 flex-shrink-0" />
                     <span>Open to relocation</span>
                   </div>
@@ -996,17 +996,17 @@ export default function TeacherProfilePage() {
 
             {/* Upgrade prompt for guests */}
             {viewerRole === "guest" && (
-              <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-center">
-                <p className="text-sm font-semibold text-blue-900 mb-1">
+              <div className="bg-ink-50 border border-ink-200 rounded-xl p-4 text-center">
+                <p className="text-sm font-semibold text-ink-900 mb-1">
                   Are you a school?
                 </p>
-                <p className="text-xs text-blue-600 mb-3">
+                <p className="text-xs text-ink-600 mb-3">
                   Register to invite teachers and access full profiles.
                 </p>
                 <Link href="/register/school">
                   <Button
                     size="sm"
-                    className="bg-blue-700 hover:bg-blue-800 text-white w-full"
+                    className="bg-ink-700 hover:bg-ink-800 text-white w-full"
                   >
                     Register Your School
                   </Button>

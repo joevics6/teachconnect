@@ -194,7 +194,7 @@ function LoginForm() {
             <Link href="/register/school">
               <Button
                 variant="outline"
-                className="w-full text-sm border-blue-200 text-blue-700 hover:bg-blue-50"
+                className="w-full text-sm border-ink-200 text-ink-700 hover:bg-ink-50"
               >
                 Register School
               </Button>

@@ -57,7 +57,7 @@ function getModeLabel(mode: string) {
 function getModeColor(mode: string) {
   if (mode === "speed") return "text-orange-600 bg-orange-50 border-orange-200"
   if (mode === "written") return "text-purple-600 bg-purple-50 border-purple-200"
-  return "text-blue-600 bg-blue-50 border-blue-200"
+  return "text-ink-600 bg-ink-50 border-ink-200"
 }
 
 function formatTime(seconds: number) {
@@ -206,7 +206,7 @@ export default function QuizResultsPage() {
           {results.length > 0 && (
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               {[
-                { label: "Quizzes Taken", value: results.length, color: "text-blue-600", icon: BookOpen },
+                { label: "Quizzes Taken", value: results.length, color: "text-ink-600", icon: BookOpen },
                 { label: "Passed", value: passedCount, color: "text-ink-600", icon: CheckCircle2 },
                 { label: "Avg Score", value: `${avgScore}%`, color: "text-purple-600", icon: TrendingUp },
                 { label: "Best Score", value: `${bestScore}%`, color: "text-orange-600", icon: Star },

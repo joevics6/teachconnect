@@ -46,10 +46,10 @@ const PLANS = [
     period: "per posting",
     description: "Single job posting with full quiz screening",
     icon: Star,
-    color: "text-blue-700",
-    bg: "bg-blue-50",
-    border: "border-blue-300",
-    button: "bg-blue-700 hover:bg-blue-800",
+    color: "text-ink-700",
+    bg: "bg-ink-50",
+    border: "border-ink-300",
+    button: "bg-ink-700 hover:bg-ink-800",
     features: [
       "1 job posting (30 days)",
       "All 3 quiz modes",
@@ -124,7 +124,7 @@ function CurrentPlanCard({
 
   const planColors: Record<string, string> = {
     free: "from-gray-700 to-gray-800",
-    standard: "from-blue-700 to-blue-800",
+    standard: "from-ink-700 to-ink-800",
     term: "from-ink-600 to-ink-700",
   }
 
@@ -411,7 +411,7 @@ function SubscriptionPageInner() {
 
           {isLoading ? (
             <div className="flex items-center justify-center py-20">
-              <Loader2 className="h-8 w-8 text-blue-600 animate-spin" />
+              <Loader2 className="h-8 w-8 text-ink-600 animate-spin" />
             </div>
           ) : (
             <>
@@ -461,7 +461,7 @@ function SubscriptionPageInner() {
                     <h2 className="font-bold text-gray-900">
                       Payment History
                     </h2>
-                    <button className="text-xs text-blue-600 flex items-center gap-1 hover:underline">
+                    <button className="text-xs text-ink-600 flex items-center gap-1 hover:underline">
                       <RefreshCw className="h-3.5 w-3.5" />
                       Refresh
                     </button>
@@ -477,14 +477,14 @@ function SubscriptionPageInner() {
                             className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${
                               item.plan_type === "term"
                                 ? "bg-ink-100"
-                                : "bg-blue-100"
+                                : "bg-ink-100"
                             }`}
                           >
                             <CreditCard
                               className={`h-4 w-4 ${
                                 item.plan_type === "term"
                                   ? "text-ink-600"
-                                  : "text-blue-600"
+                                  : "text-ink-600"
                               }`}
                             />
                           </div>
@@ -539,7 +539,7 @@ function SubscriptionPageInner() {
               <div className="mt-4 text-center">
                 <Link
                   href="/pricing"
-                  className="text-sm text-blue-600 hover:underline"
+                  className="text-sm text-ink-600 hover:underline"
                 >
                   View full pricing and feature comparison →
                 </Link>
@@ -554,7 +554,7 @@ function SubscriptionPageInner() {
 
 export default function SubscriptionPage() {
   return (
-    <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" /></div>}>
+    <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-ink-600" /></div>}>
       <SubscriptionPageInner />
     </Suspense>
   )

@@ -44,7 +44,7 @@ function getInitials(name: string) {
 function AvailabilityBadge({ value }: { value: string }) {
   const map: Record<string, { label: string; color: string }> = {
     "immediate":  { label: "Available Now",     color: "bg-ink-100 text-ink-700"  },
-    "2-weeks":    { label: "2 Weeks",            color: "bg-blue-100 text-blue-700"    },
+    "2-weeks":    { label: "2 Weeks",            color: "bg-ink-100 text-ink-700"    },
     "1-month":    { label: "1 Month",            color: "bg-yellow-100 text-yellow-700"},
     "employed":   { label: "Employed",           color: "bg-gray-100 text-gray-600"   },
     "part-time":  { label: "Part-time",          color: "bg-purple-100 text-purple-700"},
@@ -128,8 +128,8 @@ export default function SavedTeachersPage() {
               onClick={() => setActiveFolder(f.value)}
               className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition ${
                 activeFolder === f.value
-                  ? "bg-blue-700 text-white"
-                  : "bg-white border border-gray-200 text-gray-600 hover:border-blue-300"
+                  ? "bg-ink-700 text-white"
+                  : "bg-white border border-gray-200 text-gray-600 hover:border-ink-300"
               }`}>
               <f.icon className="h-3.5 w-3.5" />{f.label}
             </button>
@@ -139,7 +139,7 @@ export default function SavedTeachersPage() {
         {/* Content */}
         {loading ? (
           <div className="flex items-center justify-center py-16">
-            <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
+            <Loader2 className="h-6 w-6 animate-spin text-ink-600" />
           </div>
         ) : saved.length === 0 ? (
           <div className="text-center py-16">
@@ -149,7 +149,7 @@ export default function SavedTeachersPage() {
               Browse teachers and click &quot;Save Teacher&quot; on their profile.
             </p>
             <Link href="/talent">
-              <Button className="bg-blue-700 hover:bg-blue-800 text-white">Browse Teachers</Button>
+              <Button className="bg-ink-700 hover:bg-ink-800 text-white">Browse Teachers</Button>
             </Link>
           </div>
         ) : (
@@ -184,14 +184,14 @@ export default function SavedTeachersPage() {
 
                     <div className="flex flex-col gap-2 flex-shrink-0">
                       <Link href={`/profile/teacher/${t.id}`}>
-                        <Button size="sm" className="bg-blue-700 hover:bg-blue-800 text-white text-xs w-full">
+                        <Button size="sm" className="bg-ink-700 hover:bg-ink-800 text-white text-xs w-full">
                           <User className="h-3 w-3 mr-1" />View
                         </Button>
                       </Link>
                       <select
                         value={item.folder}
                         onChange={(e) => handleMoveFolder(t.id, e.target.value)}
-                        className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-400"
+                        className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-ink-400"
                       >
                         <option value="excellent">Excellent</option>
                         <option value="interview-later">Interview Later</option>

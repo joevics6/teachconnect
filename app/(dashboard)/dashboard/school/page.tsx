@@ -64,7 +64,7 @@ function getStageBadge(stage: string) {
   switch (stage) {
     case "shortlisted": return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-ink-100 text-ink-700"><CheckCircle2 className="h-3 w-3" />Shortlisted</span>
     case "applied":     return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700"><Clock className="h-3 w-3" />Applied</span>
-    case "hired":       return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700"><Star className="h-3 w-3" />Hired</span>
+    case "hired":       return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-ink-100 text-ink-700"><Star className="h-3 w-3" />Hired</span>
     default:            return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">{stage}</span>
   }
 }
@@ -278,7 +278,7 @@ export default function SchoolDashboardPage() {
               )}
             </button>
             <Link href="/dashboard/school/post-job">
-              <Button size="sm" className="bg-blue-700 hover:bg-blue-800 text-white flex items-center gap-1.5">
+              <Button size="sm" className="bg-ink-700 hover:bg-ink-800 text-white flex items-center gap-1.5">
                 <Plus className="h-4 w-4" />Post a Job
               </Button>
             </Link>
@@ -288,16 +288,16 @@ export default function SchoolDashboardPage() {
         <div className="p-6 space-y-6">
 
           {/* Welcome */}
-          <div className="bg-gradient-to-r from-blue-700 to-blue-800 rounded-2xl p-6 text-white">
+          <div className="bg-gradient-to-r from-ink-700 to-ink-800 rounded-2xl p-6 text-white">
             <h2 className="text-xl font-bold mb-1">Welcome back, {schoolName} 👋</h2>
-            <p className="text-blue-100 text-sm mb-4">
+            <p className="text-ink-100 text-sm mb-4">
               {loadingJobs
                 ? "Loading your activity..."
                 : `${totalApplicants} applicant${totalApplicants !== 1 ? "s" : ""} across ${activeJobs} active job${activeJobs !== 1 ? "s" : ""}.${totalPassed > 0 ? ` ${totalPassed} passed the quiz.` : ""}`
               }
             </p>
             <Link href="/dashboard/school/post-job">
-              <Button size="sm" className="bg-white text-blue-700 hover:bg-blue-50">
+              <Button size="sm" className="bg-white text-ink-700 hover:bg-ink-50">
                 <Plus className="h-4 w-4 mr-1.5" />Post New Job
               </Button>
             </Link>
@@ -307,7 +307,7 @@ export default function SchoolDashboardPage() {
           {loadingJobs ? <StatsSkeleton /> : (
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               {[
-                { label: "Active Jobs",      value: activeJobs,      color: "text-blue-600"   },
+                { label: "Active Jobs",      value: activeJobs,      color: "text-ink-600"   },
                 { label: "Total Applicants", value: totalApplicants, color: "text-ink-600"  },
                 { label: "Passed Quiz",      value: totalPassed,     color: "text-purple-600" },
                 {
@@ -328,7 +328,7 @@ export default function SchoolDashboardPage() {
           {!loadingJobs && (
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               {[
-                { label: "Interviews",    value: metrics.interviews, color: "text-blue-600",   icon: TrendingUp  },
+                { label: "Interviews",    value: metrics.interviews, color: "text-ink-600",   icon: TrendingUp  },
                 { label: "Offers Sent",   value: metrics.offers,     color: "text-purple-600", icon: Star        },
                 { label: "Teachers Hired",value: metrics.hired,      color: "text-ink-600",  icon: BookOpen    },
                 { label: "Avg Quiz Score",value: metrics.avgScore > 0 ? `${metrics.avgScore}%` : "—", color: "text-orange-600", icon: TrendingUp },
@@ -344,7 +344,7 @@ export default function SchoolDashboardPage() {
           {/* Saved Teachers quick link */}
           <div className="flex justify-end">
             <Link href="/dashboard/school/saved-teachers">
-              <button className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800 font-medium transition">
+              <button className="flex items-center gap-2 text-sm text-ink-600 hover:text-ink-800 font-medium transition">
                 <Star className="h-4 w-4" />View Saved Teachers
               </button>
             </Link>
@@ -356,14 +356,14 @@ export default function SchoolDashboardPage() {
             <div className="lg:col-span-2 bg-white rounded-xl border border-gray-200 p-5">
               <div className="flex items-center justify-between mb-5">
                 <h3 className="font-bold text-gray-900">Active Jobs</h3>
-                <Link href="/dashboard/school/jobs" className="text-sm text-blue-600 hover:underline">View all</Link>
+                <Link href="/dashboard/school/jobs" className="text-sm text-ink-600 hover:underline">View all</Link>
               </div>
               {loadingJobs ? <JobsSkeleton /> : jobs.length === 0 ? (
                 <div className="text-center py-8">
                   <Briefcase className="h-8 w-8 text-gray-300 mx-auto mb-2" />
                   <p className="text-sm text-gray-500 mb-3">No jobs posted yet.</p>
                   <Link href="/dashboard/school/post-job">
-                    <Button size="sm" className="bg-blue-700 hover:bg-blue-800 text-white">Post First Job</Button>
+                    <Button size="sm" className="bg-ink-700 hover:bg-ink-800 text-white">Post First Job</Button>
                   </Link>
                 </div>
               ) : (
@@ -371,8 +371,8 @@ export default function SchoolDashboardPage() {
                   {jobs.map((job) => (
                     <div key={job.id} className="flex items-center justify-between p-4 border border-gray-100 rounded-xl hover:border-gray-200 transition">
                       <div className="flex items-center gap-3 min-w-0">
-                        <div className="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
-                          <Briefcase className="h-4 w-4 text-blue-600" />
+                        <div className="w-9 h-9 rounded-lg bg-ink-50 flex items-center justify-center flex-shrink-0">
+                          <Briefcase className="h-4 w-4 text-ink-600" />
                         </div>
                         <div className="min-w-0">
                           <div className="flex items-center gap-2">
@@ -412,7 +412,7 @@ export default function SchoolDashboardPage() {
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-bold text-gray-900">Notifications</h3>
                 {unreadCount > 0 && (
-                  <button onClick={handleMarkAllRead} className="text-xs text-blue-600 hover:underline">Mark all read</button>
+                  <button onClick={handleMarkAllRead} className="text-xs text-ink-600 hover:underline">Mark all read</button>
                 )}
               </div>
               {loadingNotifications ? (
@@ -428,10 +428,10 @@ export default function SchoolDashboardPage() {
               ) : (
                 <div className="space-y-3">
                   {notifications.map((n) => (
-                    <div key={n.id} className={`p-3 rounded-lg text-xs ${n.is_read ? "bg-gray-50" : "bg-blue-50 border border-blue-100"}`}>
+                    <div key={n.id} className={`p-3 rounded-lg text-xs ${n.is_read ? "bg-gray-50" : "bg-ink-50 border border-ink-100"}`}>
                       <div className="flex items-start justify-between gap-2">
                         <p className="font-semibold text-gray-900">{n.title}</p>
-                        {!n.is_read && <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0 mt-0.5" />}
+                        {!n.is_read && <div className="w-2 h-2 bg-ink-500 rounded-full flex-shrink-0 mt-0.5" />}
                       </div>
                       <p className="text-gray-500 mt-0.5 line-clamp-2">{n.message}</p>
                       <p className="text-gray-400 mt-1">
@@ -449,7 +449,7 @@ export default function SchoolDashboardPage() {
             <div className="bg-white rounded-xl border border-gray-200 p-5">
               <div className="flex items-center justify-between mb-5">
                 <h3 className="font-bold text-gray-900">Recent Applicants</h3>
-                <Link href="/dashboard/school/jobs" className="text-sm text-blue-600 hover:underline">View all</Link>
+                <Link href="/dashboard/school/jobs" className="text-sm text-ink-600 hover:underline">View all</Link>
               </div>
               {loadingApplicants ? (
                 <div className="space-y-3">
@@ -507,7 +507,7 @@ export default function SchoolDashboardPage() {
                 <p className="text-gray-400 text-sm">Browse all teacher profiles, send direct messages, and post unlimited jobs.</p>
               </div>
               <Link href="/dashboard/school/subscription" className="flex-shrink-0">
-                <Button className="bg-blue-600 hover:bg-blue-700 text-white px-6">
+                <Button className="bg-ink-600 hover:bg-ink-700 text-white px-6">
                   <ChevronRight className="h-4 w-4 mr-1" />Upgrade Plan
                 </Button>
               </Link>

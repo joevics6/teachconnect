@@ -182,7 +182,7 @@ export default function SchoolRegisterPage() {
     }
   }
 
-  const inputClass = "w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+  const inputClass = "w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ink-500 focus:border-transparent"
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">
@@ -206,18 +206,18 @@ export default function SchoolRegisterPage() {
             <div key={s.number} className="flex items-center flex-1">
               <div className="flex flex-col items-center">
                 <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold transition-all ${
-                  step > s.number ? "bg-blue-700 text-white"
-                  : step === s.number ? "bg-blue-700 text-white ring-4 ring-blue-100"
+                  step > s.number ? "bg-ink-700 text-white"
+                  : step === s.number ? "bg-ink-700 text-white ring-4 ring-ink-100"
                   : "bg-gray-200 text-gray-500"
                 }`}>
                   {step > s.number ? <CheckCircle2 className="h-5 w-5" /> : s.number}
                 </div>
-                <span className={`text-xs mt-1.5 font-medium hidden sm:block ${step >= s.number ? "text-blue-700" : "text-gray-400"}`}>
+                <span className={`text-xs mt-1.5 font-medium hidden sm:block ${step >= s.number ? "text-ink-700" : "text-gray-400"}`}>
                   {s.title}
                 </span>
               </div>
               {i < STEPS.length - 1 && (
-                <div className={`flex-1 h-0.5 mx-2 transition-all ${step > s.number ? "bg-blue-700" : "bg-gray-200"}`} />
+                <div className={`flex-1 h-0.5 mx-2 transition-all ${step > s.number ? "bg-ink-700" : "bg-gray-200"}`} />
               )}
             </div>
           ))}
@@ -254,8 +254,8 @@ export default function SchoolRegisterPage() {
                       onClick={() => update("school_type", type.value)}
                       className={`px-4 py-2 rounded-lg text-sm font-medium border transition-all ${
                         formData.school_type === type.value
-                          ? "bg-blue-700 text-white border-blue-700"
-                          : "bg-white text-gray-600 border-gray-300 hover:border-blue-400"
+                          ? "bg-ink-700 text-white border-ink-700"
+                          : "bg-white text-gray-600 border-gray-300 hover:border-ink-400"
                       }`}>
                       {type.label}
                     </button>
@@ -272,8 +272,8 @@ export default function SchoolRegisterPage() {
                       onClick={() => toggleLevel(level.value)}
                       className={`px-4 py-2 rounded-lg text-sm font-medium border transition-all ${
                         formData.school_levels.includes(level.value)
-                          ? "bg-blue-700 text-white border-blue-700"
-                          : "bg-white text-gray-600 border-gray-300 hover:border-blue-400"
+                          ? "bg-ink-700 text-white border-ink-700"
+                          : "bg-white text-gray-600 border-gray-300 hover:border-ink-400"
                       }`}>
                       {level.label}
                     </button>
@@ -323,8 +323,8 @@ export default function SchoolRegisterPage() {
                       onClick={() => update("is_registered", opt.value)}
                       className={`flex-1 py-3 rounded-lg text-sm font-medium border transition-all ${
                         formData.is_registered === opt.value
-                          ? "bg-blue-700 text-white border-blue-700"
-                          : "bg-white text-gray-600 border-gray-300 hover:border-blue-400"
+                          ? "bg-ink-700 text-white border-ink-700"
+                          : "bg-white text-gray-600 border-gray-300 hover:border-ink-400"
                       }`}>
                       {opt.label}
                     </button>
@@ -467,8 +467,8 @@ export default function SchoolRegisterPage() {
 
               {/* CAC fields — only shown if registered */}
               {formData.is_registered === "yes" && (
-                <div className="space-y-4 p-4 bg-blue-50 border border-blue-100 rounded-xl">
-                  <h3 className="text-sm font-bold text-blue-900">Registration Documents</h3>
+                <div className="space-y-4 p-4 bg-ink-50 border border-ink-100 rounded-xl">
+                  <h3 className="text-sm font-bold text-ink-900">Registration Documents</h3>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1.5">
                       CAC Number or School License Number *
@@ -525,18 +525,18 @@ export default function SchoolRegisterPage() {
             ) : (
               <p className="text-sm text-gray-500">
                 Already have an account?{" "}
-                <Link href="/login" className="text-blue-700 font-medium underline">Sign in</Link>
+                <Link href="/login" className="text-ink-700 font-medium underline">Sign in</Link>
               </p>
             )}
 
             {step < 3 ? (
               <Button type="button" onClick={nextStep}
-                className="bg-blue-700 hover:bg-blue-800 text-white flex items-center gap-2 shadow-md">
+                className="bg-ink-700 hover:bg-ink-800 text-white flex items-center gap-2 shadow-md">
                 Continue <ArrowRight className="h-4 w-4" />
               </Button>
             ) : (
               <Button type="button" onClick={handleSubmit} disabled={isLoading}
-                className="bg-blue-700 hover:bg-blue-800 text-white flex items-center gap-2 shadow-md">
+                className="bg-ink-700 hover:bg-ink-800 text-white flex items-center gap-2 shadow-md">
                 {isLoading
                   ? <><Loader2 className="h-4 w-4 animate-spin" />Registering…</>
                   : <><CheckCircle2 className="h-4 w-4" />Complete Registration</>

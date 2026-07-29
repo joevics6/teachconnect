@@ -166,10 +166,10 @@ export default function TeacherInvitesPage() {
                 {/* School + Status */}
                 <div className="flex items-start justify-between gap-3 mb-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center overflow-hidden flex-shrink-0">
+                    <div className="w-10 h-10 rounded-xl bg-ink-100 flex items-center justify-center overflow-hidden flex-shrink-0">
                       {invite.school_logo
                         ? <img src={invite.school_logo} alt={invite.school_name} className="w-full h-full object-contain p-1" />
-                        : <span className="text-blue-700 font-bold text-xs">{getInitials(invite.school_name)}</span>
+                        : <span className="text-ink-700 font-bold text-xs">{getInitials(invite.school_name)}</span>
                       }
                     </div>
                     <div>

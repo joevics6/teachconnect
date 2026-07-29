@@ -125,7 +125,7 @@ export default function AdminUsersPage() {
                     <td className="px-4 py-3 font-medium text-gray-900">{u.name || "—"}</td>
                     <td className="px-4 py-3">
                       <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                        u.role === "school" ? "bg-blue-50 text-blue-700" : "bg-ink-50 text-ink-700"
+                        u.role === "school" ? "bg-ink-50 text-ink-700" : "bg-ink-50 text-ink-700"
                       }`}>
                         {u.role}
                       </span>

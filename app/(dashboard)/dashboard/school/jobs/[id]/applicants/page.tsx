@@ -77,7 +77,7 @@ interface JobInfo {
 
 const PIPELINE_STAGES: { value: PipelineStage; label: string; color: string; bg: string }[] = [
   { value: "applied", label: "Applied", color: "text-gray-600", bg: "bg-gray-100" },
-  { value: "shortlisted", label: "Shortlisted", color: "text-blue-700", bg: "bg-blue-100" },
+  { value: "shortlisted", label: "Shortlisted", color: "text-ink-700", bg: "bg-ink-100" },
   { value: "interview", label: "Interview", color: "text-purple-700", bg: "bg-purple-100" },
   { value: "offered", label: "Offered", color: "text-orange-700", bg: "bg-orange-100" },
   { value: "hired", label: "Hired", color: "text-ink-700", bg: "bg-ink-100" },
@@ -232,7 +232,7 @@ function NotesModal({
           onChange={(e) => setNotes(e.target.value)}
           rows={5}
           placeholder="Add private notes about this applicant..."
-          className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none mb-4"
+          className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-ink-500 resize-none mb-4"
         />
         <div className="flex gap-3 justify-end">
           <Button variant="outline" onClick={onClose}>
@@ -241,7 +241,7 @@ function NotesModal({
           <Button
             onClick={handleSave}
             disabled={isSaving}
-            className="bg-blue-700 hover:bg-blue-800 text-white"
+            className="bg-ink-700 hover:bg-ink-800 text-white"
           >
             {isSaving ? (
               <Loader2 className="h-4 w-4 animate-spin mr-2" />
@@ -293,8 +293,8 @@ function ApplicantCard({
               className="w-12 h-12 rounded-full object-cover border-2 border-gray-100"
             />
           ) : (
-            <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center border-2 border-blue-50">
-              <span className="text-blue-700 font-bold text-sm">
+            <div className="w-12 h-12 rounded-full bg-ink-100 flex items-center justify-center border-2 border-ink-50">
+              <span className="text-ink-700 font-bold text-sm">
                 {getInitials(applicant.teacher_name)}
               </span>
             </div>
@@ -315,7 +315,7 @@ function ApplicantCard({
                   </span>
                 )}
                 {applicant.willing_to_relocate && (
-                  <span className="px-1.5 py-0.5 bg-blue-50 text-blue-600 text-xs rounded font-medium">
+                  <span className="px-1.5 py-0.5 bg-ink-50 text-ink-600 text-xs rounded font-medium">
                     Open to relocate
                   </span>
                 )}
@@ -367,7 +367,7 @@ function ApplicantCard({
             {applicant.teacher_levels.map((level) => (
               <span
                 key={level}
-                className="px-2 py-0.5 bg-blue-50 text-blue-600 text-xs rounded-lg uppercase"
+                className="px-2 py-0.5 bg-ink-50 text-ink-600 text-xs rounded-lg uppercase"
               >
                 {level}
               </span>
@@ -453,7 +453,7 @@ function ApplicantCard({
                 <Button
                   size="sm"
                   variant="outline"
-                  className="text-xs h-8 flex items-center gap-1.5 text-blue-700 border-blue-200"
+                  className="text-xs h-8 flex items-center gap-1.5 text-ink-700 border-ink-200"
                 >
                   <Download className="h-3.5 w-3.5" />
                   Upgrade to download CV
@@ -648,7 +648,7 @@ export default function ApplicantsPage() {
                 {
                   label: "Total Applicants",
                   value: applicants.length,
-                  color: "text-blue-600",
+                  color: "text-ink-600",
                 },
                 {
                   label: "Passed Quiz",
@@ -743,7 +743,7 @@ export default function ApplicantsPage() {
               onChange={(e) =>
                 setSortBy(e.target.value as typeof sortBy)
               }
-              className="px-3 py-1.5 border border-gray-300 rounded-lg text-xs bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="px-3 py-1.5 border border-gray-300 rounded-lg text-xs bg-white focus:outline-none focus:ring-2 focus:ring-ink-500"
             >
               <option value="newest">Newest first</option>
               <option value="score_high">Highest quiz score</option>
@@ -770,7 +770,7 @@ export default function ApplicantsPage() {
                     step="5"
                     value={minScore}
                     onChange={(e) => setMinScore(Number(e.target.value))}
-                    className="w-48 accent-blue-600"
+                    className="w-48 accent-ink-600"
                   />
                 </div>
                 <Button
