@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import {
   Building2, Menu, X, Lock, Bell, Trash2,
@@ -52,6 +52,24 @@ export default function SchoolSettingsPage() {
   const [deleteLoading, setDeleteLoading] = useState(false)
   const [showDeleteBox, setShowDeleteBox] = useState(false)
 
+  // These toggles previously always reset to their hardcoded defaults on
+  // every visit — there was no load-on-mount at all, so even the
+  // localStorage write it used to do was never actually read back.
+  useEffect(() => {
+    fetch("/api/school/profile")
+      .then(async (res) => {
+        if (!res.ok) return
+        const data = await res.json()
+        const prefs = data.school?.notification_prefs
+        if (!prefs) return
+        setNotifNewApplicant(prefs.new_applicant ?? true)
+        setNotifQuizPassed(prefs.quiz_passed ?? true)
+        setNotifSubExpiry(prefs.sub_expiry ?? true)
+        setNotifPlatformNews(prefs.platform_news ?? false)
+      })
+      .catch((err) => console.error("Load notification prefs error:", err))
+  }, [])
+
   const handlePasswordChange = async () => {
     setPasswordMsg(null)
     if (!newPassword || !currentPassword) {
@@ -94,13 +112,21 @@ export default function SchoolSettingsPage() {
     setNotifSaving(true)
     setNotifMsg(null)
     try {
-      localStorage.setItem("tc_school_notif_prefs", JSON.stringify({
-        new_applicant:   notifNewApplicant,
-        quiz_passed:     notifQuizPassed,
-        sub_expiry:      notifSubExpiry,
-        platform_news:   notifPlatformNews,
-      }))
-      setNotifMsg("Preferences saved.")
+      const res = await fetch("/api/school/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          notification_prefs: {
+            new_applicant: notifNewApplicant,
+            quiz_passed:   notifQuizPassed,
+            sub_expiry:    notifSubExpiry,
+            platform_news: notifPlatformNews,
+          },
+        }),
+      })
+      setNotifMsg(res.ok ? "Preferences saved." : "Couldn't save preferences — try again.")
+    } catch {
+      setNotifMsg("Couldn't save preferences — try again.")
     } finally {
       setNotifSaving(false)
       setTimeout(() => setNotifMsg(null), 3000)

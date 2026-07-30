@@ -994,10 +994,12 @@ export default function TeacherRegisterPage() {
           </div>
         </div>
 
-        <p className="text-center text-xs text-gray-400 mt-6">
-          Are you a school?{" "}
-          <Link href="/register/school" className="text-ink-600 hover:underline">Register your school here</Link>
-        </p>
+        {step === 1 && (
+          <p className="text-center text-xs text-gray-400 mt-6">
+            Are you a school?{" "}
+            <Link href="/register/school" className="text-ink-600 hover:underline">Register your school here</Link>
+          </p>
+        )}
       </div>
     </div>
   )

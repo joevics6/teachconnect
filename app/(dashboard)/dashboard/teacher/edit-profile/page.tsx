@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { StateLgaSelect } from "@/components/ui/StateLgaSelect"
 import { SUBJECTS, TEACHING_LEVELS, NIGERIAN_STATES } from "@/lib/constants"
 import { clearCached } from "@/lib/client-cache"
+import { compressImage } from "@/lib/image-compress"
 import { TeacherSidebar } from "@/components/dashboard/TeacherSidebar"
 
 interface ProfileForm {
@@ -112,11 +113,14 @@ export default function EditTeacherProfilePage() {
     reader.onload = (ev) => setPhotoPreview(ev.target?.result as string)
     reader.readAsDataURL(file)
 
-    // Upload to server
+    // Upload to server — compressed first, so a normal phone-camera
+    // photo (often 3-8MB) doesn't get rejected by the storage bucket's
+    // size limit.
     setUploadingPhoto(true)
     try {
+      const compressed = await compressImage(file)
       const fd = new FormData()
-      fd.append("photo", file)
+      fd.append("photo", compressed)
       const res = await fetch("/api/teacher/profile/photo", { method: "POST", body: fd })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || "Upload failed")

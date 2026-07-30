@@ -12,6 +12,7 @@ import { StateLgaSelect } from "@/components/ui/StateLgaSelect"
 import { TEACHING_LEVELS } from "@/lib/constants"
 import { clearCached } from "@/lib/client-cache"
 import { SchoolSidebar } from "@/components/dashboard/SchoolSidebar"
+import { compressImage } from "@/lib/image-compress"
 
 const SCHOOL_TYPES = [
   { value: "private",       label: "Private"       },
@@ -121,8 +122,9 @@ export default function EditSchoolProfilePage() {
     setLogoPreview(URL.createObjectURL(file))
     setUploadingLogo(true)
     try {
+      const compressed = await compressImage(file)
       const fd = new FormData()
-      fd.append("logo", file)
+      fd.append("logo", compressed)
       const res = await fetch("/api/school/profile/logo", { method: "POST", body: fd })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error)
