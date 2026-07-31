@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
+import { ALL_SUBJECTS, BENEFITS } from "@/lib/constants"
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY!
 
@@ -12,7 +13,7 @@ Description: "${description}"
 Return exactly this JSON structure (use null for fields not mentioned, do not add extra fields):
 {
   "title": "job title string or null",
-  "subject": "must be one of exactly: Mathematics, English Language, Basic Science, Physics, Chemistry, Biology, Geography, History, Economics, Government, Commerce, Accounting, French, Yoruba, Igbo, Hausa, Arabic, Christian Religious Studies, Islamic Religious Studies, Agricultural Science, Technical Drawing, Computer Science, Further Mathematics, Literature in English, Civic Education, Physical Education, Fine Arts, Music, Home Economics, Food and Nutrition, Nursery Activities, Primary Activities — or null if not mentioned",
+  "subject": "must be one of exactly: ${ALL_SUBJECTS.join(", ")} — or null if not mentioned",
   "teaching_levels": ["array of applicable values from: nursery, primary, jss, sss, tertiary — empty array if not mentioned"],
   "employment_type": "full-time or part-time or contract or null",
   "positions": 1,
@@ -20,7 +21,7 @@ Return exactly this JSON structure (use null for fields not mentioned, do not ad
   "salary_max": 0,
   "accommodation_offered": false,
   "accommodation_type": "fully-furnished or unfurnished or allowance or null",
-  "benefits": ["array of applicable values from exactly: Health Insurance, Transport Allowance, Pension, School Fee Discount for Staff Children, Housing Allowance, Lunch, Professional Development"],
+  "benefits": ["array of applicable values from exactly: ${BENEFITS.join(", ")}"],
   "description": "a professional 3-5 sentence job description written from the school perspective based on the input",
   "required_qualifications": "a clear list of required qualifications inferred from the subject, level and any mentioned requirements",
   "quiz_enabled": false,

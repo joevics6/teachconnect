@@ -19,8 +19,11 @@ export async function POST(request: Request) {
     const phone = formData.get("phone") as string
     const state = formData.get("state") as string
     const lga = formData.get("lga") as string
-    const teaching_levels = JSON.parse(formData.get("teaching_levels") as string || "[]")
-    const subjects = JSON.parse(formData.get("subjects") as string || "[]")
+    const level_subjects: { level: string; subjects: string[] }[] =
+      JSON.parse(formData.get("level_subjects") as string || "[]")
+    // Derived server-side so they can never drift from level_subjects.
+    const teaching_levels = level_subjects.map((ls) => ls.level)
+    const subjects = Array.from(new Set(level_subjects.flatMap((ls) => ls.subjects)))
     const years_experience = parseInt(formData.get("years_experience") as string || "0")
     const trcn_number = formData.get("trcn_number") as string || null
     const trcn_status = formData.get("trcn_status") as string
@@ -139,6 +142,7 @@ export async function POST(request: Request) {
         phone,
         state,
         lga,
+        level_subjects,
         teaching_levels,
         subjects,
         years_experience,

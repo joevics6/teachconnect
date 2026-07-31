@@ -130,7 +130,7 @@ export async function PATCH(request: Request) {
     // Whitelist updatable fields
     const allowedFields = [
       "full_name", "phone", "state", "lga",
-      "teaching_levels", "subjects", "years_experience",
+      "level_subjects", "years_experience",
       "trcn_number", "trcn_status", "preferred_states",
       "willing_to_relocate", "accommodation_needed",
       "availability", "salary_min", "salary_max", "bio", "photo_url", "demo_video_url",
@@ -141,6 +141,14 @@ export async function PATCH(request: Request) {
     allowedFields.forEach((field) => {
       if (body[field] !== undefined) updates[field] = body[field]
     })
+
+    // teaching_levels/subjects are derived, never accepted directly, so they
+    // can't drift from level_subjects (the paired source of truth).
+    if (Array.isArray(body.level_subjects)) {
+      const levelSubjects = body.level_subjects as { level: string; subjects: string[] }[]
+      updates.teaching_levels = levelSubjects.map((ls) => ls.level)
+      updates.subjects = Array.from(new Set(levelSubjects.flatMap((ls) => ls.subjects)))
+    }
 
     const { data, error } = await supabase
       .from("teacher_profiles")

@@ -6,8 +6,10 @@ import Link from "next/link"
 import { ArrowLeft, Save, Loader2, CheckCircle2, AlertCircle, Camera, X, FileText, Upload } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { StateLgaSelect } from "@/components/ui/StateLgaSelect"
-import { SUBJECTS, TEACHING_LEVELS, NIGERIAN_STATES } from "@/lib/constants"
+import { NIGERIAN_STATES } from "@/lib/constants"
+import { LevelSubjectPicker } from "@/components/LevelSubjectPicker"
 import { clearCached } from "@/lib/client-cache"
+import type { TeacherLevelSubjects } from "@/types"
 
 interface ProfileForm {
   full_name: string
@@ -18,8 +20,7 @@ interface ProfileForm {
   years_experience: number | ""
   trcn_number: string
   trcn_status: "registered" | "pending" | "not-registered"
-  subjects: string[]
-  teaching_levels: string[]
+  level_subjects: TeacherLevelSubjects[]
   preferred_states: string[]
   willing_to_relocate: boolean
   accommodation_needed: boolean
@@ -43,7 +44,7 @@ export default function EditTeacherProfilePage() {
   const [form, setForm] = useState<ProfileForm>({
     full_name: "", phone: "", state: "", lga: "", bio: "",
     years_experience: "", trcn_number: "", trcn_status: "not-registered",
-    subjects: [], teaching_levels: [], preferred_states: [],
+    level_subjects: [], preferred_states: [],
     willing_to_relocate: false, accommodation_needed: false,
     availability: "immediate", salary_min: "",
     demo_video_url: "",
@@ -83,8 +84,7 @@ export default function EditTeacherProfilePage() {
           years_experience:    p.years_experience   ?? "",
           trcn_number:         p.trcn_number        || "",
           trcn_status:         p.trcn_status        || "not-registered",
-          subjects:            p.subjects           || [],
-          teaching_levels:     p.teaching_levels    || [],
+          level_subjects:      p.level_subjects     || [],
           preferred_states:    p.preferred_states   || [],
           willing_to_relocate: p.willing_to_relocate ?? false,
           accommodation_needed: p.accommodation_needed ?? false,
@@ -421,45 +421,10 @@ export default function EditTeacherProfilePage() {
         <section className="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
           <h2 className="font-bold text-gray-900">Teaching Information</h2>
 
-          <div>
-            <label className="text-sm font-medium text-gray-700 block mb-2">Teaching Levels</label>
-            <div className="flex flex-wrap gap-2">
-              {TEACHING_LEVELS.map((level) => (
-                <button
-                  key={level.value}
-                  type="button"
-                  onClick={() => setForm({ ...form, teaching_levels: toggle(form.teaching_levels, level.value) })}
-                  className={`px-3 py-1.5 rounded-full text-sm border transition ${
-                    form.teaching_levels.includes(level.value)
-                      ? "bg-ink-600 text-white border-ink-600"
-                      : "bg-white text-gray-600 border-gray-200 hover:border-ink-400"
-                  }`}
-                >
-                  {level.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <label className="text-sm font-medium text-gray-700 block mb-2">Subjects</label>
-            <div className="flex flex-wrap gap-2">
-              {SUBJECTS.map((subject) => (
-                <button
-                  key={subject}
-                  type="button"
-                  onClick={() => setForm({ ...form, subjects: toggle(form.subjects, subject) })}
-                  className={`px-3 py-1.5 rounded-full text-sm border transition ${
-                    form.subjects.includes(subject)
-                      ? "bg-ink-600 text-white border-ink-600"
-                      : "bg-white text-gray-600 border-gray-200 hover:border-ink-400"
-                  }`}
-                >
-                  {subject}
-                </button>
-              ))}
-            </div>
-          </div>
+          <LevelSubjectPicker
+            value={form.level_subjects}
+            onChange={(v) => setForm({ ...form, level_subjects: v })}
+          />
 
           <div>
             <label className="text-sm font-medium text-gray-700 block mb-1">Years of Experience</label>

@@ -19,11 +19,13 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { requireAdmin } from "@/lib/admin"
+import { TEACHING_LEVELS, getSubjectsForLevel, getTopicsForSubject } from "@/lib/constants"
+import type { TeachingLevel } from "@/types"
 import crypto from "crypto"
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY!
 const VALID_OPTIONS = new Set(["a", "b", "c", "d"])
-const VALID_LEVELS = new Set(["nursery", "primary", "jss", "sss", "tertiary"])
+const VALID_LEVELS = new Set(TEACHING_LEVELS.map((l) => l.value))
 
 interface RawQuestion {
   question_text: string
@@ -70,13 +72,13 @@ async function callGemini(prompt: string): Promise<string> {
   throw lastErr instanceof Error ? lastErr : new Error("Gemini generation failed")
 }
 
-function buildPrompt(subject: string, level: string, count: number): string {
+function buildPrompt(subject: string, level: string, count: number, topics?: string[]): string {
   return `You are a Nigerian curriculum expert writing multiple-choice quiz questions for teacher applicant screening.
 
 Subject: ${subject}
 Level: ${level.toUpperCase()} (Nigerian education system)
 Count: ${count}
-
+${topics && topics.length > 0 ? `\nThis subject is a broad assessment category. Spread questions across these topic areas:\n${topics.map((t) => `- ${t}`).join("\n")}\n` : ""}
 Rules:
 - Questions test subject-matter mastery a qualified TEACHER of this subject/level should have — not trivia.
 - Each question has exactly 4 options.
@@ -112,6 +114,9 @@ export async function POST(request: Request) {
   if (!VALID_LEVELS.has(level)) {
     return NextResponse.json({ error: "Invalid level" }, { status: 400 })
   }
+  if (!getSubjectsForLevel(level as TeachingLevel).includes(subject)) {
+    return NextResponse.json({ error: `"${subject}" is not a valid subject for ${level}` }, { status: 400 })
+  }
   const targetCount = Math.min(Math.max(Number(count) || 20, 1), 40)
 
   const { data: job, error: jobError } = await supabase
@@ -146,7 +151,8 @@ export async function POST(request: Request) {
   let failed = 0
 
   try {
-    const raw = await callGemini(buildPrompt(subject, level, targetCount))
+    const topics = getTopicsForSubject(level as TeachingLevel, subject)
+    const raw = await callGemini(buildPrompt(subject, level, targetCount, topics))
     const cleaned = raw.replace(/```json|```/g, "").trim()
     let questions: RawQuestion[]
     try {

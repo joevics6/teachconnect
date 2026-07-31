@@ -84,7 +84,7 @@ export async function GET(request: Request) {
     let query = supabase
       .from("teacher_profiles")
       .select(
-        `id, full_name, state, lga, subjects, teaching_levels,
+        `id, full_name, state, lga, subjects, teaching_levels, level_subjects,
          years_experience, trcn_status, willing_to_relocate,
          accommodation_needed, salary_min, salary_max, photo_url,
          bio, profile_completion, availability, demo_video_url`,
@@ -93,6 +93,9 @@ export async function GET(request: Request) {
       .eq("is_visible", true)
 
     if (keyword)          query = query.ilike("full_name", `%${keyword}%`)
+    // Coarse pre-filter at the DB level (fast, indexable) — narrowed further
+    // below when BOTH subject and level are given, since a teacher can teach
+    // one subject at one level and a different subject at another.
     if (subject)          query = query.contains("subjects", [subject])
     if (level)            query = query.contains("teaching_levels", [level])
     if (state)            query = query.eq("state", state)
@@ -107,13 +110,23 @@ export async function GET(request: Request) {
     const { data: teachers, count, error } = await query
     if (error) throw error
 
+    // Precise pairing: when both subject and level are specified, require the
+    // teacher to actually teach that subject AT that level (not just teach
+    // that subject somewhere and that level for something else).
+    const filtered = subject && level
+      ? (teachers || []).filter((t) => {
+          const pairs = (t.level_subjects as { level: string; subjects: string[] }[] | null) || []
+          return pairs.some((p) => p.level === level && p.subjects.includes(subject))
+        })
+      : (teachers || [])
+
     // Calculate and attach match scores, then sort by score desc
-    const scored = (teachers || []).map((t) => ({
+    const scored = filtered.map((t) => ({
       ...t,
       match_score: calcMatchScore(t as Record<string, unknown>, { subject, level, state }),
     })).sort((a, b) => b.match_score - a.match_score)
 
-    return NextResponse.json({ teachers: scored, total: count || 0, is_premium: isPremium })
+    return NextResponse.json({ teachers: scored, total: subject && level ? filtered.length : (count || 0), is_premium: isPremium })
   } catch (err) {
     console.error("GET /api/talent error:", err)
     return NextResponse.json({ error: "Failed to fetch teachers" }, { status: 500 })

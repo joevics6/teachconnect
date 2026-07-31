@@ -43,6 +43,11 @@ export interface User {
   created_at: string
 }
 
+export interface TeacherLevelSubjects {
+  level: TeachingLevel
+  subjects: string[]
+}
+
 export interface TeacherProfile {
   id: string
   user_id: string
@@ -50,7 +55,11 @@ export interface TeacherProfile {
   phone: string
   state: string
   lga: string
+  /** Source of truth for what a teacher teaches — each level paired with its own subjects. */
+  level_subjects: TeacherLevelSubjects[]
+  /** Derived from level_subjects (all levels, deduped) — kept for fast/simple filtering. */
   teaching_levels: TeachingLevel[]
+  /** Derived from level_subjects (all subjects across levels, deduped) — kept for fast/simple filtering. */
   subjects: string[]
   years_experience: number
   trcn_number?: string

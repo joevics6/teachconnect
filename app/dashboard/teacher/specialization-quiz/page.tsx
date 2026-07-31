@@ -18,16 +18,11 @@ import {
   Award,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { SUBJECTS } from "@/lib/constants"
+import { TEACHING_LEVELS, getSubjectsForLevel } from "@/lib/constants"
+import type { TeachingLevel } from "@/types"
 
 // ─── Levels ──────────────────────────────────────────────────
-const LEVELS = [
-  { value: "nursery",  label: "Crèche / Pre-nursery / Nursery" },
-  { value: "primary",  label: "Primary"                         },
-  { value: "jss",      label: "Secondary — JSS"                 },
-  { value: "sss",      label: "Secondary — SSS"                 },
-  { value: "tertiary", label: "Tertiary"                        },
-]
+const LEVELS = TEACHING_LEVELS
 
 // ─── Types ────────────────────────────────────────────────────
 
@@ -84,11 +79,16 @@ function getOrdinal(n: number) {
 
 function SubjectSelectScreen({ onSelect }: { onSelect: (subject: string, level: string) => void }) {
   const [selected,      setSelected]      = useState("")
-  const [selectedLevel, setSelectedLevel] = useState("")
+  const [selectedLevel, setSelectedLevel] = useState<TeachingLevel | "">("")
 
-  const quizSubjects = SUBJECTS.filter((s) =>
-    !["Nursery Activities", "Primary Activities"].includes(s)
-  )
+  const subjectOptions = selectedLevel ? getSubjectsForLevel(selectedLevel) : []
+
+  const chooseLevel = (level: TeachingLevel) => {
+    setSelectedLevel(level)
+    const options = getSubjectsForLevel(level)
+    // Nursery/Primary only have one subject — select it automatically.
+    setSelected(options.length === 1 ? options[0] : "")
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-12">
@@ -125,25 +125,6 @@ function SubjectSelectScreen({ onSelect }: { onSelect: (subject: string, level: 
           </div>
         </div>
 
-        {/* Subject selector */}
-        <div className="bg-white rounded-xl border border-gray-200 p-5 mb-5">
-          <label className="block text-sm font-bold text-gray-900 mb-3">
-            Select your subject
-          </label>
-          <select
-            value={selected}
-            onChange={(e) => setSelected(e.target.value)}
-            className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-ink-500 bg-white"
-          >
-            <option value="">Choose a subject...</option>
-            {quizSubjects.map((s) => (
-              <option key={s} value={s}>
-                {s}
-              </option>
-            ))}
-          </select>
-        </div>
-
         {/* Level selector */}
         <div className="bg-white rounded-xl border border-gray-200 p-5 mb-5">
           <label className="block text-sm font-bold text-gray-900 mb-3">
@@ -153,7 +134,7 @@ function SubjectSelectScreen({ onSelect }: { onSelect: (subject: string, level: 
             {LEVELS.map((l) => (
               <button
                 key={l.value}
-                onClick={() => setSelectedLevel(l.value)}
+                onClick={() => chooseLevel(l.value)}
                 className={`w-full text-left px-4 py-2.5 rounded-xl border text-sm font-medium transition-all ${
                   selectedLevel === l.value
                     ? "border-ink-500 bg-ink-50 text-ink-700"
@@ -165,6 +146,33 @@ function SubjectSelectScreen({ onSelect }: { onSelect: (subject: string, level: 
             ))}
           </div>
         </div>
+
+        {/* Subject selector — scoped to the chosen level */}
+        {selectedLevel && subjectOptions.length > 1 && (
+          <div className="bg-white rounded-xl border border-gray-200 p-5 mb-5">
+            <label className="block text-sm font-bold text-gray-900 mb-3">
+              Select your subject
+            </label>
+            <select
+              value={selected}
+              onChange={(e) => setSelected(e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-ink-500 bg-white"
+            >
+              <option value="">Choose a subject...</option>
+              {subjectOptions.map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        {selectedLevel && subjectOptions.length === 1 && (
+          <div className="bg-ink-50 border border-ink-200 rounded-xl p-4 mb-5 text-sm text-ink-700">
+            This quiz covers <strong>{subjectOptions[0]}</strong> — one broad assessment for this level.
+          </div>
+        )}
 
         <Button
           onClick={() => selected && selectedLevel && onSelect(selected, selectedLevel)}

@@ -39,7 +39,7 @@ export async function GET(
     const { data: profileRows, error } = await supabase
       .from("teacher_profiles")
       .select(
-        `id, full_name, state, lga, subjects, teaching_levels,
+        `id, full_name, state, lga, subjects, teaching_levels, level_subjects,
          years_experience, trcn_status, trcn_number, preferred_states,
          willing_to_relocate, accommodation_needed, availability,
          salary_min, salary_max, bio, photo_url, profile_completion,

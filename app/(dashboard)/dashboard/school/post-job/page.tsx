@@ -16,8 +16,9 @@ import {
   Clock,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { SUBJECTS, TEACHING_LEVELS, BENEFITS } from "@/lib/constants"
+import { TEACHING_LEVELS, BENEFITS, getSubjectsForLevels, getSubjectsForLevel } from "@/lib/constants"
 import { SchoolSidebar } from "@/components/dashboard/SchoolSidebar"
+import type { TeachingLevel } from "@/types"
 
 const ACCOMMODATION_TYPES = [
   { value: "fully-furnished", label: "Fully Furnished" },
@@ -488,10 +489,13 @@ export default function PostJobPage() {
                   <select
                     value={formData.subject}
                     onChange={(e) => update("subject", e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                    disabled={formData.teaching_levels.length === 0}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white disabled:bg-gray-50 disabled:text-gray-400"
                   >
-                    <option value="">Select subject</option>
-                    {SUBJECTS.map((s) => (
+                    <option value="">
+                      {formData.teaching_levels.length === 0 ? "Select teaching level(s) first" : "Select subject"}
+                    </option>
+                    {getSubjectsForLevels(formData.teaching_levels as TeachingLevel[]).map((s) => (
                       <option key={s} value={s}>{s}</option>
                     ))}
                   </select>
@@ -850,7 +854,10 @@ export default function PostJobPage() {
                       combined quiz.
                     </p>
                     <div className="flex flex-wrap gap-2">
-                      {SUBJECTS.map((s) => {
+                      {(formData.quiz_difficulty
+                        ? getSubjectsForLevel(formData.quiz_difficulty as TeachingLevel)
+                        : []
+                      ).map((s) => {
                         const isSelected = formData.quiz_subjects.includes(s)
                         const atLimit = formData.quiz_subjects.length >= MAX_QUIZ_SUBJECTS
                         return (

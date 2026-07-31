@@ -8,9 +8,11 @@ import {
   ClipboardCheck, Eye, EyeOff,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { SUBJECTS, TEACHING_LEVELS } from "@/lib/constants"
 import { StateLgaSelect, NIGERIAN_STATES } from "@/components/ui/StateLgaSelect"
+import { LevelSubjectPicker, deriveTeachingLevels, deriveSubjects } from "@/components/LevelSubjectPicker"
+import { getSubjectsForLevel } from "@/lib/constants"
 import { createClient } from "@/lib/supabase/client"
+import type { TeacherLevelSubjects, TeachingLevel } from "@/types"
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const STEPS = [
@@ -50,8 +52,7 @@ interface FormData {
   phone: string
   state: string
   lga: string
-  teaching_levels: string[]
-  subjects: string[]
+  level_subjects: TeacherLevelSubjects[]
   years_experience: string
   trcn_number: string
   trcn_status: string
@@ -111,7 +112,7 @@ export default function TeacherRegisterPage() {
   const [formData, setFormData] = useState<FormData>({
     email: "", password: "", confirm_password: "",
     full_name: "", phone: "", state: "", lga: "",
-    teaching_levels: [], subjects: [],
+    level_subjects: [],
     years_experience: "", trcn_number: "", trcn_status: "",
     preferred_states: [], willing_to_relocate: false,
     accommodation_needed: false, availability: "", salary_min: "",
@@ -149,8 +150,9 @@ export default function TeacherRegisterPage() {
     }
 
     if (step === 3) {
-      if (formData.teaching_levels.length === 0) e.teaching_levels = "Select at least one teaching level"
-      if (formData.subjects.length === 0) e.subjects = "Select at least one subject"
+      if (formData.level_subjects.length === 0) e.level_subjects = "Select at least one teaching level"
+      else if (formData.level_subjects.some((ls) => ls.subjects.length === 0))
+        e.subjects = "Select at least one subject for each level"
       if (!formData.years_experience) e.years_experience = "Years of experience is required"
       if (!formData.trcn_status) e.trcn_status = "TRCN status is required"
     }
@@ -182,8 +184,8 @@ export default function TeacherRegisterPage() {
       // Cache teaching details
       onboardingCache.current = {
         ...onboardingCache.current,
-        teaching_levels: formData.teaching_levels,
-        subjects_taught: formData.subjects,
+        teaching_levels: deriveTeachingLevels(formData.level_subjects),
+        subjects_taught: deriveSubjects(formData.level_subjects),
         years_of_teaching_experience: formData.years_experience ? parseInt(formData.years_experience) : null,
         trcn_number: formData.trcn_number || null,
         trcn_status: formData.trcn_status || null,
@@ -292,10 +294,20 @@ export default function TeacherRegisterPage() {
       if (p.phone    && !formData.phone)        update("phone",     p.phone)
       if (p.state    && !formData.state)        update("state",     p.state)
       if (p.lga      && !formData.lga)          update("lga",       p.lga)
-      if (p.teaching_levels?.length > 0 && formData.teaching_levels.length === 0)
-        update("teaching_levels", p.teaching_levels)
-      if (p.subjects?.length > 0 && formData.subjects.length === 0)
-        update("subjects", p.subjects)
+      // CV parsing detects levels and subjects separately (it can't reliably tell
+      // which subject goes with which level) — pair every detected subject with
+      // every detected level as a starting point; the teacher refines this in
+      // step 3 via the level-scoped subject picker.
+      if (p.teaching_levels?.length > 0 && formData.level_subjects.length === 0) {
+        const detectedSubjects: string[] = p.subjects ?? []
+        update(
+          "level_subjects",
+          p.teaching_levels.map((level: string) => ({
+            level,
+            subjects: detectedSubjects.filter((s) => getSubjectsForLevel(level as TeachingLevel).includes(s)),
+          }))
+        )
+      }
       if (p.years_experience && !formData.years_experience)
         update("years_experience", String(p.years_experience))
       if (p.trcn_number && !formData.trcn_number) update("trcn_number", p.trcn_number)
@@ -736,39 +748,12 @@ export default function TeacherRegisterPage() {
             <div className="space-y-6">
               <h2 className="text-lg font-bold text-gray-900">Teaching Details</h2>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">Teaching Level(s)</label>
-                <div className="flex flex-wrap gap-2">
-                  {TEACHING_LEVELS.map((level) => (
-                    <button key={level.value} type="button" onClick={() => toggleArray("teaching_levels", level.value)}
-                      className={`px-4 py-2 rounded-lg text-sm font-medium border transition-all ${
-                        formData.teaching_levels.includes(level.value)
-                          ? "bg-ink-600 text-white border-ink-600"
-                          : "bg-white text-gray-600 border-gray-300 hover:border-ink-400"
-                      }`}>
-                      {level.label}
-                    </button>
-                  ))}
-                </div>
-                {errors.teaching_levels && <p className="text-red-500 text-xs mt-1">{errors.teaching_levels}</p>}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">Subjects You Teach</label>
-                <div className="flex flex-wrap gap-2 max-h-48 overflow-y-auto p-1">
-                  {SUBJECTS.map((subject) => (
-                    <button key={subject} type="button" onClick={() => toggleArray("subjects", subject)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
-                        formData.subjects.includes(subject)
-                          ? "bg-ink-600 text-white border-ink-600"
-                          : "bg-white text-gray-600 border-gray-300 hover:border-ink-400"
-                      }`}>
-                      {subject}
-                    </button>
-                  ))}
-                </div>
-                {errors.subjects && <p className="text-red-500 text-xs mt-1">{errors.subjects}</p>}
-              </div>
+              <LevelSubjectPicker
+                value={formData.level_subjects}
+                onChange={(v) => update("level_subjects", v)}
+                levelsError={errors.level_subjects}
+                subjectsError={errors.subjects}
+              />
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div>
@@ -886,8 +871,11 @@ export default function TeacherRegisterPage() {
                   { label: "Email",           value: formData.email || "—" },
                   { label: "Phone",           value: formData.phone || "—" },
                   { label: "Location",        value: [formData.lga, formData.state].filter(Boolean).join(", ") || "—" },
-                  { label: "Teaching Levels", value: formData.teaching_levels.join(", ") || "—" },
-                  { label: "Subjects",        value: formData.subjects.length ? `${formData.subjects.slice(0, 3).join(", ")}${formData.subjects.length > 3 ? ` +${formData.subjects.length - 3} more` : ""}` : "—" },
+                  { label: "Teaching Levels", value: deriveTeachingLevels(formData.level_subjects).join(", ") || "—" },
+                  { label: "Subjects",        value: (() => {
+                      const subjects = deriveSubjects(formData.level_subjects)
+                      return subjects.length ? `${subjects.slice(0, 3).join(", ")}${subjects.length > 3 ? ` +${subjects.length - 3} more` : ""}` : "—"
+                    })() },
                   { label: "Experience",      value: formData.years_experience ? `${formData.years_experience} years` : "—" },
                   { label: "TRCN",            value: TRCN_STATUS_OPTIONS.find((o) => o.value === formData.trcn_status)?.label || "—" },
                   { label: "Availability",    value: AVAILABILITY_OPTIONS.find((o) => o.value === formData.availability)?.label || "—" },

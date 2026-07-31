@@ -20,7 +20,8 @@ import {
   SlidersHorizontal,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { SUBJECTS, TEACHING_LEVELS, NIGERIAN_STATES } from "@/lib/constants"
+import { ALL_SUBJECTS, TEACHING_LEVELS, NIGERIAN_STATES, getSubjectsForLevel } from "@/lib/constants"
+import type { TeachingLevel } from "@/types"
 
 // ─── Types ───────────────────────────────────────────────────
 
@@ -596,7 +597,7 @@ export default function TalentPage() {
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="">All subjects</option>
-                    {SUBJECTS.map((s) => (
+                    {(filters.level ? getSubjectsForLevel(filters.level as TeachingLevel) : ALL_SUBJECTS).map((s) => (
                       <option key={s} value={s}>{s}</option>
                     ))}
                   </select>

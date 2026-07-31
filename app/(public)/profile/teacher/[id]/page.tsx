@@ -35,6 +35,7 @@ interface TeacherProfile {
   phone: string
   subjects: string[]
   teaching_levels: string[]
+  level_subjects?: { level: string; subjects: string[] }[]
   years_experience: number
   trcn_status: string
   trcn_number: string | null
@@ -522,37 +523,66 @@ export default function TeacherProfilePage() {
               </h2>
               <div className="space-y-4">
 
-                <div>
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
-                    Subjects
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    {profile.subjects.map((subject) => (
-                      <span
-                        key={subject}
-                        className="px-3 py-1.5 bg-gray-100 text-gray-700 text-sm rounded-lg font-medium"
-                      >
-                        {subject}
-                      </span>
-                    ))}
+                {profile.level_subjects && profile.level_subjects.length > 0 ? (
+                  <div>
+                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                      Subjects &amp; Levels
+                    </p>
+                    <div className="space-y-3">
+                      {profile.level_subjects.map(({ level, subjects }) => (
+                        <div key={level}>
+                          <p className="text-xs font-medium text-blue-700 mb-1.5">
+                            {getLevelLabel(level)}
+                          </p>
+                          <div className="flex flex-wrap gap-2">
+                            {subjects.map((subject) => (
+                              <span
+                                key={subject}
+                                className="px-3 py-1.5 bg-gray-100 text-gray-700 text-sm rounded-lg font-medium"
+                              >
+                                {subject}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  <>
+                    <div>
+                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                        Subjects
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {profile.subjects.map((subject) => (
+                          <span
+                            key={subject}
+                            className="px-3 py-1.5 bg-gray-100 text-gray-700 text-sm rounded-lg font-medium"
+                          >
+                            {subject}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
 
-                <div>
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
-                    Teaching Levels
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    {profile.teaching_levels.map((level) => (
-                      <span
-                        key={level}
-                        className="px-3 py-1.5 bg-blue-50 text-blue-700 text-sm rounded-lg font-medium"
-                      >
-                        {getLevelLabel(level)}
-                      </span>
-                    ))}
-                  </div>
-                </div>
+                    <div>
+                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                        Teaching Levels
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {profile.teaching_levels.map((level) => (
+                          <span
+                            key={level}
+                            className="px-3 py-1.5 bg-blue-50 text-blue-700 text-sm rounded-lg font-medium"
+                          >
+                            {getLevelLabel(level)}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                )}
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>

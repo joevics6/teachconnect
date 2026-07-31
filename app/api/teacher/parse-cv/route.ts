@@ -5,6 +5,7 @@
 
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
+import { ALL_SUBJECTS, NIGERIAN_STATES } from "@/lib/constants"
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY!
 
@@ -21,7 +22,7 @@ Return ONLY raw JSON. No markdown, no backticks, no explanation, no preamble.
   "email": "string | null",
   "phone": "string | null",
   "location": "string | null — city/area they live in",
-  "state": "Nigerian state | null — must be one of: Abia, Adamawa, Akwa Ibom, Anambra, Bauchi, Bayelsa, Benue, Borno, Cross River, Delta, Ebonyi, Edo, Ekiti, Enugu, FCT, Gombe, Imo, Jigawa, Kaduna, Kano, Katsina, Kebbi, Kogi, Kwara, Lagos, Nasarawa, Niger, Ogun, Ondo, Osun, Oyo, Plateau, Rivers, Sokoto, Taraba, Yobe, Zamfara",
+  "state": "Nigerian state | null — must be one of: ${NIGERIAN_STATES.join(", ")}",
   "lga": "string | null",
   "summary": "string | null — their own professional summary if present on CV",
 
@@ -62,7 +63,7 @@ Return ONLY raw JSON. No markdown, no backticks, no explanation, no preamble.
   "linkedin": "string | null — LinkedIn URL if present",
 
   "teaching_levels": ["array — only use values: nursery, primary, jss, sss, tertiary, adult_education — infer from schools worked at"],
-  "subjects_taught": ["subjects — only from: Mathematics, English Language, Basic Science, Physics, Chemistry, Biology, Geography, History, Economics, Government, Commerce, Accounting, French, Yoruba, Igbo, Hausa, Arabic, Christian Religious Studies, Islamic Religious Studies, Agricultural Science, Technical Drawing, Computer Science, Further Mathematics, Literature in English, Civic Education, Physical Education, Fine Arts, Music, Home Economics, Food and Nutrition, Nursery Activities, Primary Activities"],
+  "subjects_taught": ["subjects — only from: ${ALL_SUBJECTS.join(", ")}"],
   "curriculum_experience": ["e.g. Nigerian, British, IB, Montessori, American"],
   "teaching_style": ["e.g. project-based, lecture, collaborative, differentiated — infer from descriptions"],
   "classroom_management_skills": ["classroom management techniques mentioned"],

@@ -1,16 +1,21 @@
 // ============================================================
 // app/api/admin/quiz-bank/coverage/route.ts
-// GET — returns active MCQ question counts per subject/level so
+// GET — returns active MCQ question counts per level/subject so
 // admins can see which combinations are safe to enable for quiz
 // screening and which will hard-fail an applying teacher.
+//
+// Only real level+subject combinations are reported (e.g. "Physics"
+// only exists at SSS/Tertiary) — driven by LEVEL_SUBJECTS, the same
+// source of truth used everywhere else in the app.
 // ============================================================
 
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { requireAdmin } from "@/lib/admin"
-import { SUBJECTS } from "@/lib/constants"
+import { TEACHING_LEVELS, getSubjectsForLevel } from "@/lib/constants"
+import type { TeachingLevel } from "@/types"
 
-const LEVELS = ["nursery", "primary", "jss", "sss", "tertiary"] as const
+const LEVELS = TEACHING_LEVELS.map((l) => l.value)
 
 export async function GET() {
   try {
@@ -26,27 +31,28 @@ export async function GET() {
 
     if (error) throw error
 
-    const counts: Record<string, Record<string, number>> = {}
-    for (const subject of SUBJECTS) {
-      counts[subject] = {}
-      for (const level of LEVELS) counts[subject][level] = 0
+    const counts: Record<TeachingLevel, Record<string, number>> = {} as Record<TeachingLevel, Record<string, number>>
+    for (const level of LEVELS) {
+      counts[level] = {}
+      for (const subject of getSubjectsForLevel(level)) counts[level][subject] = 0
     }
     for (const row of rows || []) {
-      if (!counts[row.subject]) counts[row.subject] = {}
-      counts[row.subject][row.education_level] = (counts[row.subject][row.education_level] || 0) + 1
+      const level = row.education_level as TeachingLevel
+      if (!counts[level]) counts[level] = {}
+      counts[level][row.subject] = (counts[level][row.subject] || 0) + 1
     }
 
     // Minimum viable count for a quiz to feel non-repetitive/non-guessable
     const MIN_VIABLE = 15
-    const totalCombos = SUBJECTS.length * LEVELS.length
-    const readyCombos = SUBJECTS.reduce(
-      (sum, s) => sum + LEVELS.filter((l) => (counts[s]?.[l] || 0) >= MIN_VIABLE).length,
+    const totalCombos = LEVELS.reduce((sum, l) => sum + getSubjectsForLevel(l).length, 0)
+    const readyCombos = LEVELS.reduce(
+      (sum, l) => sum + getSubjectsForLevel(l).filter((s) => (counts[l]?.[s] || 0) >= MIN_VIABLE).length,
       0
     )
 
     return NextResponse.json({
-      subjects: SUBJECTS,
       levels: LEVELS,
+      subjectsByLevel: Object.fromEntries(LEVELS.map((l) => [l, getSubjectsForLevel(l)])),
       counts,
       min_viable: MIN_VIABLE,
       total_combos: totalCombos,
