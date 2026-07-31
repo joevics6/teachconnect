@@ -21,6 +21,7 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { SchoolSidebar } from "@/components/dashboard/SchoolSidebar"
+import { clearCached } from "@/lib/client-cache"
 
 interface Job {
   id: string
@@ -201,6 +202,7 @@ function SchoolJobsContent() {
             : "Posting extended by 15 days!"
         )
         setTimeout(() => setSuccessMessage(""), 4000)
+        clearCached("school:jobs")
         fetchJobs()
       })
       .catch(() => setAddonError("Could not verify payment. Contact support."))
@@ -218,6 +220,7 @@ function SchoolJobsContent() {
       setJobs((prev) =>
         prev.map((j) => j.id === jobId ? { ...j, status: "closed" } : j)
       )
+      clearCached("school:jobs")
       setSuccessMessage("Job closed successfully")
       setTimeout(() => setSuccessMessage(""), 3000)
     } catch (err) {
@@ -236,6 +239,7 @@ function SchoolJobsContent() {
       const data = await response.json()
       if (data.job) {
         setJobs((prev) => [data.job, ...prev])
+        clearCached("school:jobs")
         setSuccessMessage("Job duplicated as draft")
         setTimeout(() => setSuccessMessage(""), 3000)
       }

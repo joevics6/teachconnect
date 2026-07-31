@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button"
 import { TEACHING_LEVELS, BENEFITS, getSubjectsForLevels, getSubjectsForLevel } from "@/lib/constants"
 import { SchoolSidebar } from "@/components/dashboard/SchoolSidebar"
 import type { TeachingLevel } from "@/types"
+import { clearCached } from "@/lib/client-cache"
 
 const ACCOMMODATION_TYPES = [
   { value: "fully-furnished", label: "Fully Furnished" },
@@ -181,6 +182,7 @@ export default function PostJobPage() {
   const [aiInput, setAiInput] = useState("")
   const [aiParsing, setAiParsing] = useState(false)
   const [aiError, setAiError] = useState("")
+  const [aiUpgradeRequired, setAiUpgradeRequired] = useState(false)
   const [aiSuccess, setAiSuccess] = useState(false)
 
   const update = (field: keyof FormData, value: unknown) => {
@@ -234,6 +236,7 @@ export default function PostJobPage() {
     }
     setAiParsing(true)
     setAiError("")
+    setAiUpgradeRequired(false)
     setAiSuccess(false)
     try {
       const response = await fetch("/api/school/jobs/parse", {
@@ -242,7 +245,10 @@ export default function PostJobPage() {
         body: JSON.stringify({ description: aiInput }),
       })
       const data = await response.json()
-      if (!response.ok) throw new Error(data.error || "Parsing failed")
+      if (!response.ok) {
+        if (data.upgrade_required) setAiUpgradeRequired(true)
+        throw new Error(data.error || "Parsing failed")
+      }
 
       const parsed = data.parsed
       if (parsed.title) update("title", parsed.title)
@@ -323,6 +329,11 @@ export default function PostJobPage() {
         if (data.upgrade_required) setUpgradeRequired(true)
         throw new Error(data.error || "Failed to post job")
       }
+      // New job changes what the dashboard's Active Jobs/Total
+      // Applicants counts and jobs list should show — clear the cached
+      // copy so the next dashboard visit fetches fresh instead of
+      // showing stale pre-post numbers.
+      clearCached("school:jobs")
       setSubmitted(true)
     } catch (err: unknown) {
       setErrors({
@@ -430,7 +441,18 @@ export default function PostJobPage() {
               placeholder="Describe the job vacancy in your own words..."
               className="w-full px-4 py-3 border border-purple-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 bg-white resize-none mb-3"
             />
-            {aiError && <p className="text-red-500 text-xs mb-3">{aiError}</p>}
+            {aiError && (
+              <div className="flex items-center justify-between gap-3 flex-wrap mb-3">
+                <p className="text-red-500 text-xs">{aiError}</p>
+                {aiUpgradeRequired && (
+                  <Link href="/dashboard/school/subscription">
+                    <Button size="sm" className="bg-ink-700 hover:bg-ink-800 text-white flex-shrink-0">
+                      Upgrade Plan
+                    </Button>
+                  </Link>
+                )}
+              </div>
+            )}
             {aiSuccess && (
               <div className="flex items-center gap-2 text-ink-700 text-sm mb-3 bg-ink-50 border border-ink-200 px-3 py-2 rounded-lg">
                 <CheckCircle2 className="h-4 w-4 flex-shrink-0" />

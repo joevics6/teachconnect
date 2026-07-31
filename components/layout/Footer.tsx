@@ -1,11 +1,20 @@
 "use client"
 
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 import { GraduationCap } from "lucide-react"
 import { useAuth } from "@/lib/auth-context"
 
 export default function Footer() {
   const { user, dashboardLink } = useAuth()
+  const pathname = usePathname()
+
+  // Dashboard/admin pages have their own complete header + sidebar
+  // navigation — the marketing footer underneath is dead weight there,
+  // not a real navigation aid.
+  if (pathname?.startsWith("/dashboard") || pathname?.startsWith("/admin")) {
+    return null
+  }
 
   return (
     <footer className="bg-ink-950 text-gray-400 mt-auto">

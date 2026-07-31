@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { useState } from "react"
+import { usePathname } from "next/navigation"
 import { Menu, X, GraduationCap, ChevronDown, LogOut, User, LayoutDashboard } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { createClient } from "@/lib/supabase/client"
@@ -12,6 +13,7 @@ export default function Navbar() {
   const { user, isLoading, dashboardLink } = useAuth()
   const [isOpen,       setIsOpen]       = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
+  const pathname = usePathname()
 
   const handleLogout = async () => {
     setUserMenuOpen(false)
@@ -45,6 +47,16 @@ export default function Navbar() {
         <span className={`text-ink-700 font-bold ${txt}`}>{getInitials(user?.display_name || "U")}</span>
       </div>
     )
+  }
+
+  // Dashboard/admin pages have their own complete header + sidebar
+  // navigation (TeacherSidebar/SchoolSidebar/AdminShell). Rendering this
+  // marketing navbar on top of them duplicates navigation and, on
+  // mobile specifically, stacks a second header bar whose own hamburger
+  // menu shows the same account/avatar details the dashboard's own
+  // sidebar already surfaces — redundant clutter, not a real aid.
+  if (pathname?.startsWith("/dashboard") || pathname?.startsWith("/admin")) {
+    return null
   }
 
   return (

@@ -23,6 +23,7 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { SchoolSidebar } from "@/components/dashboard/SchoolSidebar"
+import { clearCached } from "@/lib/client-cache"
 
 // ─── Types ───────────────────────────────────────────────────
 
@@ -547,6 +548,11 @@ export default function ApplicantsPage() {
           a.id === applicantId ? { ...a, pipeline_stage: stage } : a
         )
       )
+      // Interviews/offers/hired counts on the dashboard derive from
+      // application pipeline stages — clear both so the next dashboard
+      // visit reflects this change instead of showing stale numbers.
+      clearCached("school:metrics")
+      clearCached("school:jobs")
     } catch (err) {
       console.error(err)
     } finally {

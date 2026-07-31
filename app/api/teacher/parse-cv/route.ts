@@ -6,13 +6,9 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { ALL_SUBJECTS, NIGERIAN_STATES } from "@/lib/constants"
+import { generateWithGemini, parseGeminiJson } from "@/lib/gemini"
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY!
-
-async function callGemini(model: string, base64Data: string, mimeType: string) {
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`
-
-  const prompt = `You are an expert CV/resume parser for a Nigerian teacher recruitment platform called ClassHire.
+const CV_PROMPT = `You are an expert CV/resume parser for a Nigerian teacher recruitment platform called ClassHire.
 Extract ALL available information from this CV and return a single valid JSON object.
 Be thorough — extract everything present, leave fields null or empty array [] if not found.
 Return ONLY raw JSON. No markdown, no backticks, no explanation, no preamble.
@@ -85,48 +81,6 @@ Return ONLY raw JSON. No markdown, no backticks, no explanation, no preamble.
   "bio": "Write a compelling 150-200 word professional bio in third person based on this CV. Be specific — mention their actual subjects, school levels, years of experience, and notable achievements. Do not be generic."
 }`
 
-  const response = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      contents: [
-        {
-          parts: [
-            {
-              inline_data: {
-                mime_type: mimeType,
-                data: base64Data,
-              },
-            },
-            { text: prompt },
-          ],
-        },
-      ],
-      generationConfig: {
-        temperature: 0.1,
-        maxOutputTokens: 4096,
-      },
-    }),
-  })
-
-  if (!response.ok) {
-    const err = await response.json()
-    throw new Error(err?.error?.message || `${model} request failed`)
-  }
-
-  const data = await response.json()
-  const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || ""
-
-  if (!text) throw new Error("Empty response from Gemini")
-
-  const cleaned = text
-    .replace(/```json/gi, "")
-    .replace(/```/g, "")
-    .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, "")
-    .trim()
-  return JSON.parse(cleaned)
-}
-
 export async function POST(request: Request) {
   try {
     const formData = await request.formData()
@@ -171,22 +125,23 @@ export async function POST(request: Request) {
 
     let parsed: Record<string, unknown> | null = null
 
-    // Try gemini-2.5-flash-lite first (faster)
+    // generateWithGemini already tries both models across every
+    // configured API key before giving up (see lib/gemini.ts) — this
+    // used to be a single manual two-model fallback on one key, which
+    // is exactly the kind of thing that produces "parsing failed" the
+    // moment that one key hits its rate/quota limit.
     try {
-      parsed = await callGemini("gemini-2.5-flash-lite", base64, file.type)
-    } catch (liteError) {
-      console.warn("gemini-2.5-flash-lite failed, trying fallback:", liteError)
-
-      // Fallback to gemini-2.5-flash
-      try {
-        parsed = await callGemini("gemini-2.5-flash", base64, file.type)
-      } catch (flashError) {
-        console.error("Both Gemini models failed:", flashError)
-        return NextResponse.json(
-          { error: "CV parsing failed. Please fill in the form manually." },
-          { status: 500 }
-        )
-      }
+      const text = await generateWithGemini(CV_PROMPT, {
+        maxOutputTokens: 4096,
+        inlineData: { mimeType: file.type, data: base64 },
+      })
+      parsed = parseGeminiJson(text)
+    } catch (err) {
+      console.error("CV parsing failed on every model/key combination:", err)
+      return NextResponse.json(
+        { error: "CV parsing failed. Please fill in the form manually." },
+        { status: 500 }
+      )
     }
 
     if (!parsed) {

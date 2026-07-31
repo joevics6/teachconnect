@@ -17,6 +17,7 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { SchoolSidebar } from "@/components/dashboard/SchoolSidebar"
+import { clearCached } from "@/lib/client-cache"
 
 // ─── Types ───────────────────────────────────────────────────
 
@@ -333,6 +334,7 @@ function SubscriptionPageInner() {
         setPaymentSuccess(true)
         const data = await response.json()
         setSubscription(data.subscription)
+        clearCached("school:plan-type")
       } else {
         setPaymentError("Payment verification failed. Contact support.")
       }
