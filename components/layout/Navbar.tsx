@@ -141,7 +141,7 @@ export default function Navbar() {
                   <Button size="sm" className="bg-ink-600 hover:bg-ink-700 text-white">Find Jobs</Button>
                 </Link>
                 <Link href="/register/school">
-                  <Button size="sm" className="bg-blue-700 hover:bg-blue-800 text-white">Hire Teachers</Button>
+                  <Button size="sm" className="bg-ink-700 hover:bg-ink-800 text-white">Hire Teachers</Button>
                 </Link>
               </>
             )}
@@ -213,7 +213,7 @@ export default function Navbar() {
                       <Button size="sm" className="w-full bg-ink-600 hover:bg-ink-700 text-white">Find Teaching Jobs</Button>
                     </Link>
                     <Link href="/register/school" onClick={() => setIsOpen(false)}>
-                      <Button size="sm" className="w-full bg-blue-700 hover:bg-blue-800 text-white">Hire Teachers</Button>
+                      <Button size="sm" className="w-full bg-ink-700 hover:bg-ink-800 text-white">Hire Teachers</Button>
                     </Link>
                   </>
                 )}

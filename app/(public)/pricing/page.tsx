@@ -67,10 +67,10 @@ const PLANS: Plan[] = [
     period: "per posting",
     description: "Perfect for schools that hire occasionally.",
     icon: Star,
-    color: "text-blue-700",
-    bgColor: "bg-blue-50",
-    borderColor: "border-blue-300",
-    buttonColor: "bg-blue-700 hover:bg-blue-800",
+    color: "text-ink-700",
+    bgColor: "bg-ink-50",
+    borderColor: "border-ink-300",
+    buttonColor: "bg-ink-700 hover:bg-ink-800",
     badge: "Most Popular",
     features: [
       "Single job posting (30 days)",
@@ -204,7 +204,7 @@ function PlanCard({
       {plan.badge && (
         <div
           className={`absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full text-xs font-bold text-white ${
-            plan.id === "standard" ? "bg-blue-600" : "bg-ink-600"
+            plan.id === "standard" ? "bg-ink-600" : "bg-ink-600"
           }`}
         >
           {plan.badge}
@@ -277,7 +277,7 @@ function PlanCard({
                 plan.id === "free"
                   ? "text-gray-500"
                   : plan.id === "standard"
-                  ? "text-blue-600"
+                  ? "text-ink-600"
                   : "text-ink-600"
               }`}
             />
@@ -400,7 +400,7 @@ export default function PricingPage() {
                     <th className="text-center px-4 py-4 text-sm font-semibold text-gray-700">
                       Free
                     </th>
-                    <th className="text-center px-4 py-4 text-sm font-semibold text-blue-700 bg-blue-50">
+                    <th className="text-center px-4 py-4 text-sm font-semibold text-ink-700 bg-ink-50">
                       Standard
                     </th>
                     <th className="text-center px-4 py-4 text-sm font-semibold text-ink-700">
@@ -422,7 +422,7 @@ export default function PricingPage() {
                       <td className="px-4 py-3.5">
                         <ComparisonCell value={row.free} />
                       </td>
-                      <td className="px-4 py-3.5 bg-blue-50/30">
+                      <td className="px-4 py-3.5 bg-ink-50/30">
                         <ComparisonCell value={row.standard} />
                       </td>
                       <td className="px-4 py-3.5">

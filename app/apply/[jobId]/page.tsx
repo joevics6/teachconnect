@@ -366,7 +366,7 @@ export default function ApplyPage() {
                   <p className="text-xs text-gray-400 mb-0.5">Levels</p>
                   <div className="flex flex-wrap gap-1">
                     {job?.teaching_levels.map((l) => (
-                      <span key={l} className="px-2 py-0.5 bg-blue-50 text-blue-600 text-xs rounded uppercase">{l}</span>
+                      <span key={l} className="px-2 py-0.5 bg-ink-50 text-ink-600 text-xs rounded uppercase">{l}</span>
                     ))}
                   </div>
                 </div>

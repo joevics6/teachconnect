@@ -52,7 +52,7 @@ interface Application {
 function getStageInfo(stage: PipelineStage) {
   const map = {
     applied: { label: "Applied", color: "text-gray-600", bg: "bg-gray-100", icon: Clock },
-    shortlisted: { label: "Shortlisted", color: "text-blue-700", bg: "bg-blue-100", icon: CheckCircle2 },
+    shortlisted: { label: "Shortlisted", color: "text-ink-700", bg: "bg-ink-100", icon: CheckCircle2 },
     interview: { label: "Interview", color: "text-purple-700", bg: "bg-purple-100", icon: Eye },
     offered: { label: "Offered", color: "text-orange-700", bg: "bg-orange-100", icon: Star },
     hired: { label: "Hired 🎉", color: "text-ink-700", bg: "bg-ink-100", icon: CheckCircle2 },
@@ -137,7 +137,7 @@ function ApplicationCard({ app }: { app: Application }) {
           </div>
 
           {app.pipeline_stage === "shortlisted" && (
-            <div className="mt-3 flex items-center gap-2 p-2.5 bg-blue-50 border border-blue-100 rounded-lg text-xs text-blue-700">
+            <div className="mt-3 flex items-center gap-2 p-2.5 bg-ink-50 border border-ink-100 rounded-lg text-xs text-ink-700">
               <CheckCircle2 className="h-3.5 w-3.5 flex-shrink-0" />
               You have been shortlisted. The school may contact you soon.
             </div>
@@ -215,7 +215,7 @@ export default function ApplicationsPage() {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {[
               { label: "Total", value: stageCounts.all, color: "text-gray-700" },
-              { label: "Shortlisted", value: stageCounts.shortlisted, color: "text-blue-600" },
+              { label: "Shortlisted", value: stageCounts.shortlisted, color: "text-ink-600" },
               { label: "Offered", value: stageCounts.offered, color: "text-orange-600" },
               { label: "Hired", value: stageCounts.hired, color: "text-ink-600" },
             ].map((stat) => (

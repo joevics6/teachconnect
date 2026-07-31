@@ -87,7 +87,7 @@ function getModeLabel(mode: QuizMode) {
 function getModeColor(mode: QuizMode) {
   if (mode === "speed") return "text-orange-600 bg-orange-50 border-orange-200"
   if (mode === "written") return "text-purple-600 bg-purple-50 border-purple-200"
-  return "text-blue-600 bg-blue-50 border-blue-200"
+  return "text-ink-600 bg-ink-50 border-ink-200"
 }
 
 function subjectLabel(meta: { subject: string; subjects?: string[] }) {

@@ -86,11 +86,11 @@ export function SchoolSidebar({ open, onClose }: { open: boolean; onClose: () =>
 
         <div className="p-5 border-b border-gray-100">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center flex-shrink-0 overflow-hidden">
+            <div className="w-10 h-10 rounded-xl bg-ink-100 flex items-center justify-center flex-shrink-0 overflow-hidden">
               {profile?.logo_url ? (
                 <img src={profile.logo_url} alt={profile.school_name} className="w-full h-full object-contain p-1" />
               ) : (
-                <Building2 className="h-5 w-5 text-blue-700" />
+                <Building2 className="h-5 w-5 text-ink-700" />
               )}
             </div>
             <div className="min-w-0">
@@ -114,7 +114,7 @@ export function SchoolSidebar({ open, onClose }: { open: boolean; onClose: () =>
               {planType === "free" ? "Free Plan" : planType === "term" ? "Term Plan" : "Standard"}
             </span>
             {planType === "free" && (
-              <Link href="/dashboard/school/subscription" className="text-xs text-blue-600 font-semibold hover:underline">Upgrade</Link>
+              <Link href="/dashboard/school/subscription" className="text-xs text-ink-600 font-semibold hover:underline">Upgrade</Link>
             )}
           </div>
         </div>
@@ -127,7 +127,7 @@ export function SchoolSidebar({ open, onClose }: { open: boolean; onClose: () =>
                 key={item.href}
                 href={item.href}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition mb-0.5 ${
-                  active ? "bg-blue-50 text-blue-700 font-medium" : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                  active ? "bg-ink-50 text-ink-700 font-medium" : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                 }`}
               >
                 <item.icon className="h-4 w-4 flex-shrink-0" />{item.label}

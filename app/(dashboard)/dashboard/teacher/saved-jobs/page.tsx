@@ -142,7 +142,7 @@ export default function SavedJobsPage() {
                         <div className="flex flex-wrap gap-2 mb-3">
                           <span className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-lg">{saved.subject}</span>
                           {saved.teaching_levels.map((l) => (
-                            <span key={l} className="px-2 py-0.5 bg-blue-50 text-blue-600 text-xs rounded-lg uppercase">{l}</span>
+                            <span key={l} className="px-2 py-0.5 bg-ink-50 text-ink-600 text-xs rounded-lg uppercase">{l}</span>
                           ))}
                           {saved.accommodation_offered && (
                             <span className="flex items-center gap-1 px-2 py-0.5 bg-orange-50 text-orange-600 text-xs rounded-lg">

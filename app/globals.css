@@ -36,16 +36,81 @@
 }
 
 :root {
+  /* These map the shadcn/ui primitive vocabulary (bg-primary, ring-ring,
+     etc. — used by Button, Input, and other components/ui/*.tsx files)
+     onto the actual brand tokens defined above, instead of duplicating
+     hex values. Change a color in the @theme block above and every
+     component built on these primitives updates with it — nothing here
+     needs to be touched again.
+     Previously --primary/--secondary held their own hardcoded hex
+     copies of ink-600/brass-500, and --ring/--destructive/--input were
+     undefined entirely (meaning every focus-visible ring and every
+     "destructive" button/badge in the app had no color at all). */
   --background: #ffffff;
-  --foreground: #0a0a0a;
-  --primary: #33507A;
+  --foreground: var(--color-ink-950);
+
+  --primary: var(--color-ink-600);
   --primary-foreground: #ffffff;
-  --secondary: #B98A2E;
+  --secondary: var(--color-brass-500);
   --secondary-foreground: #ffffff;
+
   --muted: #f4f4f5;
   --muted-foreground: #71717a;
+  --accent: var(--color-ink-50);
+  --accent-foreground: var(--color-ink-900);
+
+  --card: #ffffff;
+  --card-foreground: var(--color-ink-950);
+  --popover: #ffffff;
+  --popover-foreground: var(--color-ink-950);
+
   --border: #e4e4e7;
+  --input: #e4e4e7;
+  --ring: var(--color-ink-500);
+
+  /* Destructive stays a standard red rather than a brand token on
+     purpose — a delete/error state shouldn't shift color if the brand
+     palette changes later. */
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+
   --radius: 0.5rem;
+}
+
+/* Tailwind v4 only generates color utilities (bg-primary, ring-ring,
+   text-destructive, etc.) from variables namespaced --color-* inside
+   @theme. The :root block above defines the semantic values themselves
+   (and is where the ink and brass tokens actually get applied); this
+   block is the required bridge that exposes each one as a real
+   Tailwind utility. Without it, every component/ui/*.tsx primitive
+   using bg-primary/ring-ring/text-destructive/border-input compiles to
+   an unrecognized class — i.e. no color at all — which is what was
+   happening before this file had this block. */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
 }
 
 * {

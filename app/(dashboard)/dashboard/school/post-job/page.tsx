@@ -148,7 +148,7 @@ function Toggle({
   color?: "blue" | "green" | "yellow" | "purple"
 }) {
   const colors = {
-    blue: "bg-blue-600",
+    blue: "bg-ink-600",
     green: "bg-ink-600",
     yellow: "bg-yellow-500",
     purple: "bg-purple-600",
@@ -348,7 +348,7 @@ export default function PostJobPage() {
           </p>
           <div className="flex flex-col gap-3">
             <Link href="/dashboard/school/jobs">
-              <Button className="w-full bg-blue-700 hover:bg-blue-800 text-white">
+              <Button className="w-full bg-ink-700 hover:bg-ink-800 text-white">
                 View My Jobs
               </Button>
             </Link>
@@ -394,7 +394,7 @@ export default function PostJobPage() {
               <span>{errors.submit}</span>
               {upgradeRequired && (
                 <Link href="/dashboard/school/subscription">
-                  <Button size="sm" className="bg-blue-700 hover:bg-blue-800 text-white flex-shrink-0">
+                  <Button size="sm" className="bg-ink-700 hover:bg-ink-800 text-white flex-shrink-0">
                     Upgrade Plan
                   </Button>
                 </Link>
@@ -403,7 +403,7 @@ export default function PostJobPage() {
           )}
 
           {/* ── AI Parser ── */}
-          <div className="bg-gradient-to-br from-purple-50 to-blue-50 rounded-xl border border-purple-200 p-6">
+          <div className="bg-gradient-to-br from-purple-50 to-ink-50 rounded-xl border border-purple-200 p-6">
             <div className="flex items-center gap-2 mb-2">
               <div className="p-1.5 bg-purple-100 rounded-lg">
                 <Sparkles className="h-4 w-4 text-purple-600" />
@@ -460,7 +460,7 @@ export default function PostJobPage() {
           {/* ── Job Details ── */}
           <div className="bg-white rounded-xl border border-gray-200 p-6">
             <h2 className="font-bold text-gray-900 mb-5 flex items-center gap-2">
-              <Briefcase className="h-5 w-5 text-blue-600" />
+              <Briefcase className="h-5 w-5 text-ink-600" />
               Job Details
             </h2>
             <div className="space-y-5">
@@ -474,7 +474,7 @@ export default function PostJobPage() {
                   value={formData.title}
                   onChange={(e) => update("title", e.target.value)}
                   placeholder="e.g. Senior Mathematics Teacher"
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ink-500"
                 />
                 {errors.title && (
                   <p className="text-red-500 text-xs mt-1">{errors.title}</p>
@@ -490,7 +490,7 @@ export default function PostJobPage() {
                     value={formData.subject}
                     onChange={(e) => update("subject", e.target.value)}
                     disabled={formData.teaching_levels.length === 0}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white disabled:bg-gray-50 disabled:text-gray-400"
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ink-500 bg-white disabled:bg-gray-50 disabled:text-gray-400"
                   >
                     <option value="">
                       {formData.teaching_levels.length === 0 ? "Select teaching level(s) first" : "Select subject"}
@@ -515,8 +515,8 @@ export default function PostJobPage() {
                         onClick={() => update("employment_type", type.value)}
                         className={`flex-1 py-2.5 rounded-lg text-xs font-medium border transition-all ${
                           formData.employment_type === type.value
-                            ? "bg-blue-700 text-white border-blue-700"
-                            : "bg-white text-gray-600 border-gray-300 hover:border-blue-400"
+                            ? "bg-ink-700 text-white border-ink-700"
+                            : "bg-white text-gray-600 border-gray-300 hover:border-ink-400"
                         }`}
                       >
                         {type.label}
@@ -543,8 +543,8 @@ export default function PostJobPage() {
                       onClick={() => toggleLevel(level.value)}
                       className={`px-4 py-2 rounded-lg text-sm font-medium border transition-all ${
                         formData.teaching_levels.includes(level.value)
-                          ? "bg-blue-700 text-white border-blue-700"
-                          : "bg-white text-gray-600 border-gray-300 hover:border-blue-400"
+                          ? "bg-ink-700 text-white border-ink-700"
+                          : "bg-white text-gray-600 border-gray-300 hover:border-ink-400"
                       }`}
                     >
                       {level.label}
@@ -568,7 +568,7 @@ export default function PostJobPage() {
                     min="1"
                     value={formData.positions}
                     onChange={(e) => update("positions", e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ink-500"
                   />
                 </div>
                 <div>
@@ -580,7 +580,7 @@ export default function PostJobPage() {
                     value={formData.deadline}
                     onChange={(e) => update("deadline", e.target.value)}
                     min={new Date().toISOString().split("T")[0]}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ink-500"
                   />
                   {errors.deadline && (
                     <p className="text-red-500 text-xs mt-1">{errors.deadline}</p>
@@ -608,7 +608,7 @@ export default function PostJobPage() {
                       value={formData.salary_min}
                       onChange={(e) => update("salary_min", e.target.value)}
                       placeholder="Minimum"
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ink-500"
                     />
                     {errors.salary_min && (
                       <p className="text-red-500 text-xs mt-1">
@@ -622,7 +622,7 @@ export default function PostJobPage() {
                       value={formData.salary_max}
                       onChange={(e) => update("salary_max", e.target.value)}
                       placeholder="Maximum"
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ink-500"
                     />
                     {errors.salary_max && (
                       <p className="text-red-500 text-xs mt-1">
@@ -662,8 +662,8 @@ export default function PostJobPage() {
                         onClick={() => update("accommodation_type", type.value)}
                         className={`px-4 py-2 rounded-lg text-sm font-medium border transition-all ${
                           formData.accommodation_type === type.value
-                            ? "bg-blue-700 text-white border-blue-700"
-                            : "bg-white text-gray-600 border-gray-300 hover:border-blue-400"
+                            ? "bg-ink-700 text-white border-ink-700"
+                            : "bg-white text-gray-600 border-gray-300 hover:border-ink-400"
                         }`}
                       >
                         {type.label}
@@ -690,8 +690,8 @@ export default function PostJobPage() {
                       onClick={() => toggleBenefit(benefit)}
                       className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
                         formData.benefits.includes(benefit)
-                          ? "bg-blue-700 text-white border-blue-700"
-                          : "bg-white text-gray-600 border-gray-300 hover:border-blue-400"
+                          ? "bg-ink-700 text-white border-ink-700"
+                          : "bg-white text-gray-600 border-gray-300 hover:border-ink-400"
                       }`}
                     >
                       {benefit}
@@ -778,8 +778,8 @@ export default function PostJobPage() {
                       const isSelected = formData.quiz_mode === mode.value
                       const colorMap: Record<string, string> = {
                         blue: isSelected
-                          ? "bg-blue-700 border-blue-700 text-white"
-                          : "border-gray-200 hover:border-blue-300",
+                          ? "bg-ink-700 border-ink-700 text-white"
+                          : "border-gray-200 hover:border-ink-300",
                         orange: isSelected
                           ? "bg-orange-500 border-orange-500 text-white"
                           : "border-gray-200 hover:border-orange-300",
@@ -788,12 +788,12 @@ export default function PostJobPage() {
                           : "border-gray-200 hover:border-purple-300",
                       }
                       const iconColorMap: Record<string, string> = {
-                        blue: isSelected ? "text-white" : "text-blue-600",
+                        blue: isSelected ? "text-white" : "text-ink-600",
                         orange: isSelected ? "text-white" : "text-orange-500",
                         purple: isSelected ? "text-white" : "text-purple-600",
                       }
                       const descColorMap: Record<string, string> = {
-                        blue: isSelected ? "text-blue-100" : "text-gray-400",
+                        blue: isSelected ? "text-ink-100" : "text-gray-400",
                         orange: isSelected ? "text-orange-100" : "text-gray-400",
                         purple: isSelected ? "text-purple-100" : "text-gray-400",
                       }
@@ -830,7 +830,7 @@ export default function PostJobPage() {
                     <select
                       value={formData.quiz_difficulty}
                       onChange={(e) => update("quiz_difficulty", e.target.value)}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ink-500 bg-white"
                     >
                       <option value="">Select grade level</option>
                       {TEACHING_LEVELS.map((l) => (
@@ -873,10 +873,10 @@ export default function PostJobPage() {
                             }}
                             className={`px-3 py-1.5 rounded-full text-xs font-medium border transition ${
                               isSelected
-                                ? "bg-blue-600 border-blue-600 text-white"
+                                ? "bg-ink-600 border-ink-600 text-white"
                                 : atLimit
                                 ? "bg-gray-50 border-gray-200 text-gray-300 cursor-not-allowed"
-                                : "bg-white border-gray-300 text-gray-700 hover:border-blue-400"
+                                : "bg-white border-gray-300 text-gray-700 hover:border-ink-400"
                             }`}
                           >
                             {s}
@@ -905,11 +905,11 @@ export default function PostJobPage() {
                       onChange={(e) =>
                         update("quiz_pass_mark", Number(e.target.value))
                       }
-                      className="w-full accent-blue-600 mt-1"
+                      className="w-full accent-ink-600 mt-1"
                     />
                     <div className="flex justify-between text-xs text-gray-400 mt-1">
                       <span>40%</span>
-                      <span className="font-medium text-blue-600">
+                      <span className="font-medium text-ink-600">
                         {formData.quiz_pass_mark}% pass mark
                       </span>
                       <span>100%</span>
@@ -936,8 +936,8 @@ export default function PostJobPage() {
                               formData.quiz_duration === d.value
                                 ? formData.quiz_mode === "speed"
                                   ? "bg-orange-500 text-white border-orange-500"
-                                  : "bg-blue-700 text-white border-blue-700"
-                                : "bg-white text-gray-600 border-gray-300 hover:border-blue-400"
+                                  : "bg-ink-700 text-white border-ink-700"
+                                : "bg-white text-gray-600 border-gray-300 hover:border-ink-400"
                             }`}
                           >
                             {d.label}
@@ -968,8 +968,8 @@ export default function PostJobPage() {
                               formData.quiz_question_count === q.value
                                 ? formData.quiz_mode === "written"
                                   ? "bg-purple-600 text-white border-purple-600"
-                                  : "bg-blue-700 text-white border-blue-700"
-                                : "bg-white text-gray-600 border-gray-300 hover:border-blue-400"
+                                  : "bg-ink-700 text-white border-ink-700"
+                                : "bg-white text-gray-600 border-gray-300 hover:border-ink-400"
                             }`}
                           >
                             {q.label}
@@ -1013,9 +1013,9 @@ export default function PostJobPage() {
                 )}
 
                 {formData.quiz_mode === "standard" && (
-                  <div className="flex items-start gap-3 p-4 bg-blue-50 border border-blue-200 rounded-xl">
-                    <BookOpen className="h-4 w-4 text-blue-600 flex-shrink-0 mt-0.5" />
-                    <div className="text-xs text-blue-700">
+                  <div className="flex items-start gap-3 p-4 bg-ink-50 border border-ink-200 rounded-xl">
+                    <BookOpen className="h-4 w-4 text-ink-600 flex-shrink-0 mt-0.5" />
+                    <div className="text-xs text-ink-700">
                       <p className="font-semibold mb-1">Standard Quiz mode</p>
                       <p>
                         Teachers answer {formData.quiz_question_count} multiple
@@ -1051,7 +1051,7 @@ export default function PostJobPage() {
                             updateCustomQuestion(i, e.target.value)
                           }
                           placeholder={`Custom question ${i + 1}`}
-                          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ink-500"
                         />
                       ))}
                     </div>
@@ -1075,7 +1075,7 @@ export default function PostJobPage() {
                   onChange={(e) => update("description", e.target.value)}
                   rows={6}
                   placeholder="Describe the role, responsibilities, school culture, and what you're looking for..."
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ink-500 resize-none"
                 />
                 {errors.description && (
                   <p className="text-red-500 text-xs mt-1">
@@ -1095,7 +1095,7 @@ export default function PostJobPage() {
                   }
                   rows={4}
                   placeholder="e.g. B.Ed or B.Sc in Mathematics, minimum 2 years experience, TRCN registered..."
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ink-500 resize-none"
                 />
                 {errors.required_qualifications && (
                   <p className="text-red-500 text-xs mt-1">
@@ -1116,7 +1116,7 @@ export default function PostJobPage() {
                   }
                   rows={3}
                   placeholder="e.g. Master's degree, experience with Cambridge curriculum..."
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ink-500 resize-none"
                 />
               </div>
             </div>
@@ -1133,7 +1133,7 @@ export default function PostJobPage() {
             <Button
               onClick={handleSubmit}
               disabled={isLoading}
-              className="bg-blue-700 hover:bg-blue-800 text-white px-8 flex items-center gap-2"
+              className="bg-ink-700 hover:bg-ink-800 text-white px-8 flex items-center gap-2"
             >
               {isLoading ? (
                 <>

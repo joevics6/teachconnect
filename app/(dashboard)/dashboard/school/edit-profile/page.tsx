@@ -5,12 +5,14 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 import {
   ArrowLeft, Save, Loader2, CheckCircle2, AlertCircle,
-  Camera, X, Upload, Building2,
+  Camera, X, Upload, Building2, Menu,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { StateLgaSelect } from "@/components/ui/StateLgaSelect"
 import { TEACHING_LEVELS } from "@/lib/constants"
 import { clearCached } from "@/lib/client-cache"
+import { SchoolSidebar } from "@/components/dashboard/SchoolSidebar"
+import { compressImage } from "@/lib/image-compress"
 
 const SCHOOL_TYPES = [
   { value: "private",       label: "Private"       },
@@ -67,6 +69,7 @@ export default function EditSchoolProfilePage() {
 
   const [verificationStatus, setVerificationStatus] = useState("unverified")
   const [loading, setLoading]           = useState(true)
+  const [sidebarOpen, setSidebarOpen]   = useState(false)
   const [saving, setSaving]             = useState(false)
   const [success, setSuccess]           = useState(false)
   const [error, setError]               = useState("")
@@ -119,8 +122,9 @@ export default function EditSchoolProfilePage() {
     setLogoPreview(URL.createObjectURL(file))
     setUploadingLogo(true)
     try {
+      const compressed = await compressImage(file)
       const fd = new FormData()
-      fd.append("logo", file)
+      fd.append("logo", compressed)
       const res = await fetch("/api/school/profile/logo", { method: "POST", body: fd })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error)
@@ -166,7 +170,7 @@ export default function EditSchoolProfilePage() {
     }
   }
 
-  const inputClass = "w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+  const inputClass = "w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ink-500"
 
   const VerificationBadge = () => {
     const map: Record<string, { label: string; color: string }> = {
@@ -180,16 +184,22 @@ export default function EditSchoolProfilePage() {
 
   if (loading) return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
+      <Loader2 className="h-6 w-6 animate-spin text-ink-600" />
     </div>
   )
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex">
+      <SchoolSidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+
+      <div className="flex-1 min-w-0">
       {/* Header */}
       <div className="bg-white border-b sticky top-0 z-10">
         <div className="max-w-2xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
+            <button className="lg:hidden p-2 -ml-2 rounded-lg hover:bg-gray-100 transition" onClick={() => setSidebarOpen(true)}>
+              <Menu className="h-5 w-5 text-gray-600" />
+            </button>
             <Link href="/dashboard/school">
               <button className="p-2 rounded-lg hover:bg-gray-100 transition">
                 <ArrowLeft className="h-5 w-5 text-gray-600" />
@@ -201,7 +211,7 @@ export default function EditSchoolProfilePage() {
             </div>
           </div>
           <Button onClick={handleSave} disabled={saving || success}
-            className="bg-blue-700 hover:bg-blue-800 text-white flex items-center gap-2">
+            className="bg-ink-700 hover:bg-ink-800 text-white flex items-center gap-2">
             {saving ? <><Loader2 className="h-4 w-4 animate-spin" />Saving…</>
               : success ? <><CheckCircle2 className="h-4 w-4" />Saved!</>
               : <><Save className="h-4 w-4" />Save</>}
@@ -235,7 +245,7 @@ export default function EditSchoolProfilePage() {
                 className="hidden" onChange={handleLogoUpload} />
               <button type="button" onClick={() => logoInputRef.current?.click()}
                 disabled={uploadingLogo}
-                className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg text-sm text-gray-700 hover:border-blue-400 hover:text-blue-700 transition disabled:opacity-50">
+                className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg text-sm text-gray-700 hover:border-ink-400 hover:text-ink-700 transition disabled:opacity-50">
                 <Camera className="h-4 w-4" />
                 {uploadingLogo ? "Uploading…" : logoPreview ? "Change Logo" : "Upload Logo"}
               </button>
@@ -269,8 +279,8 @@ export default function EditSchoolProfilePage() {
                   onClick={() => setForm({ ...form, school_type: t.value })}
                   className={`px-3 py-1.5 rounded-full text-sm border transition ${
                     form.school_type === t.value
-                      ? "bg-blue-700 text-white border-blue-700"
-                      : "bg-white text-gray-600 border-gray-200 hover:border-blue-400"}`}>
+                      ? "bg-ink-700 text-white border-ink-700"
+                      : "bg-white text-gray-600 border-gray-200 hover:border-ink-400"}`}>
                   {t.label}
                 </button>
               ))}
@@ -285,8 +295,8 @@ export default function EditSchoolProfilePage() {
                   onClick={() => setForm({ ...form, school_category: c.value })}
                   className={`px-3 py-1.5 rounded-full text-sm border transition ${
                     form.school_category === c.value
-                      ? "bg-blue-700 text-white border-blue-700"
-                      : "bg-white text-gray-600 border-gray-200 hover:border-blue-400"}`}>
+                      ? "bg-ink-700 text-white border-ink-700"
+                      : "bg-white text-gray-600 border-gray-200 hover:border-ink-400"}`}>
                   {c.label}
                 </button>
               ))}
@@ -301,8 +311,8 @@ export default function EditSchoolProfilePage() {
                   onClick={() => setForm({ ...form, school_levels: toggle(form.school_levels, l.value) })}
                   className={`px-3 py-1.5 rounded-full text-sm border transition ${
                     form.school_levels.includes(l.value)
-                      ? "bg-blue-700 text-white border-blue-700"
-                      : "bg-white text-gray-600 border-gray-200 hover:border-blue-400"}`}>
+                      ? "bg-ink-700 text-white border-ink-700"
+                      : "bg-white text-gray-600 border-gray-200 hover:border-ink-400"}`}>
                   {l.label}
                 </button>
               ))}
@@ -317,8 +327,8 @@ export default function EditSchoolProfilePage() {
                   onClick={() => setForm({ ...form, curriculum: toggle(form.curriculum, c) })}
                   className={`px-3 py-1.5 rounded-full text-sm border transition ${
                     form.curriculum.includes(c)
-                      ? "bg-blue-700 text-white border-blue-700"
-                      : "bg-white text-gray-600 border-gray-200 hover:border-blue-400"}`}>
+                      ? "bg-ink-700 text-white border-ink-700"
+                      : "bg-white text-gray-600 border-gray-200 hover:border-ink-400"}`}>
                   {c}
                 </button>
               ))}
@@ -389,8 +399,8 @@ export default function EditSchoolProfilePage() {
                   onClick={() => setForm({ ...form, benefits: toggle(form.benefits, b) })}
                   className={`px-3 py-1.5 rounded-full text-sm border transition ${
                     form.benefits.includes(b)
-                      ? "bg-blue-700 text-white border-blue-700"
-                      : "bg-white text-gray-600 border-gray-200 hover:border-blue-400"}`}>
+                      ? "bg-ink-700 text-white border-ink-700"
+                      : "bg-white text-gray-600 border-gray-200 hover:border-ink-400"}`}>
                   {b}
                 </button>
               ))}
@@ -457,12 +467,13 @@ export default function EditSchoolProfilePage() {
         {/* Save */}
         <div className="pb-8">
           <Button onClick={handleSave} disabled={saving || success}
-            className="w-full bg-blue-700 hover:bg-blue-800 text-white py-6 text-base">
+            className="w-full bg-ink-700 hover:bg-ink-800 text-white py-6 text-base">
             {saving ? <><Loader2 className="h-5 w-5 animate-spin mr-2" />Saving…</>
               : success ? <><CheckCircle2 className="h-5 w-5 mr-2" />Saved!</>
               : <><Save className="h-5 w-5 mr-2" />Save Changes</>}
           </Button>
         </div>
+      </div>
       </div>
     </div>
   )

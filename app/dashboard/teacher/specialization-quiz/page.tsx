@@ -16,10 +16,12 @@ import {
   RotateCcw,
   TrendingUp,
   Award,
+  Menu,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { TEACHING_LEVELS, getSubjectsForLevel } from "@/lib/constants"
 import type { TeachingLevel } from "@/types"
+import { TeacherSidebar } from "@/components/dashboard/TeacherSidebar"
 
 // ─── Levels ──────────────────────────────────────────────────
 const LEVELS = TEACHING_LEVELS
@@ -64,7 +66,7 @@ function getPercentileLabel(percentile: number) {
   if (percentile >= 95) return { label: "Top 5%", color: "text-yellow-600", bg: "bg-yellow-50 border-yellow-200" }
   if (percentile >= 90) return { label: "Top 10%", color: "text-orange-600", bg: "bg-orange-50 border-orange-200" }
   if (percentile >= 75) return { label: "Top 25%", color: "text-ink-600", bg: "bg-ink-50 border-ink-200" }
-  if (percentile >= 50) return { label: "Above Average", color: "text-blue-600", bg: "bg-blue-50 border-blue-200" }
+  if (percentile >= 50) return { label: "Above Average", color: "text-ink-600", bg: "bg-ink-50 border-ink-200" }
   if (percentile >= 25) return { label: "Below Average", color: "text-gray-600", bg: "bg-gray-50 border-gray-200" }
   return { label: "Bottom 25%", color: "text-red-500", bg: "bg-red-50 border-red-200" }
 }
@@ -80,6 +82,7 @@ function getOrdinal(n: number) {
 function SubjectSelectScreen({ onSelect }: { onSelect: (subject: string, level: string) => void }) {
   const [selected,      setSelected]      = useState("")
   const [selectedLevel, setSelectedLevel] = useState<TeachingLevel | "">("")
+  const [sidebarOpen,   setSidebarOpen]   = useState(false)
 
   const subjectOptions = selectedLevel ? getSubjectsForLevel(selectedLevel) : []
 
@@ -91,8 +94,16 @@ function SubjectSelectScreen({ onSelect }: { onSelect: (subject: string, level: 
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-12">
+    <div className="min-h-screen bg-gray-50 flex">
+      <TeacherSidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+
+      <div className="flex-1 min-w-0 flex items-center justify-center px-4 py-12">
       <div className="max-w-lg w-full">
+        <div className="flex items-center gap-3 mb-2 lg:hidden">
+          <button className="p-2 -ml-2 rounded-lg hover:bg-gray-100 transition" onClick={() => setSidebarOpen(true)}>
+            <Menu className="h-5 w-5 text-gray-600" />
+          </button>
+        </div>
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-14 h-14 bg-ink-100 rounded-2xl mb-4">
             <Zap className="h-7 w-7 text-ink-600" />
@@ -189,6 +200,7 @@ function SubjectSelectScreen({ onSelect }: { onSelect: (subject: string, level: 
         >
           Back to dashboard
         </Link>
+      </div>
       </div>
     </div>
   )

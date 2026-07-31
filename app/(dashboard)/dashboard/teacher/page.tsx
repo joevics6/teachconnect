@@ -138,7 +138,7 @@ function getStatusBadge(status: string) {
     case "rejected":
       return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 text-red-600"><XCircle className="h-3 w-3" />Rejected</span>
     case "hired":
-      return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700"><Star className="h-3 w-3" />Hired</span>
+      return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-ink-100 text-ink-700"><Star className="h-3 w-3" />Hired</span>
     default:
       return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">{status}</span>
   }
@@ -262,8 +262,15 @@ export default function TeacherDashboardPage() {
       .catch((err) => console.error("Profile load error:", err))
       .finally(() => setLoadingProfile(false))
 
-    // Applications
-    setLoadingApplications(true)
+    // Applications — cached first, refetched in background
+    const cachedApps = getCached<Application[]>("teacher:applications")
+    if (cachedApps) {
+      setTotalApplicationsCount(cachedApps.length)
+      setApplications(cachedApps.slice(0, 3))
+      setLoadingApplications(false)
+    } else {
+      setLoadingApplications(true)
+    }
     fetch("/api/teacher/applications")
       .then(async (res) => {
         if (!res.ok) return
@@ -271,48 +278,67 @@ export default function TeacherDashboardPage() {
         const all = data.applications || []
         setTotalApplicationsCount(all.length)
         setApplications(all.slice(0, 3))
+        setCached("teacher:applications", all)
       })
       .catch((err) => console.error("Applications load error:", err))
       .finally(() => setLoadingApplications(false))
 
-    // Notifications
-    setLoadingNotifications(true)
+    // Notifications — cached first, refetched in background
+    const cachedNotifs = getCached<Notification[]>("teacher:notifications")
+    if (cachedNotifs) {
+      setNotifications(cachedNotifs)
+      setLoadingNotifications(false)
+    } else {
+      setLoadingNotifications(true)
+    }
     fetch("/api/teacher/notifications")
       .then(async (res) => {
         if (!res.ok) return
         const data = await res.json()
         setNotifications(data.notifications || [])
+        setCached("teacher:notifications", data.notifications || [])
       })
       .catch(() => {
         // Notifications API may not exist yet — silently ignore
       })
       .finally(() => setLoadingNotifications(false))
 
-    // Saved jobs count
+    // Saved jobs count — cached first, refetched in background
+    const cachedSavedCount = getCached<number>("teacher:saved-jobs-count")
+    if (cachedSavedCount !== null) setSavedJobsCount(cachedSavedCount)
     fetch("/api/teacher/saved-jobs")
       .then(async (res) => {
         if (!res.ok) return
         const data = await res.json()
-        setSavedJobsCount(data.saved_jobs?.length || 0)
+        const count = data.saved_jobs?.length || 0
+        setSavedJobsCount(count)
+        setCached("teacher:saved-jobs-count", count)
       })
       .catch((err) => console.error("Saved jobs error:", err))
 
-    // Invites count
+    // Invites count — cached first, refetched in background
+    const cachedInvitesCount = getCached<number>("teacher:invites-count")
+    if (cachedInvitesCount !== null) setInvitesCount(cachedInvitesCount)
     fetch("/api/teacher/invites")
       .then(async (res) => {
         if (!res.ok) return
         const data = await res.json()
-        setInvitesCount(data.pending || 0)
+        const count = data.pending || 0
+        setInvitesCount(count)
+        setCached("teacher:invites-count", count)
       })
       .catch((err) => console.error("Invites error:", err))
 
     // Subject Mastery quiz results — used to mark the profile-completion item done
+    const cachedQuizSubjects = getCached<string[]>("teacher:quiz-subjects")
+    if (cachedQuizSubjects) setQuizCompletedSubjects(cachedQuizSubjects)
     fetch("/api/teacher/specialization-quiz/results")
       .then(async (res) => {
         if (!res.ok) return
         const data = await res.json()
         const subjects = ((data.results || []) as Array<{ subject: string }>).map((r) => r.subject)
         setQuizCompletedSubjects(subjects)
+        setCached("teacher:quiz-subjects", subjects)
       })
       .catch((err) => console.error("Quiz results error:", err))
 
@@ -327,7 +353,9 @@ export default function TeacherDashboardPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ mark_all_read: true }),
       })
-      setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })))
+      const updated = notifications.map((n) => ({ ...n, is_read: true }))
+      setNotifications(updated)
+      setCached("teacher:notifications", updated)
     } catch (err) {
       console.error("Mark all read error:", err)
     }
@@ -424,7 +452,7 @@ export default function TeacherDashboardPage() {
           ) : (
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               {[
-                { label: "Applications", value: totalApplicationsCount, color: "text-blue-600",   href: "/dashboard/teacher/applications" },
+                { label: "Applications", value: totalApplicationsCount, color: "text-ink-600",   href: "/dashboard/teacher/applications" },
                 { label: "Shortlisted",  value: shortlistedCount,       color: "text-ink-600",  href: "/dashboard/teacher/applications" },
                 { label: "Saved Jobs",   value: savedJobsCount,         color: "text-purple-600", href: "/dashboard/teacher/saved-jobs"   },
                 { label: "Invites",      value: invitesCount,           color: "text-orange-600", href: "/dashboard/teacher/invites"      },
@@ -547,7 +575,7 @@ export default function TeacherDashboardPage() {
               <div className="space-y-2">
                 {[
                   { label: "Browse new jobs", href: "/jobs", color: "text-ink-600" },
-                  { label: "Edit my profile", href: "/dashboard/teacher/edit-profile", color: "text-blue-600" },
+                  { label: "Edit my profile", href: "/dashboard/teacher/edit-profile", color: "text-ink-600" },
                   { label: "View saved jobs", href: "/dashboard/teacher/saved-jobs", color: "text-purple-600" },
                   { label: "Check quiz results", href: "/dashboard/teacher/quiz-results", color: "text-orange-600" },
                   { label: "View career resources", href: "/resources", color: "text-gray-600" },

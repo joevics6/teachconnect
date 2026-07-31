@@ -5,9 +5,10 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import {
   ArrowLeft, Bell, Building2, Briefcase, CheckCircle2,
-  XCircle, Clock, Loader2, MapPin, Calendar,
+  XCircle, Clock, Loader2, MapPin, Calendar, Menu,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { TeacherSidebar } from "@/components/dashboard/TeacherSidebar"
 
 interface Invite {
   id: string
@@ -44,6 +45,7 @@ function getInitials(name: string) {
 
 export default function TeacherInvitesPage() {
   const router = useRouter()
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const [invites, setInvites]   = useState<Invite[]>([])
   const [loading, setLoading]   = useState(true)
   const [filter, setFilter]     = useState<"all" | "pending" | "accepted" | "declined">("all")
@@ -94,10 +96,16 @@ export default function TeacherInvitesPage() {
   const pendingCount = invites.filter((i) => i.status === "pending").length
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex">
+      <TeacherSidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+
+      <div className="flex-1 min-w-0">
       {/* Header */}
       <div className="bg-white border-b sticky top-0 z-10">
         <div className="max-w-2xl mx-auto px-4 py-4 flex items-center gap-3">
+          <button className="lg:hidden p-2 -ml-2 rounded-lg hover:bg-gray-100 transition" onClick={() => setSidebarOpen(true)}>
+            <Menu className="h-5 w-5 text-gray-600" />
+          </button>
           <Link href="/dashboard/teacher">
             <button className="p-2 rounded-lg hover:bg-gray-100 transition">
               <ArrowLeft className="h-5 w-5 text-gray-600" />
@@ -158,10 +166,10 @@ export default function TeacherInvitesPage() {
                 {/* School + Status */}
                 <div className="flex items-start justify-between gap-3 mb-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center overflow-hidden flex-shrink-0">
+                    <div className="w-10 h-10 rounded-xl bg-ink-100 flex items-center justify-center overflow-hidden flex-shrink-0">
                       {invite.school_logo
                         ? <img src={invite.school_logo} alt={invite.school_name} className="w-full h-full object-contain p-1" />
-                        : <span className="text-blue-700 font-bold text-xs">{getInitials(invite.school_name)}</span>
+                        : <span className="text-ink-700 font-bold text-xs">{getInitials(invite.school_name)}</span>
                       }
                     </div>
                     <div>
@@ -245,6 +253,7 @@ export default function TeacherInvitesPage() {
             ))}
           </div>
         )}
+      </div>
       </div>
     </div>
   )

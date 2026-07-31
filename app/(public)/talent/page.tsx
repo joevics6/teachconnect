@@ -134,7 +134,7 @@ function TeacherCard({
           <Link href="/dashboard/school/subscription">
             <Button
               size="sm"
-              className="bg-blue-700 hover:bg-blue-800 text-white text-xs"
+              className="bg-ink-700 hover:bg-ink-800 text-white text-xs"
             >
               Upgrade Plan
             </Button>
@@ -145,7 +145,7 @@ function TeacherCard({
   }
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-5 hover:border-blue-200 hover:shadow-sm transition-all">
+    <div className="bg-white border border-gray-200 rounded-xl p-5 hover:border-ink-200 hover:shadow-sm transition-all">
 
       {/* Header */}
       <div className="flex items-start gap-3 mb-3">
@@ -189,7 +189,7 @@ function TeacherCard({
               {teacher.match_score !== undefined && (
                 <span className={`px-1.5 py-0.5 text-xs rounded font-bold ${
                   teacher.match_score >= 80 ? "bg-ink-100 text-ink-700"
-                  : teacher.match_score >= 60 ? "bg-blue-50 text-blue-700"
+                  : teacher.match_score >= 60 ? "bg-ink-50 text-ink-700"
                   : "bg-gray-100 text-gray-500"}`}>
                   {teacher.match_score}% match
                 </span>
@@ -201,7 +201,7 @@ function TeacherCard({
                 </span>
               )}
               {teacher.willing_to_relocate && (
-                <span className="px-1.5 py-0.5 bg-blue-50 text-blue-600 text-xs rounded font-medium">
+                <span className="px-1.5 py-0.5 bg-ink-50 text-ink-600 text-xs rounded font-medium">
                   Relocate ✓
                 </span>
               )}
@@ -228,7 +228,7 @@ function TeacherCard({
         {teacher.teaching_levels.map((level) => (
           <span
             key={level}
-            className="px-2 py-0.5 bg-blue-50 text-blue-600 text-xs rounded-lg uppercase"
+            className="px-2 py-0.5 bg-ink-50 text-ink-600 text-xs rounded-lg uppercase"
           >
             {level}
           </span>
@@ -290,7 +290,7 @@ function TeacherCard({
           size="sm"
           onClick={() => onInvite(teacher.id)}
           disabled={inviting === teacher.id}
-          className="flex-1 bg-blue-700 hover:bg-blue-800 text-white text-xs flex items-center gap-1.5"
+          className="flex-1 bg-ink-700 hover:bg-ink-800 text-white text-xs flex items-center gap-1.5"
         >
           {inviting === teacher.id ? (
             <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -353,7 +353,7 @@ function InviteModal({
             <Link href="/dashboard/school/post-job">
               <Button
                 size="sm"
-                className="bg-blue-700 hover:bg-blue-800 text-white"
+                className="bg-ink-700 hover:bg-ink-800 text-white"
               >
                 Post a Job First
               </Button>
@@ -367,7 +367,7 @@ function InviteModal({
                 onClick={() => setSelectedJob(job.id)}
                 className={`w-full flex items-center justify-between p-3 rounded-xl border text-left transition-all ${
                   selectedJob === job.id
-                    ? "bg-blue-50 border-blue-400"
+                    ? "bg-ink-50 border-ink-400"
                     : "border-gray-200 hover:border-gray-300"
                 }`}
               >
@@ -378,7 +378,7 @@ function InviteModal({
                   <p className="text-xs text-gray-500">{job.subject}</p>
                 </div>
                 {selectedJob === job.id && (
-                  <CheckCircle2 className="h-4 w-4 text-blue-600 flex-shrink-0" />
+                  <CheckCircle2 className="h-4 w-4 text-ink-600 flex-shrink-0" />
                 )}
               </button>
             ))}
@@ -393,7 +393,7 @@ function InviteModal({
             <Button
               onClick={() => onInvite(teacherId, selectedJob)}
               disabled={!selectedJob || isLoading}
-              className="bg-blue-700 hover:bg-blue-800 text-white"
+              className="bg-ink-700 hover:bg-ink-800 text-white"
             >
               {isLoading ? (
                 <Loader2 className="h-4 w-4 animate-spin mr-2" />
@@ -546,7 +546,7 @@ export default function TalentPage() {
                   </p>
                   <Link
                     href="/dashboard/school/subscription"
-                    className="text-xs text-blue-600 hover:underline"
+                    className="text-xs text-ink-600 hover:underline"
                   >
                     Upgrade to unlock all profiles →
                   </Link>
@@ -564,7 +564,7 @@ export default function TalentPage() {
                 value={filters.keyword}
                 onChange={(e) => updateFilter("keyword", e.target.value)}
                 placeholder="Search by name, subject, or location..."
-                className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ink-500 focus:border-transparent"
               />
             </div>
             <Button
@@ -575,7 +575,7 @@ export default function TalentPage() {
               <SlidersHorizontal className="h-4 w-4" />
               Filters
               {activeFilterCount > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-blue-600 text-white text-xs rounded-full flex items-center justify-center">
+                <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-ink-600 text-white text-xs rounded-full flex items-center justify-center">
                   {activeFilterCount}
                 </span>
               )}
@@ -594,7 +594,7 @@ export default function TalentPage() {
                   <select
                     value={filters.subject}
                     onChange={(e) => updateFilter("subject", e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-ink-500"
                   >
                     <option value="">All subjects</option>
                     {(filters.level ? getSubjectsForLevel(filters.level as TeachingLevel) : ALL_SUBJECTS).map((s) => (
@@ -610,7 +610,7 @@ export default function TalentPage() {
                   <select
                     value={filters.level}
                     onChange={(e) => updateFilter("level", e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-ink-500"
                   >
                     <option value="">All levels</option>
                     {TEACHING_LEVELS.map((l) => (
@@ -626,7 +626,7 @@ export default function TalentPage() {
                   <select
                     value={filters.state}
                     onChange={(e) => updateFilter("state", e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-ink-500"
                   >
                     <option value="">All states</option>
                     {NIGERIAN_STATES.map((s) => (
@@ -647,7 +647,7 @@ export default function TalentPage() {
                       updateFilter("experience_min", e.target.value)
                     }
                     placeholder="e.g. 3"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ink-500"
                   />
                 </div>
               </div>
@@ -678,7 +678,7 @@ export default function TalentPage() {
                       onChange={(e) =>
                         updateFilter(toggle.key, e.target.checked)
                       }
-                      className="w-4 h-4 rounded accent-blue-600"
+                      className="w-4 h-4 rounded accent-ink-600"
                     />
                     <span className="text-sm text-gray-700">{toggle.label}</span>
                   </label>
@@ -734,7 +734,7 @@ export default function TalentPage() {
           {/* Quick Stats */}
           <div className="flex items-center gap-4 text-xs text-gray-500">
             <span className="flex items-center gap-1">
-              <Users className="h-3.5 w-3.5 text-blue-500" />
+              <Users className="h-3.5 w-3.5 text-ink-500" />
               {totalCount} registered
             </span>
             <span className="flex items-center gap-1">
@@ -773,7 +773,7 @@ export default function TalentPage() {
                 </div>
                 <div className="flex gap-2">
                   <div className="h-8 bg-gray-100 rounded-lg flex-1" />
-                  <div className="h-8 bg-blue-100 rounded-lg flex-1" />
+                  <div className="h-8 bg-ink-100 rounded-lg flex-1" />
                 </div>
               </div>
             ))}
@@ -809,18 +809,18 @@ export default function TalentPage() {
 
         {/* Upgrade CTA for free tier */}
         {!isPremium && !isLoading && teachers.length > 0 && (
-          <div className="mt-8 bg-gradient-to-r from-blue-700 to-blue-800 rounded-2xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="mt-8 bg-gradient-to-r from-ink-700 to-ink-800 rounded-2xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="text-white">
               <h3 className="font-bold text-lg mb-1">
                 Unlock {totalCount - FREE_TIER_LIMIT}+ more teacher profiles
               </h3>
-              <p className="text-blue-200 text-sm">
+              <p className="text-ink-200 text-sm">
                 Upgrade to browse all teachers, send unlimited invites, and
                 access full contact details.
               </p>
             </div>
             <Link href="/dashboard/school/subscription" className="flex-shrink-0">
-              <Button className="bg-white text-blue-700 hover:bg-blue-50 px-6 flex items-center gap-2">
+              <Button className="bg-white text-ink-700 hover:bg-ink-50 px-6 flex items-center gap-2">
                 <Star className="h-4 w-4" />
                 Upgrade Plan
                 <ChevronRight className="h-4 w-4" />

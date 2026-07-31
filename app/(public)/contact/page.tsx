@@ -97,15 +97,15 @@ export default function ContactPage() {
               {/* Email */}
               <a
                 href="mailto:TeachConnect@gmail.com"
-                className="flex items-start gap-3 p-3 rounded-xl hover:bg-blue-50 transition group"
+                className="flex items-start gap-3 p-3 rounded-xl hover:bg-ink-50 transition group"
               >
-                <div className="w-9 h-9 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-blue-200 transition">
-                  <Mail className="h-5 w-5 text-blue-600" />
+                <div className="w-9 h-9 bg-ink-100 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-ink-200 transition">
+                  <Mail className="h-5 w-5 text-ink-600" />
                 </div>
                 <div>
                   <p className="text-sm font-semibold text-gray-900">Email</p>
                   <p className="text-xs text-gray-500">TeachConnect@gmail.com</p>
-                  <p className="text-xs text-blue-600 mt-0.5">Send us an email →</p>
+                  <p className="text-xs text-ink-600 mt-0.5">Send us an email →</p>
                 </div>
               </a>
 

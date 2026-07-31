@@ -73,7 +73,7 @@ export async function PATCH(request: Request) {
       // New fields
       "about", "curriculum", "student_population",
       "salary_range_min", "salary_range_max", "benefits",
-      "school_category",
+      "school_category", "notification_prefs",
     ]
     const updates: Record<string, unknown> = {}
     allowedFields.forEach((f) => { if (body[f] !== undefined) updates[f] = body[f] })

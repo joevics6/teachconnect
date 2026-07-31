@@ -63,7 +63,7 @@ const CATEGORY_ICONS: Record<string, React.ElementType> = {
 
 const CATEGORY_COLORS: Record<string, string> = {
   "Career Advice": "bg-ink-100 text-ink-700",
-  "School Management": "bg-blue-100 text-blue-700",
+  "School Management": "bg-ink-100 text-ink-700",
   "TRCN Guide": "bg-purple-100 text-purple-700",
   "Salary Insights": "bg-orange-100 text-orange-700",
 }

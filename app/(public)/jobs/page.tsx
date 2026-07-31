@@ -83,7 +83,7 @@ function JobCard({ job }: { job: JobWithSchool }) {
                   {job.title}
                 </p>
                 {job.school_is_verified && (
-                  <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-blue-50 text-blue-600 text-xs rounded-full flex-shrink-0">
+                  <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-ink-50 text-ink-600 text-xs rounded-full flex-shrink-0">
                     <Star className="h-2.5 w-2.5" />
                     Verified
                   </span>
@@ -119,7 +119,7 @@ function JobCard({ job }: { job: JobWithSchool }) {
           {job.teaching_levels.map((level) => (
             <span
               key={level}
-              className="px-2.5 py-1 bg-blue-50 text-blue-600 text-xs rounded-lg capitalize"
+              className="px-2.5 py-1 bg-ink-50 text-ink-600 text-xs rounded-lg capitalize"
             >
               {level.toUpperCase()}
             </span>

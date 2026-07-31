@@ -100,7 +100,7 @@ export async function generateMetadata(
 
 const CATEGORY_COLORS: Record<string, string> = {
   "Career Advice":     "bg-ink-100 text-ink-700",
-  "School Management": "bg-blue-100 text-blue-700",
+  "School Management": "bg-ink-100 text-ink-700",
   "TRCN Guide":        "bg-purple-100 text-purple-700",
   "Salary Insights":   "bg-orange-100 text-orange-700",
   "Curriculum Guide":  "bg-orange-100 text-orange-700",
@@ -109,7 +109,7 @@ const CATEGORY_COLORS: Record<string, string> = {
 const TYPE_META: Record<string, { icon: string; label: string; color: string }> = {
   article:  { icon: "📄", label: "Article",  color: "bg-gray-100 text-gray-600"      },
   pdf:      { icon: "📕", label: "PDF",       color: "bg-red-100 text-red-600"        },
-  document: { icon: "📝", label: "Document",  color: "bg-blue-100 text-blue-600"      },
+  document: { icon: "📝", label: "Document",  color: "bg-ink-100 text-ink-600"      },
   video:    { icon: "🎬", label: "Video",     color: "bg-purple-100 text-purple-600"  },
   youtube:  { icon: "▶️", label: "Video",     color: "bg-red-100 text-red-600"        },
 }
