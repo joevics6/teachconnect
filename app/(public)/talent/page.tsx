@@ -21,6 +21,7 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ALL_SUBJECTS, TEACHING_LEVELS, NIGERIAN_STATES, getSubjectsForLevel } from "@/lib/constants"
+import { FREE_PLAN_TALENT_LIMIT } from "@/lib/pricing"
 import type { TeachingLevel } from "@/types"
 
 // ─── Types ───────────────────────────────────────────────────
@@ -411,7 +412,7 @@ function InviteModal({
 
 // ─── Main Page ────────────────────────────────────────────────
 
-const FREE_TIER_LIMIT = 5
+const FREE_TIER_LIMIT = FREE_PLAN_TALENT_LIMIT
 
 export default function TalentPage() {
   const [teachers, setTeachers] = useState<Teacher[]>([])

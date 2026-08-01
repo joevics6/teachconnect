@@ -5,14 +5,19 @@
 // duplicated job) is switched to active — both are ways a job
 // becomes a live, counted posting, so both need the same gate.
 //
-// Reset windows differ by plan (see pricing page comparison table):
-// - Free: 1 job per calendar month (resets every month)
+// Concurrent active-job caps (see lib/pricing.ts for the numbers):
+// - Free:     1 active job at a time
 // - Standard: 1 job per purchase (each purchase is its own
-//   subscription row, so the window is "since that row's starts_at")
-// - Term: unlimited
+//             subscription row — the window is "since that row's
+//             starts_at", since it's a single-use posting credit,
+//             not a concurrent cap)
+// - Monthly:  5 active jobs at a time (concurrent, resets as jobs
+//             close — not a purchase-window credit)
+// - Term:     unlimited
 // ============================================================
 
 import type { SupabaseClient } from "@supabase/supabase-js"
+import { FREE_PLAN_JOB_LIMIT, PLANS } from "@/lib/pricing"
 
 export async function checkJobPostingLimit(supabase: SupabaseClient, schoolId: string) {
   const { data: subRows } = await supabase
@@ -27,9 +32,27 @@ export async function checkJobPostingLimit(supabase: SupabaseClient, schoolId: s
 
   if (planType === "term") return { allowed: true as const }
 
+  if (planType === "monthly") {
+    const limit = PLANS.monthly.job_limit as number
+    const { count: activeJobs } = await supabase
+      .from("jobs")
+      .select("id", { count: "exact", head: true })
+      .eq("school_id", schoolId)
+      .eq("status", "active")
+
+    if ((activeJobs || 0) >= limit) {
+      return {
+        allowed: false as const,
+        error: `You've reached your Monthly plan's limit of ${limit} active job postings. Close one, or upgrade to the Term Plan for unlimited postings.`,
+      }
+    }
+    return { allowed: true as const }
+  }
+
+  // free / standard: single-use credit, windowed
   const windowStart =
     planType === "free"
-      ? new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString()
+      ? new Date(0).toISOString() // "1 active at a time" — no time window, just a concurrent cap
       : subscription?.starts_at || new Date(0).toISOString()
 
   const { count: jobsPosted } = await supabase
@@ -39,13 +62,15 @@ export async function checkJobPostingLimit(supabase: SupabaseClient, schoolId: s
     .eq("status", "active")
     .gte("created_at", windowStart)
 
-  if ((jobsPosted || 0) >= 1) {
+  const limit = planType === "free" ? FREE_PLAN_JOB_LIMIT : (PLANS.standard.job_limit as number)
+
+  if ((jobsPosted || 0) >= limit) {
     return {
       allowed: false as const,
       error:
         planType === "standard"
-          ? "You've used the job posting included in your Standard plan. Purchase another posting or upgrade to the Term Plan for unlimited postings."
-          : "Free accounts can post 1 job per month. Upgrade to Standard or the Term Plan to post more right away.",
+          ? "You've used the job posting included in your Single Post plan. Purchase another posting, or upgrade to Monthly or the Term Plan for more."
+          : "Free accounts can have 1 active job posting at a time. Close your current job, or upgrade to post more right away.",
     }
   }
 

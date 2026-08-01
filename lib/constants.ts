@@ -140,7 +140,4 @@ export const BENEFITS = [
   "Professional Development",
 ]
 
-export const PLAN_PRICES = {
-  standard: 15000,
-  term: 75000,
-}
+// Plan/add-on pricing lives in lib/pricing.ts (single source of truth).

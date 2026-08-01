@@ -6,11 +6,7 @@
 
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
-
-const ADDON_PRICES: Record<string, number> = {
-  featured: 1_000_000, // in kobo (₦10,000)
-  extended: 500_000,   // in kobo (₦5,000)
-}
+import { getAddonAmountKobo } from "@/lib/pricing"
 
 export async function POST(
   request: Request,
@@ -24,7 +20,8 @@ export async function POST(
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
     const { addon_type } = await request.json()
-    if (!ADDON_PRICES[addon_type]) {
+    const amountKobo = getAddonAmountKobo(addon_type)
+    if (!amountKobo) {
       return NextResponse.json({ error: "Invalid add-on type" }, { status: 400 })
     }
 
@@ -61,7 +58,7 @@ export async function POST(
         },
         body: JSON.stringify({
           email: school.contact_email,
-          amount: ADDON_PRICES[addon_type],
+          amount: amountKobo,
           callback_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/school/jobs?addon_job_id=${job.id}`,
           metadata: {
             job_id: job.id,
@@ -83,7 +80,7 @@ export async function POST(
       job_id: job.id,
       school_id: school.id,
       addon_type,
-      amount_kobo: ADDON_PRICES[addon_type],
+      amount_kobo: amountKobo,
       paystack_reference: paystackData.data.reference,
       status: "pending",
     })

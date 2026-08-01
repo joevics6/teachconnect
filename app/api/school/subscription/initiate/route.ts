@@ -3,15 +3,9 @@
 // POST — initiate Paystack payment for a plan
 // ============================================================
 
-// Create at: app/api/school/subscription/initiate/route.ts
-
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
-
-const PLAN_PRICES: Record<string, number> = {
-  standard: 1500000, // in kobo (₦15,000)
-  term: 7500000,     // in kobo (₦75,000)
-}
+import { getPlanAmountKobo } from "@/lib/pricing"
 
 export async function POST(request: Request) {
   try {
@@ -24,7 +18,8 @@ export async function POST(request: Request) {
 
     const { plan_id } = await request.json()
 
-    if (!PLAN_PRICES[plan_id]) {
+    const amountKobo = getPlanAmountKobo(plan_id)
+    if (!amountKobo) {
       return NextResponse.json(
         { error: "Invalid plan" },
         { status: 400 }
@@ -55,7 +50,7 @@ export async function POST(request: Request) {
         },
         body: JSON.stringify({
           email: school.contact_email,
-          amount: PLAN_PRICES[plan_id],
+          amount: amountKobo,
           callback_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/school/subscription`,
           metadata: {
             school_id: school.id,

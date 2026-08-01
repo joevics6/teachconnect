@@ -1,22 +1,14 @@
 // ============================================================
 // app/api/school/subscription/verify/route.ts
 // POST — verify Paystack payment and activate subscription
+// (client-triggered fast path — see /api/webhooks/paystack for
+// the authoritative path that runs even if the browser never
+// returns here)
 // ============================================================
-
-// Create at: app/api/school/subscription/verify/route.ts
 
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
-
-const PLAN_DURATIONS: Record<string, number> = {
-  standard: 30,  // 30 days
-  term: 91,      // ~13 weeks
-}
-
-const PLAN_AMOUNTS: Record<string, number> = {
-  standard: 15000,
-  term: 75000,
-}
+import { verifyPaystackTransaction, activateSubscriptionFromPayment } from "@/lib/paystack"
 
 export async function POST(request: Request) {
   try {
@@ -28,30 +20,14 @@ export async function POST(request: Request) {
     }
 
     const { reference } = await request.json()
+    if (!reference) return NextResponse.json({ error: "reference required" }, { status: 400 })
 
-    // Verify with Paystack
-    const paystackResponse = await fetch(
-      `https://api.paystack.co/transaction/verify/${reference}`,
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
-        },
-      }
-    )
-
-    const paystackData = await paystackResponse.json()
-
-    if (
-      !paystackData.status ||
-      paystackData.data.status !== "success"
-    ) {
-      return NextResponse.json(
-        { error: "Payment not successful" },
-        { status: 400 }
-      )
+    const txn = await verifyPaystackTransaction(reference)
+    if (!txn) {
+      return NextResponse.json({ error: "Payment not successful" }, { status: 400 })
     }
 
-    const { school_id, plan_id } = paystackData.data.metadata
+    const { school_id } = txn.metadata
 
     // The transaction must belong to the school the caller is logged in as —
     // otherwise a reference obtained elsewhere (e.g. browser history) could be
@@ -68,67 +44,15 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "This payment does not belong to your account" }, { status: 403 })
     }
 
-    // Check reference not already used
-    const { data: existing } = await supabase
-      .from("subscriptions")
-      .select("id")
-      .eq("paystack_reference", reference)
-      .single()
-
-    if (existing) {
-      return NextResponse.json(
-        { error: "Payment already processed" },
-        { status: 409 }
-      )
+    const result = await activateSubscriptionFromPayment(supabase, txn)
+    if (!result.ok) {
+      return NextResponse.json({ error: result.error || "Failed to activate subscription" }, { status: 500 })
+    }
+    if (result.already_processed) {
+      return NextResponse.json({ ok: true, already_processed: true })
     }
 
-    // Deactivate any existing active subscriptions
-    await supabase
-      .from("subscriptions")
-      .update({ is_active: false })
-      .eq("school_id", school_id)
-      .eq("is_active", true)
-
-    // Calculate expiry
-    const startsAt = new Date()
-    const expiresAt = new Date()
-    expiresAt.setDate(expiresAt.getDate() + PLAN_DURATIONS[plan_id])
-
-    // Create new subscription
-    const { data: subscription, error } = await supabase
-      .from("subscriptions")
-      .insert({
-        school_id,
-        plan_type: plan_id,
-        paystack_reference: reference,
-        amount_paid: PLAN_AMOUNTS[plan_id],
-        starts_at: startsAt.toISOString(),
-        expires_at: expiresAt.toISOString(),
-        is_active: true,
-      })
-      .select()
-      .single()
-
-    if (error) throw error
-
-    // Notify school
-    const { data: school } = await supabase
-      .from("school_profiles")
-      .select("user_id")
-      .eq("id", school_id)
-      .single()
-
-    if (school) {
-      await supabase.from("notifications").insert({
-        user_id: school.user_id,
-        type: "subscription_activated",
-        title: "Subscription Activated",
-        message: `Your ${plan_id === "term" ? "Term Plan" : "Standard"} subscription is now active.`,
-        metadata: { subscription_id: subscription.id },
-      })
-    }
-
-    return NextResponse.json({ subscription })
+    return NextResponse.json({ subscription: result.subscription })
   } catch (err) {
     console.error("Verify payment error:", err)
     return NextResponse.json(

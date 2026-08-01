@@ -332,7 +332,14 @@ function SubscriptionPageInner() {
       if (response.ok) {
         setPaymentSuccess(true)
         const data = await response.json()
-        setSubscription(data.subscription)
+        if (data.subscription) {
+          setSubscription(data.subscription)
+        } else if (data.already_processed) {
+          // Webhook already applied this payment before we got here — just refetch current state.
+          const refreshed = await fetch("/api/school/subscription")
+          const refreshedData = await refreshed.json()
+          setSubscription(refreshedData.subscription)
+        }
       } else {
         setPaymentError("Payment verification failed. Contact support.")
       }

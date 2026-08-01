@@ -6,8 +6,9 @@
 // ============================================================
 
 import type { SupabaseClient } from "@supabase/supabase-js"
+import type { PlanType } from "@/lib/pricing"
 
-export type PlanType = "free" | "standard" | "term"
+export type { PlanType }
 
 export async function getActivePlanType(supabase: SupabaseClient, schoolId: string): Promise<PlanType> {
   const { data: subRows } = await supabase
@@ -20,6 +21,12 @@ export async function getActivePlanType(supabase: SupabaseClient, schoolId: stri
   return ((subRows ?? [])[0]?.plan_type as PlanType) || "free"
 }
 
+/** Quiz screening, private postings, CV downloads, applicant notes/alerts — any paid plan. */
 export function isPremiumPlan(planType: PlanType): boolean {
-  return planType === "standard" || planType === "term"
+  return planType === "standard" || planType === "monthly" || planType === "term"
+}
+
+/** Talent-page browsing and direct messaging are Monthly/Term only — NOT the single-post plan. */
+export function hasTalentAccess(planType: PlanType): boolean {
+  return planType === "monthly" || planType === "term"
 }
