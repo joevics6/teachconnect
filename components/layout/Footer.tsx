@@ -2,8 +2,8 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { GraduationCap } from "lucide-react"
 import { useAuth } from "@/lib/auth-context"
+import { Logo } from "@/components/ui/Logo"
 
 export default function Footer() {
   const { user, dashboardLink } = useAuth()
@@ -24,9 +24,7 @@ export default function Footer() {
           {/* Brand */}
           <div className="col-span-1">
             <Link href="/" className="flex items-center gap-2 mb-4">
-              <div className="bg-ink-600 text-white p-1.5 rounded-lg">
-                <GraduationCap className="h-5 w-5" />
-              </div>
+              <Logo className="h-9 w-9" />
               <div className="flex flex-col leading-none">
                 <span className="font-bold text-sm text-white">
                   JobMeter

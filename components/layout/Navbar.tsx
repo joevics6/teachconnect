@@ -3,7 +3,8 @@
 import Link from "next/link"
 import { useState } from "react"
 import { usePathname } from "next/navigation"
-import { Menu, X, GraduationCap, ChevronDown, LogOut, User, LayoutDashboard } from "lucide-react"
+import { Menu, X, ChevronDown, LogOut, User, LayoutDashboard } from "lucide-react"
+import { Logo } from "@/components/ui/Logo"
 import { Button } from "@/components/ui/button"
 import { createClient } from "@/lib/supabase/client"
 import { useAuth } from "@/lib/auth-context"
@@ -66,9 +67,7 @@ export default function Navbar() {
 
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2">
-            <div className="bg-ink-600 text-white p-1.5 rounded-lg">
-              <GraduationCap className="h-5 w-5" />
-            </div>
+            <Logo className="h-8 w-8" />
             <span className="font-bold text-base text-gray-900">Class<span className="text-ink-600">Hire</span></span>
           </Link>
 

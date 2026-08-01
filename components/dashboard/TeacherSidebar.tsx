@@ -25,6 +25,7 @@ import {
   Loader2,
 } from "lucide-react"
 import { LogoutButton } from "@/components/layout/LogoutButton"
+import { Logo } from "@/components/ui/Logo"
 
 export const TEACHER_NAV_ITEMS = [
   { href: "/dashboard/teacher",                     label: "Overview",        icon: GraduationCap },
@@ -116,7 +117,7 @@ export function TeacherSidebar({ open, onClose }: { open: boolean; onClose: () =
       >
         <div className="flex items-center justify-between p-5 border-b border-gray-100">
           <Link href="/" className="flex items-center gap-2">
-            <div className="bg-ink-600 text-white p-1.5 rounded-lg"><GraduationCap className="h-4 w-4" /></div>
+            <Logo className="h-7 w-7" />
             <div className="flex flex-col leading-none">
               <span className="font-bold text-xs text-gray-900">JobMeter</span>
               <span className="font-bold text-xs text-ink-600">ClassHire</span>

@@ -8,7 +8,8 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { GraduationCap, Eye, EyeOff, Loader2, CheckCircle2, AlertCircle } from "lucide-react"
+import { Eye, EyeOff, Loader2, CheckCircle2, AlertCircle } from "lucide-react"
+import { Logo } from "@/components/ui/Logo"
 import { Button } from "@/components/ui/button"
 import { createClient } from "@/lib/supabase/client"
 
@@ -97,9 +98,7 @@ export default function ResetPasswordPage() {
         {/* Logo */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2 mb-6">
-            <div className="bg-ink-600 text-white p-2 rounded-xl">
-              <GraduationCap className="h-6 w-6" />
-            </div>
+            <Logo className="h-10 w-10" />
             <div className="flex flex-col leading-none text-left">
               <span className="font-bold text-gray-900">JobMeter</span>
               <span className="font-bold text-ink-600">ClassHire</span>
