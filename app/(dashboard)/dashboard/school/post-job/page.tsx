@@ -16,6 +16,7 @@ import {
   PenLine,
   Clock,
   Star,
+  Lock,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { TEACHING_LEVELS, BENEFITS, getSubjectsForLevels, getSubjectsForLevel } from "@/lib/constants"
@@ -145,10 +146,12 @@ function Toggle({
   value,
   onChange,
   color = "blue",
+  locked = false,
 }: {
   value: boolean
   onChange: (v: boolean) => void
   color?: "blue" | "green" | "yellow" | "purple"
+  locked?: boolean
 }) {
   const colors = {
     blue: "bg-ink-600",
@@ -159,16 +162,22 @@ function Toggle({
   return (
     <button
       type="button"
-      onClick={() => onChange(!value)}
+      onClick={() => !locked && onChange(!value)}
+      disabled={locked}
+      title={locked ? "Requires the Standard or Term plan" : undefined}
       className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0 ${
-        value ? colors[color] : "bg-gray-200"
+        locked ? "bg-gray-100 cursor-not-allowed" : value ? colors[color] : "bg-gray-200"
       }`}
     >
-      <span
-        className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
-          value ? "translate-x-6" : "translate-x-1"
-        }`}
-      />
+      {locked ? (
+        <Lock className="h-3 w-3 text-gray-400 mx-auto" />
+      ) : (
+        <span
+          className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+            value ? "translate-x-6" : "translate-x-1"
+          }`}
+        />
+      )}
     </button>
   )
 }
@@ -196,6 +205,9 @@ function PostJobPageInner() {
   const [featuredPaymentReference, setFeaturedPaymentReference] = useState<string | null>(null)
   const [payingForFeatured, setPayingForFeatured] = useState(false)
   const [restoringAfterPayment, setRestoringAfterPayment] = useState(false)
+  // null while loading — premium-only controls stay disabled (not
+  // wrongly enabled) until we actually know the plan.
+  const [isPremiumPlan, setIsPremiumPlan] = useState<boolean | null>(null)
 
   const FEATURED_FORM_STORAGE_KEY = "classhire_pending_featured_post"
 
@@ -205,6 +217,7 @@ function PostJobPageInner() {
         if (!res.ok) return
         const data = await res.json()
         const sub = data.subscription
+        setIsPremiumPlan(sub?.plan_type === "standard" || sub?.plan_type === "term")
         if (sub) {
           setFeaturedRemaining(
             Math.max(0, (sub.featured_listings_included ?? 0) - (sub.featured_listings_used ?? 0))
@@ -543,8 +556,13 @@ function PostJobPageInner() {
                 setAiSuccess(false)
               }}
               rows={4}
-              placeholder="Describe the job vacancy in your own words..."
-              className="w-full px-4 py-3 border border-purple-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 bg-white resize-none mb-3"
+              disabled={isPremiumPlan !== true}
+              placeholder={
+                isPremiumPlan === false
+                  ? "Requires the Standard or Term plan to use AI parsing"
+                  : "Describe the job vacancy in your own words..."
+              }
+              className="w-full px-4 py-3 border border-purple-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 bg-white resize-none mb-3 disabled:bg-gray-50 disabled:text-gray-400 disabled:cursor-not-allowed"
             />
             {aiError && (
               <div className="flex items-center justify-between gap-3 flex-wrap mb-3">
@@ -564,24 +582,33 @@ function PostJobPageInner() {
                 Form filled successfully. Review and adjust before posting.
               </div>
             )}
-            <Button
-              type="button"
-              onClick={handleAiParse}
-              disabled={aiParsing}
-              className="bg-purple-600 hover:bg-purple-700 text-white flex items-center gap-2"
-            >
-              {aiParsing ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Parsing with AI...
-                </>
-              ) : (
-                <>
-                  <Sparkles className="h-4 w-4" />
-                  Parse &amp; Fill Form
-                </>
-              )}
-            </Button>
+            {isPremiumPlan === false ? (
+              <Link href="/dashboard/school/subscription">
+                <Button type="button" className="bg-purple-600 hover:bg-purple-700 text-white flex items-center gap-2">
+                  <Lock className="h-4 w-4" />
+                  Upgrade to Unlock
+                </Button>
+              </Link>
+            ) : (
+              <Button
+                type="button"
+                onClick={handleAiParse}
+                disabled={aiParsing || isPremiumPlan !== true}
+                className="bg-purple-600 hover:bg-purple-700 text-white flex items-center gap-2"
+              >
+                {aiParsing ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Parsing with AI...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="h-4 w-4" />
+                    Parse &amp; Fill Form
+                  </>
+                )}
+              </Button>
+            )}
           </div>
 
           {/* ── Job Details ── */}
@@ -840,13 +867,18 @@ function PostJobPageInner() {
                     Private Posting
                   </p>
                   <p className="text-gray-500 text-xs mt-0.5">
-                    Only visible to matched teachers — not listed publicly
+                    {isPremiumPlan === false ? (
+                      <>Requires the Standard or Term plan — <Link href="/dashboard/school/subscription" className="text-ink-600 underline font-medium">Upgrade</Link></>
+                    ) : (
+                      "Only visible to matched teachers — not listed publicly"
+                    )}
                   </p>
                 </div>
                 <Toggle
                   value={formData.is_private}
                   onChange={(v) => update("is_private", v)}
                   color="blue"
+                  locked={isPremiumPlan !== true}
                 />
               </div>
 
@@ -854,7 +886,11 @@ function PostJobPageInner() {
                 <div>
                   <p className="font-medium text-gray-900 text-sm flex items-center gap-2">
                     Featured Listing
-                    {featuredRemaining === null ? null : featuredRemaining > 0 ? (
+                    {isPremiumPlan === false ? (
+                      <span className="px-2 py-0.5 bg-purple-100 text-purple-700 text-xs rounded-full font-medium">
+                        Premium
+                      </span>
+                    ) : featuredRemaining === null ? null : featuredRemaining > 0 ? (
                       <span className="px-2 py-0.5 bg-ink-100 text-ink-700 text-xs rounded-full font-medium">
                         {featuredRemaining} included with your plan
                       </span>
@@ -865,15 +901,20 @@ function PostJobPageInner() {
                     )}
                   </p>
                   <p className="text-gray-500 text-xs mt-0.5">
-                    {featuredRemaining !== null && featuredRemaining === 0
-                      ? "You've used the featured listings included in your plan — this one requires payment at submit."
-                      : "Appear at the top of search results"}
+                    {isPremiumPlan === false ? (
+                      <>Requires the Standard or Term plan — <Link href="/dashboard/school/subscription" className="text-ink-600 underline font-medium">Upgrade</Link></>
+                    ) : featuredRemaining !== null && featuredRemaining === 0 ? (
+                      "You've used the featured listings included in your plan — this one requires payment at submit."
+                    ) : (
+                      "Appear at the top of search results"
+                    )}
                   </p>
                 </div>
                 <Toggle
                   value={formData.is_featured}
                   onChange={(v) => update("is_featured", v)}
                   color="yellow"
+                  locked={isPremiumPlan !== true}
                 />
               </div>
             </div>
@@ -884,19 +925,25 @@ function PostJobPageInner() {
             <div className="flex items-center justify-between mb-2">
               <h2 className="font-bold text-gray-900 flex items-center gap-2">
                 Quiz Screening
-                <span className="px-2 py-0.5 bg-ink-100 text-ink-700 text-xs rounded-full font-medium">
-                  Recommended
+                <span className={`px-2 py-0.5 text-xs rounded-full font-medium ${
+                  isPremiumPlan === false ? "bg-purple-100 text-purple-700" : "bg-ink-100 text-ink-700"
+                }`}>
+                  {isPremiumPlan === false ? "Premium" : "Recommended"}
                 </span>
               </h2>
               <Toggle
                 value={formData.quiz_enabled}
                 onChange={(v) => update("quiz_enabled", v)}
                 color="green"
+                locked={isPremiumPlan !== true}
               />
             </div>
             <p className="text-gray-500 text-xs mb-5">
-              Teachers must pass a subject quiz before their application
-              reaches you. Only qualified candidates get through.
+              {isPremiumPlan === false ? (
+                <>Requires the Standard or Term plan — <Link href="/dashboard/school/subscription" className="text-ink-600 underline font-medium">Upgrade</Link></>
+              ) : (
+                "Teachers must pass a subject quiz before their application reaches you. Only qualified candidates get through."
+              )}
             </p>
 
             {formData.quiz_enabled && (
