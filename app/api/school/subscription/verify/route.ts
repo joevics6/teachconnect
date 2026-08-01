@@ -18,6 +18,15 @@ const PLAN_AMOUNTS: Record<string, number> = {
   term: 75000,
 }
 
+// Bundled Featured Listing allowance per plan — a school that's used
+// theirs up gets prompted to pay ₦10,000 (see
+// app/api/school/jobs/featured-payment/*) for an extra one instead of
+// it just being a free, unlimited toggle.
+const FEATURED_LISTINGS_INCLUDED: Record<string, number> = {
+  standard: 1,
+  term: 3,
+}
+
 export async function POST(request: Request) {
   try {
     const supabase = await createClient()
@@ -105,6 +114,8 @@ export async function POST(request: Request) {
         starts_at: startsAt.toISOString(),
         expires_at: expiresAt.toISOString(),
         is_active: true,
+        featured_listings_included: FEATURED_LISTINGS_INCLUDED[plan_id] ?? 0,
+        featured_listings_used: 0,
       })
       .select()
       .single()
