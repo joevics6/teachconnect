@@ -56,7 +56,11 @@ export default function Navbar() {
   // mobile specifically, stacks a second header bar whose own hamburger
   // menu shows the same account/avatar details the dashboard's own
   // sidebar already surfaces — redundant clutter, not a real aid.
-  if (pathname?.startsWith("/dashboard") || pathname?.startsWith("/admin")) {
+  if (
+    pathname?.startsWith("/dashboard") ||
+    pathname?.startsWith("/admin") ||
+    (pathname === "/talent" && user?.role === "school")
+  ) {
     return null
   }
 

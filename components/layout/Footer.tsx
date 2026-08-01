@@ -12,7 +12,11 @@ export default function Footer() {
   // Dashboard/admin pages have their own complete header + sidebar
   // navigation — the marketing footer underneath is dead weight there,
   // not a real navigation aid.
-  if (pathname?.startsWith("/dashboard") || pathname?.startsWith("/admin")) {
+  if (
+    pathname?.startsWith("/dashboard") ||
+    pathname?.startsWith("/admin") ||
+    (pathname === "/talent" && user?.role === "school")
+  ) {
     return null
   }
 
