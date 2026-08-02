@@ -7,7 +7,7 @@
 // so pages can't drift out of sync with each other.
 // ============================================================
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
@@ -20,6 +20,7 @@ import {
   X,
 } from "lucide-react"
 import { LogoutButton } from "@/components/layout/LogoutButton"
+import { Logo } from "@/components/ui/Logo"
 
 // "Applicants" isn't its own page — applicants are reviewed per-job from
 // My Jobs (each job has a "Review Applicants" link), so there's no
@@ -66,16 +67,39 @@ export function SchoolSidebar({ open, onClose }: { open: boolean; onClose: () =>
       .catch((err) => console.error("Sidebar subscription fetch error:", err))
   }, [])
 
+  // Swipe-to-close: the panel slides in from the left, so a leftward
+  // drag (finger moving toward the closed, off-screen position) closes
+  // it — the natural mobile gesture for a left-edge drawer.
+  const touchStartX = useRef<number | null>(null)
+  const touchDeltaX  = useRef(0)
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX
+    touchDeltaX.current = 0
+  }
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (touchStartX.current === null) return
+    touchDeltaX.current = e.touches[0].clientX - touchStartX.current
+  }
+  const handleTouchEnd = () => {
+    if (touchDeltaX.current < -60) onClose()
+    touchStartX.current = null
+    touchDeltaX.current = 0
+  }
+
   return (
     <>
       <aside
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
         className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 transform transition-transform duration-200 ease-in-out ${
           open ? "translate-x-0" : "-translate-x-full"
         } lg:translate-x-0 lg:static lg:inset-auto flex flex-col`}
       >
         <div className="flex items-center justify-between p-5 border-b border-gray-100">
           <Link href="/" className="flex items-center gap-2">
-            <div className="bg-ink-600 text-white p-1.5 rounded-lg"><GraduationCap className="h-4 w-4" /></div>
+            <Logo className="h-7 w-7" />
             <div className="flex flex-col leading-none">
               <span className="font-bold text-xs text-gray-900">JobMeter</span>
               <span className="font-bold text-xs text-ink-600">ClassHire</span>

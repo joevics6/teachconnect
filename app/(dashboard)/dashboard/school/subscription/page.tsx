@@ -11,18 +11,21 @@ import {
   Menu,
   Star,
   Zap,
+  CalendarClock,
   Calendar,
   AlertCircle,
   RefreshCw,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { SchoolSidebar } from "@/components/dashboard/SchoolSidebar"
+import { clearCached } from "@/lib/client-cache"
+import { PLANS as PRICING_PLANS } from "@/lib/pricing"
 
 // ─── Types ───────────────────────────────────────────────────
 
 interface Subscription {
   id: string
-  plan_type: "free" | "standard" | "term"
+  plan_type: "free" | "standard" | "monthly" | "term"
   amount_paid: number
   starts_at: string
   expires_at: string | null
@@ -37,47 +40,48 @@ interface UsageStat {
 }
 
 // ─── Constants ───────────────────────────────────────────────
+// Prices/features come from lib/pricing.ts (single source of truth).
 
 const PLANS = [
   {
     id: "standard",
-    name: "Standard",
-    price: 15000,
-    period: "per posting",
-    description: "Single job posting with full quiz screening",
+    name: PRICING_PLANS.standard.name,
+    price: PRICING_PLANS.standard.price,
+    period: PRICING_PLANS.standard.period_label,
+    description: PRICING_PLANS.standard.description,
     icon: Star,
     color: "text-ink-700",
     bg: "bg-ink-50",
     border: "border-ink-300",
     button: "bg-ink-700 hover:bg-ink-800",
-    features: [
-      "1 job posting (30 days)",
-      "All 3 quiz modes",
-      "Full applicant pipeline",
-      "Download CVs",
-      "Private posting",
-    ],
+    features: PRICING_PLANS.standard.features.slice(0, 5),
+  },
+  {
+    id: "monthly",
+    name: PRICING_PLANS.monthly.name,
+    price: PRICING_PLANS.monthly.price,
+    period: PRICING_PLANS.monthly.period_label,
+    description: PRICING_PLANS.monthly.description,
+    icon: CalendarClock,
+    color: "text-ink-700",
+    bg: "bg-ink-50",
+    border: "border-ink-300",
+    button: "bg-ink-700 hover:bg-ink-800",
+    features: PRICING_PLANS.monthly.features.slice(0, 5),
   },
   {
     id: "term",
-    name: "Term Plan",
-    price: 75000,
-    period: "per term",
-    description: "Unlimited postings for a full school term",
+    name: PRICING_PLANS.term.name,
+    price: PRICING_PLANS.term.price,
+    period: PRICING_PLANS.term.period_label,
+    description: PRICING_PLANS.term.description,
     icon: Zap,
     color: "text-ink-700",
     bg: "bg-ink-50",
     border: "border-ink-400",
     button: "bg-ink-600 hover:bg-ink-700",
-    badge: "Best Value",
-    features: [
-      "Unlimited postings",
-      "All Standard features",
-      "Full talent page",
-      "Direct messaging",
-      "1 featured listing",
-      "Priority support",
-    ],
+    badge: "Most Popular",
+    features: PRICING_PLANS.term.features.slice(0, 5),
   },
 ]
 
@@ -100,7 +104,8 @@ function getDaysRemaining(expiresAt: string) {
 function getPlanLabel(planType: string) {
   const map: Record<string, string> = {
     free: "Free Plan",
-    standard: "Standard",
+    standard: "Single Post",
+    monthly: "Monthly",
     term: "Term Plan",
   }
   return map[planType] || planType
@@ -125,6 +130,7 @@ function CurrentPlanCard({
   const planColors: Record<string, string> = {
     free: "from-gray-700 to-gray-800",
     standard: "from-ink-700 to-ink-800",
+    monthly: "from-ink-700 to-ink-800",
     term: "from-ink-600 to-ink-700",
   }
 
@@ -340,6 +346,7 @@ function SubscriptionPageInner() {
           const refreshedData = await refreshed.json()
           setSubscription(refreshedData.subscription)
         }
+        clearCached("school:plan-type")
       } else {
         setPaymentError("Payment verification failed. Contact support.")
       }
@@ -440,7 +447,7 @@ function SubscriptionPageInner() {
                   </div>
                 )}
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
                   {PLANS.map((plan) => (
                     <PlanPurchaseCard
                       key={plan.id}

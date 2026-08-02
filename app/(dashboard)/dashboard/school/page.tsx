@@ -504,7 +504,7 @@ export default function SchoolDashboardPage() {
             <div className="bg-gradient-to-r from-gray-900 to-gray-800 rounded-2xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
               <div className="text-white">
                 <h3 className="font-bold text-lg mb-1">Unlock Full Access</h3>
-                <p className="text-gray-400 text-sm">Browse all teacher profiles, send direct messages, and post unlimited jobs.</p>
+                <p className="text-gray-400 text-sm">Browse all teacher profiles, send direct messages, and post more active jobs at once.</p>
               </div>
               <Link href="/dashboard/school/subscription" className="flex-shrink-0">
                 <Button className="bg-ink-600 hover:bg-ink-700 text-white px-6">

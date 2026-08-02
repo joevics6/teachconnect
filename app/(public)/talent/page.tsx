@@ -18,11 +18,14 @@ import {
   Send,
   Loader2,
   SlidersHorizontal,
+  Menu,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ALL_SUBJECTS, TEACHING_LEVELS, NIGERIAN_STATES, getSubjectsForLevel } from "@/lib/constants"
 import { FREE_PLAN_TALENT_LIMIT } from "@/lib/pricing"
 import type { TeachingLevel } from "@/types"
+import { useAuth } from "@/lib/auth-context"
+import { SchoolSidebar } from "@/components/dashboard/SchoolSidebar"
 
 // ─── Types ───────────────────────────────────────────────────
 
@@ -415,6 +418,9 @@ function InviteModal({
 const FREE_TIER_LIMIT = FREE_PLAN_TALENT_LIMIT
 
 export default function TalentPage() {
+  const { user } = useAuth()
+  const isSchoolUser = user?.role === "school"
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const [teachers, setTeachers] = useState<Teacher[]>([])
   const [jobs, setJobs] = useState<Job[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -524,19 +530,31 @@ export default function TalentPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className={`min-h-screen bg-gray-50 ${isSchoolUser ? "flex" : ""}`}>
+      {isSchoolUser && <SchoolSidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />}
+      <div className={isSchoolUser ? "flex-1 min-w-0" : ""}>
 
       {/* Page Header */}
       <div className="bg-white border-b border-gray-200 py-6 px-4">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-between flex-wrap gap-4 mb-4">
-            <div>
+            <div className="flex items-center gap-3">
+              {isSchoolUser && (
+                <button
+                  className="lg:hidden p-2 -ml-2 rounded-lg hover:bg-gray-100 transition flex-shrink-0"
+                  onClick={() => setSidebarOpen(true)}
+                >
+                  <Menu className="h-5 w-5 text-gray-600" />
+                </button>
+              )}
+              <div>
               <h1 className="text-2xl font-bold text-gray-900">
                 Browse Teachers
               </h1>
               <p className="text-sm text-gray-500 mt-0.5">
                 Find and invite qualified teachers directly
               </p>
+              </div>
             </div>
             {!isPremium && (
               <div className="flex items-center gap-3 px-4 py-2.5 bg-yellow-50 border border-yellow-200 rounded-xl">
@@ -841,6 +859,7 @@ export default function TalentPage() {
           isLoading={inviteLoading}
         />
       )}
+      </div>
     </div>
   )
 }

@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
+import { isPremiumPlan } from "@/lib/school-plan"
+import type { PlanType } from "@/lib/school-plan"
 
 export async function GET(
   _request: NextRequest,
@@ -24,12 +26,11 @@ export async function GET(
         const school = (schoolRows ?? [])[0] ?? null
         if (school) {
           const { data: subRows } = await supabase
-            .from("subscriptions").select("id")
+            .from("subscriptions").select("id, plan_type")
             .eq("school_id", school.id).eq("is_active", true)
-            .in("plan_type", ["standard", "term"])
             .gte("expires_at", new Date().toISOString())
             .order("created_at", { ascending: false }).limit(1)
-          viewerIsPremiumSchool = !!((subRows ?? [])[0])
+          viewerIsPremiumSchool = isPremiumPlan(((subRows ?? [])[0]?.plan_type as PlanType) || "free")
         }
       }
     }
@@ -60,7 +61,7 @@ export async function GET(
     }
 
     // Hide phone/cv/TRCN number from non-premium-school viewers — only
-    // paying schools (Standard or Term plan) get contact details, matching
+    // paying schools (any paid plan) get contact details, matching
     // the paywall already shown on the talent browse page.
     if (!viewerIsPremiumSchool) {
       delete (profile as Record<string, unknown>).cv_url

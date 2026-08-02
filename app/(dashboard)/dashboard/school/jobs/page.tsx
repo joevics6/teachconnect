@@ -21,6 +21,8 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { SchoolSidebar } from "@/components/dashboard/SchoolSidebar"
+import { clearCached } from "@/lib/client-cache"
+import { ADDONS, getFeaturedAddonPrice } from "@/lib/pricing"
 
 interface Job {
   id: string
@@ -74,11 +76,13 @@ function JobActionsMenu({
   onClose,
   onDuplicate,
   onAddonPurchase,
+  isPaidPlan,
 }: {
   job: Job
   onClose: (id: string) => void
   onDuplicate: (id: string) => void
   onAddonPurchase: (id: string, addonType: "featured" | "extended") => void
+  isPaidPlan: boolean
 }) {
   const [open, setOpen] = useState(false)
 
@@ -116,7 +120,7 @@ function JobActionsMenu({
                 className="flex items-center gap-2 px-3 py-2.5 text-xs text-gray-700 hover:bg-gray-50 transition w-full"
               >
                 <Star className="h-3.5 w-3.5 text-yellow-500" />
-                Feature This Job — ₦10,000
+                Feature This Job — ₦{getFeaturedAddonPrice(isPaidPlan).toLocaleString()}
               </button>
             )}
             {job.status === "active" && (
@@ -125,7 +129,7 @@ function JobActionsMenu({
                 className="flex items-center gap-2 px-3 py-2.5 text-xs text-gray-700 hover:bg-gray-50 transition w-full"
               >
                 <CalendarPlus className="h-3.5 w-3.5 text-ink-500" />
-                Extend +15 Days — ₦5,000
+                Extend +15 Days — ₦{ADDONS.extended.price.toLocaleString()}
               </button>
             )}
             <button
@@ -160,6 +164,17 @@ function SchoolJobsContent() {
   const [actionLoading, setActionLoading] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState("")
   const [addonError, setAddonError] = useState("")
+  const [isPaidPlan, setIsPaidPlan] = useState(false)
+
+  useEffect(() => {
+    fetch("/api/school/subscription")
+      .then(async (res) => {
+        if (!res.ok) return
+        const data = await res.json()
+        setIsPaidPlan((data.subscription?.plan_type || "free") !== "free")
+      })
+      .catch((err) => console.error("Failed to load plan type:", err))
+  }, [])
 
   const fetchJobs = useCallback(async () => {
     setIsLoading(true)
@@ -201,6 +216,7 @@ function SchoolJobsContent() {
             : "Posting extended by 15 days!"
         )
         setTimeout(() => setSuccessMessage(""), 4000)
+        clearCached("school:jobs")
         fetchJobs()
       })
       .catch(() => setAddonError("Could not verify payment. Contact support."))
@@ -218,6 +234,7 @@ function SchoolJobsContent() {
       setJobs((prev) =>
         prev.map((j) => j.id === jobId ? { ...j, status: "closed" } : j)
       )
+      clearCached("school:jobs")
       setSuccessMessage("Job closed successfully")
       setTimeout(() => setSuccessMessage(""), 3000)
     } catch (err) {
@@ -236,6 +253,7 @@ function SchoolJobsContent() {
       const data = await response.json()
       if (data.job) {
         setJobs((prev) => [data.job, ...prev])
+        clearCached("school:jobs")
         setSuccessMessage("Job duplicated as draft")
         setTimeout(() => setSuccessMessage(""), 3000)
       }
@@ -392,7 +410,7 @@ function SchoolJobsContent() {
                         {actionLoading === job.id ? (
                           <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
                         ) : (
-                          <JobActionsMenu job={job} onClose={handleClose} onDuplicate={handleDuplicate} onAddonPurchase={handleAddonPurchase} />
+                          <JobActionsMenu job={job} onClose={handleClose} onDuplicate={handleDuplicate} onAddonPurchase={handleAddonPurchase} isPaidPlan={isPaidPlan} />
                         )}
                       </div>
                     </div>

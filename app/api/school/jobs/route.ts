@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { checkJobPostingLimit } from "@/lib/job-limits"
 import { getActivePlanType, isPremiumPlan } from "@/lib/school-plan"
+import { getFeaturedAddonAmountKobo } from "@/lib/pricing"
 
 // Helper — get or auto-create school profile row
 async function getSchoolProfile(supabase: Awaited<ReturnType<typeof createClient>>, userId: string) {
@@ -110,21 +111,78 @@ export async function POST(request: Request) {
     if (!isPremiumPlan(planType)) {
       if (body.quiz_enabled) {
         return NextResponse.json(
-          { error: "Quiz screening requires the Standard or Term plan.", upgrade_required: true },
+          { error: "Quiz screening requires a paid plan (Single Post, Monthly, or Term).", upgrade_required: true },
           { status: 402 }
         )
       }
       if (body.is_private) {
         return NextResponse.json(
-          { error: "Private postings require the Standard or Term plan.", upgrade_required: true },
+          { error: "Private postings require a paid plan (Single Post, Monthly, or Term).", upgrade_required: true },
           { status: 402 }
         )
       }
-      if (body.is_featured) {
-        return NextResponse.json(
-          { error: "Featured listings aren't available on the Free plan yet.", upgrade_required: true },
-          { status: 402 }
+    }
+
+    // Featured Listing: available on EVERY plan, including Free — Free
+    // schools just always pay (no bundled allowance, and priced higher:
+    // see getFeaturedAddonPrice in lib/pricing.ts). Term comes with 3
+    // bundled credits, Monthly with 1; Single Post and Free have none.
+    // Once bundled credits are used up (or there are none), it requires a
+    // real Paystack payment, verified here before the job is allowed to
+    // go out featured. usesBundledSlot tracks which path applied so the
+    // slot only gets consumed after the job insert actually succeeds below.
+    let usesBundledSlot = false
+    let verifiedFeaturedReference: string | null = null
+    const isPaidPlan = isPremiumPlan(planType)
+    const featuredAmountKobo = getFeaturedAddonAmountKobo(isPaidPlan)
+
+    if (body.is_featured) {
+      const { data: subRows } = await supabase
+        .from("subscriptions")
+        .select("id, featured_listings_included, featured_listings_used")
+        .eq("school_id", school.id)
+        .eq("is_active", true)
+        .order("created_at", { ascending: false })
+        .limit(1)
+      const sub = (subRows ?? [])[0] ?? null
+      const remaining = sub ? sub.featured_listings_included - sub.featured_listings_used : 0
+
+      if (remaining > 0) {
+        usesBundledSlot = true
+      } else {
+        const reference: string | undefined = body.featured_payment_reference
+        if (!reference) {
+          return NextResponse.json(
+            {
+              error: `You've used all the featured listings included in your plan. Pay ₦${featuredAmountKobo / 100} to feature this listing.`,
+              featured_payment_required: true,
+            },
+            { status: 402 }
+          )
+        }
+
+        // A reference already spent on another job/purchase can't be
+        // reused — the UNIQUE constraint on job_addon_purchases.paystack_reference
+        // is the actual backstop for this, checked at insert time below,
+        // but verifying with Paystack here confirms it's real, paid, and
+        // for the right amount before we even attempt to create the job.
+        const verifyRes = await fetch(
+          `https://api.paystack.co/transaction/verify/${reference}`,
+          { headers: { Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}` } }
         )
+        const verifyData = await verifyRes.json()
+        if (
+          !verifyData.status ||
+          verifyData.data?.status !== "success" ||
+          verifyData.data?.amount !== featuredAmountKobo ||
+          verifyData.data?.metadata?.school_id !== school.id
+        ) {
+          return NextResponse.json(
+            { error: "Featured listing payment could not be verified.", featured_payment_required: true },
+            { status: 402 }
+          )
+        }
+        verifiedFeaturedReference = reference
       }
     }
 
@@ -189,6 +247,46 @@ export async function POST(request: Request) {
     }
 
     const job = (newJob ?? [])[0]
+
+    // Consume the featured-listing slot only now that the job actually
+    // exists — a failure earlier (validation, etc.) shouldn't burn a
+    // bundled slot or leave a payment unaccounted for.
+    if (usesBundledSlot) {
+      const { data: subRows } = await supabase
+        .from("subscriptions")
+        .select("id, featured_listings_used")
+        .eq("school_id", school.id)
+        .eq("is_active", true)
+        .order("created_at", { ascending: false })
+        .limit(1)
+      const sub = (subRows ?? [])[0]
+      if (sub) {
+        await supabase
+          .from("subscriptions")
+          .update({ featured_listings_used: sub.featured_listings_used + 1 })
+          .eq("id", sub.id)
+      }
+    } else if (verifiedFeaturedReference && job?.id) {
+      // Records the payment against the now-real job. The UNIQUE
+      // constraint on paystack_reference is what actually prevents the
+      // same payment being applied to two different jobs — if this
+      // insert fails, un-feature the job rather than leave it featured
+      // with no payment on record.
+      const { error: purchaseError } = await supabase.from("job_addon_purchases").insert({
+        job_id: job.id,
+        school_id: school.id,
+        addon_type: "featured",
+        amount_kobo: featuredAmountKobo,
+        paystack_reference: verifiedFeaturedReference,
+        status: "completed",
+        completed_at: new Date().toISOString(),
+      })
+      if (purchaseError) {
+        console.error("Featured payment record error, un-featuring job:", purchaseError)
+        await supabase.from("jobs").update({ is_featured: false }).eq("id", job.id)
+      }
+    }
+
     return NextResponse.json({ success: true, job: { id: job?.id, title: job?.title } })
   } catch (err) {
     console.error("POST /api/school/jobs error:", err)

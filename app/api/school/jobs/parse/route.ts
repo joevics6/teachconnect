@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { ALL_SUBJECTS, BENEFITS } from "@/lib/constants"
-
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY!
+import { getActivePlanType, isPremiumPlan } from "@/lib/school-plan"
+import { generateWithGemini, parseGeminiJson } from "@/lib/gemini"
 
 const PROMPT = (description: string) => `
 You are a school HR assistant in Nigeria. Extract structured job posting data from this description.
@@ -29,45 +29,6 @@ Return exactly this JSON structure (use null for fields not mentioned, do not ad
 }
 `
 
-async function callGemini(model: string, description: string) {
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`
-
-  const response = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      contents: [
-        {
-          parts: [{ text: PROMPT(description) }],
-        },
-      ],
-      generationConfig: {
-        temperature: 0.1,
-        maxOutputTokens: 1000,
-      },
-    }),
-  })
-
-  if (!response.ok) {
-    const err = await response.json()
-    throw new Error(err?.error?.message || `${model} request failed`)
-  }
-
-  const data = await response.json()
-  const text =
-    data?.candidates?.[0]?.content?.parts?.[0]?.text || ""
-
-  if (!text) throw new Error("Empty response from model")
-
-  // Clean and parse JSON
-  const cleaned = text
-    .replace(/```json/gi, "")
-    .replace(/```/g, "")
-    .trim()
-
-  return JSON.parse(cleaned)
-}
-
 export async function POST(request: Request) {
   try {
     const supabase = await createClient()
@@ -76,31 +37,23 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { description } = await request.json()
-
-    if (!description?.trim()) {
+    // AI job-description parsing is a premium feature — was previously
+    // reachable by any school regardless of plan.
+    const planType = await getActivePlanType(supabase, user.id)
+    if (!isPremiumPlan(planType)) {
       return NextResponse.json(
-        { error: "Description is required" },
-        { status: 400 }
+        { error: "AI job parsing requires a paid plan (Single Post, Monthly, or Term).", upgrade_required: true },
+        { status: 402 }
       )
     }
 
-    let parsed: Record<string, unknown> | null = null
-
-    // Try gemini-2.5-flash-lite first (faster, cheaper)
-    try {
-      parsed = await callGemini("gemini-2.5-flash-lite", description)
-    } catch (liteError) {
-      console.warn("gemini-2.5-flash-lite failed, falling back:", liteError)
-
-      // Fallback to gemini-2.5-flash
-      try {
-        parsed = await callGemini("gemini-2.5-flash", description)
-      } catch (flashError) {
-        console.error("gemini-2.5-flash also failed:", flashError)
-        throw new Error("AI parsing failed. Please fill the form manually.")
-      }
+    const { description } = await request.json()
+    if (!description?.trim()) {
+      return NextResponse.json({ error: "Description is required" }, { status: 400 })
     }
+
+    const text = await generateWithGemini(PROMPT(description))
+    const parsed = parseGeminiJson(text)
 
     return NextResponse.json({ parsed })
   } catch (err) {

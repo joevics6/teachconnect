@@ -8,11 +8,13 @@ import {
   Star,
   Zap,
   Building2,
+  CalendarClock,
   HelpCircle,
   ChevronDown,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/lib/auth-context"
+import { PLANS as PRICING_PLANS, ADDONS, FREE_PLAN_JOB_LIMIT, FREE_PLAN_TALENT_LIMIT } from "@/lib/pricing"
 
 // ─── Types ───────────────────────────────────────────────────
 
@@ -21,6 +23,7 @@ interface Plan {
   name: string
   price: number | null
   period: string
+  subtext?: string
   description: string
   icon: React.ElementType
   color: string
@@ -32,7 +35,11 @@ interface Plan {
   limitations?: string[]
 }
 
-// ─── Plans Data ───────────────────────────────────────────────
+// ─── Plans Data ─────────────────────────────────────────────
+// Prices/features come from lib/pricing.ts (single source of truth) —
+// this just adds display-only styling per card.
+
+const monthlyEquivalent = Math.round(PRICING_PLANS.term.price / (PRICING_PLANS.term.duration_days / 30))
 
 const PLANS: Plan[] = [
   {
@@ -47,67 +54,62 @@ const PLANS: Plan[] = [
     borderColor: "border-gray-200",
     buttonColor: "bg-gray-700 hover:bg-gray-800",
     features: [
-      "1 job posting per month",
+      `${FREE_PLAN_JOB_LIMIT} job postings total`,
       "In-app applications",
-      "Basic applicant list",
-      "View first 5 teacher profiles",
+      "Basic applicant list + scores",
+      `View first ${FREE_PLAN_TALENT_LIMIT} teacher profiles per search`,
       "School public profile page",
+      "Featured listing available (pay-per-use)",
     ],
     limitations: [
       "No quiz screening",
-      "No talent browsing beyond 5 profiles",
+      "No CV downloads",
       "No direct messaging",
-      "No featured listings",
+      "No private postings",
+      "No analytics",
     ],
   },
   {
     id: "standard",
-    name: "Standard",
-    price: 15000,
-    period: "per posting",
-    description: "Perfect for schools that hire occasionally.",
+    name: PRICING_PLANS.standard.name,
+    price: PRICING_PLANS.standard.price,
+    period: PRICING_PLANS.standard.period_label,
+    description: PRICING_PLANS.standard.description,
     icon: Star,
     color: "text-ink-700",
     bgColor: "bg-ink-50",
     borderColor: "border-ink-300",
     buttonColor: "bg-ink-700 hover:bg-ink-800",
-    badge: "Most Popular",
-    features: [
-      "Single job posting (30 days)",
-      "Quiz screening (all 3 modes)",
-      "Full applicant pipeline",
-      "Download applicant CVs",
-      "Private posting option",
-      "Applicant notes",
-      "Email notifications",
-    ],
-    limitations: [
-      "No talent page access",
-      "No direct messaging",
-    ],
+    features: PRICING_PLANS.standard.features,
+    limitations: PRICING_PLANS.standard.limitations,
   },
   {
-    id: "term",
-    name: "Term Plan",
-    price: 75000,
-    period: "per term",
-    description: "Best value for schools hiring every term.",
-    icon: Zap,
+    id: "monthly",
+    name: PRICING_PLANS.monthly.name,
+    price: PRICING_PLANS.monthly.price,
+    period: PRICING_PLANS.monthly.period_label,
+    description: PRICING_PLANS.monthly.description,
+    icon: CalendarClock,
     color: "text-ink-700",
     bgColor: "bg-ink-50",
     borderColor: "border-ink-300",
+    buttonColor: "bg-ink-700 hover:bg-ink-800",
+    features: PRICING_PLANS.monthly.features,
+  },
+  {
+    id: "term",
+    name: PRICING_PLANS.term.name,
+    price: PRICING_PLANS.term.price,
+    period: PRICING_PLANS.term.period_label,
+    subtext: `Less than ₦${monthlyEquivalent.toLocaleString()}/month`,
+    description: PRICING_PLANS.term.description,
+    icon: Zap,
+    color: "text-ink-700",
+    bgColor: "bg-ink-50",
+    borderColor: "border-ink-400",
     buttonColor: "bg-ink-600 hover:bg-ink-700",
-    badge: "Best Value",
-    features: [
-      "Unlimited postings for one term",
-      "All Standard features included",
-      "Full talent page access",
-      "Direct messaging to teachers",
-      "1 featured listing included",
-      "Priority support",
-      "Verified school badge",
-      "Analytics dashboard",
-    ],
+    badge: "Most Popular",
+    features: PRICING_PLANS.term.features,
   },
 ]
 
@@ -115,12 +117,12 @@ const FAQS = [
   {
     question: "What is a school term in this context?",
     answer:
-      "A school term is defined as approximately 13 weeks (one Nigerian academic term). The Term Plan gives you unlimited postings for that full period, making it ideal if you're hiring multiple teachers at once.",
+      "A school term is defined as approximately 13 weeks (one Nigerian academic term). The Term Plan gives you up to 10 active job postings at a time for that full period — more than enough for most hiring seasons.",
   },
   {
-    question: "Can I upgrade from Standard to Term Plan?",
+    question: "Can I upgrade to a bigger plan later?",
     answer:
-      "Yes. If you have purchased a Standard posting and want to upgrade to the Term Plan, contact us and we will credit the amount paid toward your Term Plan subscription.",
+      "Yes. If you've purchased a Single Post and want to upgrade to Monthly or the Term Plan, contact us and we'll credit the amount already paid toward your new plan.",
   },
   {
     question: "How does quiz screening work?",
@@ -140,7 +142,7 @@ const FAQS = [
   {
     question: "Is there a refund policy?",
     answer:
-      "Standard postings are non-refundable once your job is published. Term Plans can be refunded within 7 days if no postings have been made. Contact support for assistance.",
+      "Single Post purchases are non-refundable once your job is published. Monthly and Term Plans can be refunded within 7 days if no postings have been made. Contact support for assistance.",
   },
   {
     question: "Can teachers apply without taking a quiz?",
@@ -150,7 +152,7 @@ const FAQS = [
   {
     question: "What is the talent page?",
     answer:
-      "The talent page lets you browse registered teacher profiles directly and send invitations to apply for your open roles — without waiting for them to find your listing. This is available on the Term Plan.",
+      "The talent page lets you browse registered teacher profiles directly and send invitations to apply for your open roles — without waiting for them to find your listing. This is available on the Monthly and Term plans.",
   },
 ]
 
@@ -202,11 +204,7 @@ function PlanCard({
     >
       {/* Badge */}
       {plan.badge && (
-        <div
-          className={`absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full text-xs font-bold text-white ${
-            plan.id === "standard" ? "bg-ink-600" : "bg-ink-600"
-          }`}
-        >
+        <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full text-xs font-bold text-white bg-ink-600">
           {plan.badge}
         </div>
       )}
@@ -225,7 +223,7 @@ function PlanCard({
       </div>
 
       {/* Price */}
-      <div className="mb-6">
+      <div className="mb-2">
         {plan.price === 0 ? (
           <div>
             <span className="text-4xl font-black text-gray-900">Free</span>
@@ -237,6 +235,11 @@ function PlanCard({
             </span>
             <span className="text-gray-400 text-sm ml-2">{plan.period}</span>
           </div>
+        )}
+      </div>
+      <div className="mb-4 h-4">
+        {plan.subtext && (
+          <p className="text-xs text-ink-600 font-medium">{plan.subtext}</p>
         )}
       </div>
 
@@ -274,11 +277,7 @@ function PlanCard({
           <div key={feature} className="flex items-start gap-2.5">
             <CheckCircle2
               className={`h-4 w-4 flex-shrink-0 mt-0.5 ${
-                plan.id === "free"
-                  ? "text-gray-500"
-                  : plan.id === "standard"
-                  ? "text-ink-600"
-                  : "text-ink-600"
+                plan.id === "free" ? "text-gray-500" : "text-ink-600"
               }`}
             />
             <span className="text-sm text-gray-700">{feature}</span>
@@ -298,18 +297,18 @@ function PlanCard({
 // ─── Comparison Table ─────────────────────────────────────────
 
 const COMPARISON_ROWS = [
-  { feature: "Job postings", free: "1/month", standard: "1 posting", term: "Unlimited" },
-  { feature: "Quiz screening", free: false, standard: true, term: true },
-  { feature: "Quiz modes", free: false, standard: "All 3 modes", term: "All 3 modes" },
-  { feature: "Applicant pipeline", free: "Basic", standard: "Full", term: "Full" },
-  { feature: "Download CVs", free: false, standard: true, term: true },
-  { feature: "Private postings", free: false, standard: true, term: true },
-  { feature: "Talent page access", free: "5 profiles", standard: false, term: "Unlimited" },
-  { feature: "Direct messaging", free: false, standard: false, term: true },
-  { feature: "Featured listings", free: false, standard: "Add-on", term: "1 included" },
-  { feature: "Verified school badge", free: false, standard: false, term: true },
-  { feature: "Analytics", free: false, standard: false, term: true },
-  { feature: "Priority support", free: false, standard: false, term: true },
+  { feature: "Active job postings", free: `${FREE_PLAN_JOB_LIMIT} total (lifetime)`, standard: "1 posting", monthly: "5 at a time", term: "10 at a time" },
+  { feature: "Quiz screening", free: false, standard: true, monthly: true, term: true },
+  { feature: "Quiz modes", free: false, standard: "All 3 modes", monthly: "All 3 modes", term: "All 3 modes" },
+  { feature: "Applicant pipeline", free: "Basic", standard: "Full", monthly: "Full", term: "Full" },
+  { feature: "Download CVs", free: false, standard: true, monthly: true, term: true },
+  { feature: "Private postings", free: false, standard: true, monthly: true, term: true },
+  { feature: "Talent page access", free: `${FREE_PLAN_TALENT_LIMIT} profiles`, standard: false, monthly: "Unlimited", term: "Unlimited" },
+  { feature: "Direct messaging", free: false, standard: false, monthly: true, term: true },
+  { feature: "Featured listings", free: "Add-on (₦7,000)", standard: "Add-on (₦4,500)", monthly: "1 included", term: "3 included" },
+  { feature: "Verified school badge", free: false, standard: false, monthly: false, term: true },
+  { feature: "Analytics", free: false, standard: false, monthly: true, term: true },
+  { feature: "Priority support", free: false, standard: false, monthly: false, term: true },
 ]
 
 function ComparisonCell({ value }: { value: boolean | string }) {
@@ -350,9 +349,9 @@ export default function PricingPage() {
             <span className="text-ink-600">Pay Only for What You Need</span>
           </h1>
           <p className="text-gray-500 text-lg leading-relaxed">
-            No subscriptions required to get started. Pay per posting or
-            subscribe for the full term. All plans include our unique quiz
-            screening system.
+            No subscription required to get started. Pay per posting, go
+            monthly, or subscribe for the full term. All paid plans include
+            our unique quiz screening system.
           </p>
         </div>
       </div>
@@ -360,7 +359,7 @@ export default function PricingPage() {
       <div className="max-w-7xl mx-auto px-4 py-16">
 
         {/* Plan Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
           {PLANS.map((plan) => (
             <PlanCard key={plan.id} plan={plan} isCurrentPlan={currentPlan === plan.id} />
           ))}
@@ -394,16 +393,19 @@ export default function PricingPage() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-gray-100">
-                    <th className="text-left px-6 py-4 text-sm font-semibold text-gray-700 w-1/2">
+                    <th className="text-left px-6 py-4 text-sm font-semibold text-gray-700 w-1/3">
                       Feature
                     </th>
                     <th className="text-center px-4 py-4 text-sm font-semibold text-gray-700">
                       Free
                     </th>
-                    <th className="text-center px-4 py-4 text-sm font-semibold text-ink-700 bg-ink-50">
-                      Standard
+                    <th className="text-center px-4 py-4 text-sm font-semibold text-gray-700">
+                      Single Post
                     </th>
-                    <th className="text-center px-4 py-4 text-sm font-semibold text-ink-700">
+                    <th className="text-center px-4 py-4 text-sm font-semibold text-gray-700">
+                      Monthly
+                    </th>
+                    <th className="text-center px-4 py-4 text-sm font-semibold text-ink-700 bg-ink-50">
                       Term Plan
                     </th>
                   </tr>
@@ -422,10 +424,13 @@ export default function PricingPage() {
                       <td className="px-4 py-3.5">
                         <ComparisonCell value={row.free} />
                       </td>
-                      <td className="px-4 py-3.5 bg-ink-50/30">
+                      <td className="px-4 py-3.5">
                         <ComparisonCell value={row.standard} />
                       </td>
                       <td className="px-4 py-3.5">
+                        <ComparisonCell value={row.monthly} />
+                      </td>
+                      <td className="px-4 py-3.5 bg-ink-50/30">
                         <ComparisonCell value={row.term} />
                       </td>
                     </tr>
@@ -444,28 +449,28 @@ export default function PricingPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             {[
               {
-                title: "Featured Listing",
-                price: "₦10,000",
-                period: "per posting",
-                description:
-                  "Pin your job to the top of search results for maximum visibility. Ideal for urgent or competitive roles.",
+                key: "featured" as const,
+                title: ADDONS.featured.name,
+                price: `₦${ADDONS.featured.price_paid.toLocaleString()}`,
+                period: "per posting (paid plans) · ₦" + ADDONS.featured.price_free.toLocaleString() + " on Free",
+                description: ADDONS.featured.description,
                 color: "text-yellow-600",
                 bg: "bg-yellow-50",
                 border: "border-yellow-200",
               },
               {
-                title: "Extended Posting",
-                price: "₦5,000",
+                key: "extended" as const,
+                title: ADDONS.extended.name,
+                price: `₦${ADDONS.extended.price.toLocaleString()}`,
                 period: "per 15 days",
-                description:
-                  "Extend any job posting by 15 additional days beyond the standard 30-day window.",
+                description: ADDONS.extended.description,
                 color: "text-purple-600",
                 bg: "bg-purple-50",
                 border: "border-purple-200",
               },
             ].map((addon) => (
               <div
-                key={addon.title}
+                key={addon.key}
                 className={`bg-white rounded-xl border-2 p-5 ${addon.border}`}
               >
                 <div className={`inline-block px-2.5 py-1 rounded-lg text-xs font-semibold mb-3 ${addon.bg} ${addon.color}`}>
@@ -489,7 +494,9 @@ export default function PricingPage() {
             <Link href="/dashboard/school/jobs" className="text-ink-600 hover:underline font-medium">
               My Jobs
             </Link>{" "}
-            in your dashboard.
+            in your dashboard. Monthly includes 1 featured listing credit and
+            Term includes 3 — pay-as-you-go once those are used up. Featured
+            listings are also available on the Free plan.
           </p>
         </div>
 

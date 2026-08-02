@@ -40,7 +40,7 @@ export async function PATCH(
       if (!isPremiumPlan(planType)) {
         if (updates.is_private === true) {
           return NextResponse.json(
-            { error: "Private postings require the Standard or Term plan.", upgrade_required: true },
+            { error: "Private postings require a paid plan (Single Post, Monthly, or Term).", upgrade_required: true },
             { status: 402 }
           )
         }

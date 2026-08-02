@@ -2,7 +2,9 @@
 
 import Link from "next/link"
 import { useState } from "react"
-import { Menu, X, GraduationCap, ChevronDown, LogOut, User, LayoutDashboard } from "lucide-react"
+import { usePathname } from "next/navigation"
+import { Menu, X, ChevronDown, LogOut, User, LayoutDashboard } from "lucide-react"
+import { Logo } from "@/components/ui/Logo"
 import { Button } from "@/components/ui/button"
 import { createClient } from "@/lib/supabase/client"
 import { useAuth } from "@/lib/auth-context"
@@ -12,6 +14,7 @@ export default function Navbar() {
   const { user, isLoading, dashboardLink } = useAuth()
   const [isOpen,       setIsOpen]       = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
+  const pathname = usePathname()
 
   const handleLogout = async () => {
     setUserMenuOpen(false)
@@ -47,6 +50,20 @@ export default function Navbar() {
     )
   }
 
+  // Dashboard/admin pages have their own complete header + sidebar
+  // navigation (TeacherSidebar/SchoolSidebar/AdminShell). Rendering this
+  // marketing navbar on top of them duplicates navigation and, on
+  // mobile specifically, stacks a second header bar whose own hamburger
+  // menu shows the same account/avatar details the dashboard's own
+  // sidebar already surfaces — redundant clutter, not a real aid.
+  if (
+    pathname?.startsWith("/dashboard") ||
+    pathname?.startsWith("/admin") ||
+    (pathname === "/talent" && user?.role === "school")
+  ) {
+    return null
+  }
+
   return (
     <nav className="border-b bg-white sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -54,9 +71,7 @@ export default function Navbar() {
 
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2">
-            <div className="bg-ink-600 text-white p-1.5 rounded-lg">
-              <GraduationCap className="h-5 w-5" />
-            </div>
+            <Logo className="h-8 w-8" />
             <span className="font-bold text-base text-gray-900">Class<span className="text-ink-600">Hire</span></span>
           </Link>
 

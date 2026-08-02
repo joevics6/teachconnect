@@ -3,11 +3,12 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import {
-  GraduationCap, Loader2, ArrowLeft, ArrowRight,
+  Loader2, ArrowLeft, ArrowRight,
   CheckCircle2, Upload, Building2, Eye, EyeOff,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { TEACHING_LEVELS } from "@/lib/constants"
+import { Logo } from "@/components/ui/Logo"
 import { StateLgaSelect } from "@/components/ui/StateLgaSelect"
 import { createClient } from "@/lib/supabase/client"
 
@@ -191,9 +192,7 @@ export default function SchoolRegisterPage() {
         {/* Logo */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2 mb-4">
-            <div className="bg-ink-600 text-white p-2 rounded-xl">
-              <GraduationCap className="h-6 w-6" />
-            </div>
+            <Logo className="h-10 w-10" />
             <span className="font-bold text-gray-900 text-lg">ClassHire</span>
           </Link>
           <h1 className="text-2xl font-bold text-gray-900">Register Your School</h1>

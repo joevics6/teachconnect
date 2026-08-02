@@ -1,7 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, Suspense } from "react"
 import Link from "next/link"
+import { useRouter, useSearchParams } from "next/navigation"
 import {
   ArrowLeft,
   Briefcase,
@@ -14,11 +15,14 @@ import {
   BookOpen,
   PenLine,
   Clock,
+  Star,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { TEACHING_LEVELS, BENEFITS, getSubjectsForLevels, getSubjectsForLevel } from "@/lib/constants"
+import { getFeaturedAddonPrice } from "@/lib/pricing"
 import { SchoolSidebar } from "@/components/dashboard/SchoolSidebar"
 import type { TeachingLevel } from "@/types"
+import { clearCached } from "@/lib/client-cache"
 
 const ACCOMMODATION_TYPES = [
   { value: "fully-furnished", label: "Fully Furnished" },
@@ -170,7 +174,9 @@ function Toggle({
   )
 }
 
-export default function PostJobPage() {
+function PostJobPageInner() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [submitted, setSubmitted] = useState(false)
@@ -181,7 +187,93 @@ export default function PostJobPage() {
   const [aiInput, setAiInput] = useState("")
   const [aiParsing, setAiParsing] = useState(false)
   const [aiError, setAiError] = useState("")
+  const [aiUpgradeRequired, setAiUpgradeRequired] = useState(false)
   const [aiSuccess, setAiSuccess] = useState(false)
+
+  // Featured Listing: how many the school's plan includes, minus how
+  // many they've used. null while still loading (toggle stays enabled
+  // but the "pay" framing only appears once we actually know the price).
+  const [featuredRemaining, setFeaturedRemaining] = useState<number | null>(null)
+  const [isPaidPlan, setIsPaidPlan] = useState(false)
+  const [featuredPaymentReference, setFeaturedPaymentReference] = useState<string | null>(null)
+  const [payingForFeatured, setPayingForFeatured] = useState(false)
+  const [restoringAfterPayment, setRestoringAfterPayment] = useState(false)
+
+  const FEATURED_FORM_STORAGE_KEY = "classhire_pending_featured_post"
+
+  useEffect(() => {
+    fetch("/api/school/subscription")
+      .then(async (res) => {
+        if (!res.ok) return
+        const data = await res.json()
+        const sub = data.subscription
+        setIsPaidPlan(!!sub)
+        if (sub) {
+          setFeaturedRemaining(
+            Math.max(0, (sub.featured_listings_included ?? 0) - (sub.featured_listings_used ?? 0))
+          )
+        } else {
+          setFeaturedRemaining(0)
+        }
+      })
+      .catch((err) => console.error("Failed to load subscription:", err))
+  }, [])
+
+  // Returning from Paystack after paying for an extra Featured Listing —
+  // restore the form the person had filled in before they were sent
+  // off to pay (a full-page redirect to Paystack would otherwise lose
+  // it entirely), then submit automatically with the payment reference
+  // attached instead of making them re-fill and re-click Submit.
+  useEffect(() => {
+    const reference = searchParams.get("reference") || searchParams.get("trxref")
+    if (!reference) return
+
+    const saved = sessionStorage.getItem(FEATURED_FORM_STORAGE_KEY)
+    if (!saved) return
+
+    setRestoringAfterPayment(true)
+    try {
+      const restored = JSON.parse(saved) as FormData
+      setFormData(restored)
+      setFeaturedPaymentReference(reference)
+    } catch (err) {
+      console.error("Failed to restore saved job post after payment:", err)
+      setRestoringAfterPayment(false)
+    } finally {
+      sessionStorage.removeItem(FEATURED_FORM_STORAGE_KEY)
+      router.replace("/dashboard/school/post-job")
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- run once on mount only, formData intentionally not a dependency
+  }, [])
+
+  // Once the form is restored with a fresh payment reference, submit
+  // automatically rather than making the person click Submit again.
+  useEffect(() => {
+    if (restoringAfterPayment && featuredPaymentReference && formData.title) {
+      setRestoringAfterPayment(false)
+      handleSubmit(featuredPaymentReference)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [restoringAfterPayment, featuredPaymentReference, formData.title])
+
+  const handlePayForFeatured = async () => {
+    setPayingForFeatured(true)
+    try {
+      sessionStorage.setItem(FEATURED_FORM_STORAGE_KEY, JSON.stringify(formData))
+      const res = await fetch("/api/school/jobs/featured-payment/initiate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ returnPath: "/dashboard/school/post-job" }),
+      })
+      const data = await res.json()
+      if (!res.ok || !data.authorization_url) throw new Error(data.error || "Could not start payment")
+      window.location.href = data.authorization_url
+    } catch (err) {
+      setErrors((prev) => ({ ...prev, submit: err instanceof Error ? err.message : "Could not start payment" }))
+      setPayingForFeatured(false)
+      sessionStorage.removeItem(FEATURED_FORM_STORAGE_KEY)
+    }
+  }
 
   const update = (field: keyof FormData, value: unknown) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
@@ -234,6 +326,7 @@ export default function PostJobPage() {
     }
     setAiParsing(true)
     setAiError("")
+    setAiUpgradeRequired(false)
     setAiSuccess(false)
     try {
       const response = await fetch("/api/school/jobs/parse", {
@@ -242,7 +335,10 @@ export default function PostJobPage() {
         body: JSON.stringify({ description: aiInput }),
       })
       const data = await response.json()
-      if (!response.ok) throw new Error(data.error || "Parsing failed")
+      if (!response.ok) {
+        if (data.upgrade_required) setAiUpgradeRequired(true)
+        throw new Error(data.error || "Parsing failed")
+      }
 
       const parsed = data.parsed
       if (parsed.title) update("title", parsed.title)
@@ -308,21 +404,44 @@ export default function PostJobPage() {
     return Object.keys(newErrors).length === 0
   }
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (overrideReference?: string) => {
     if (!validate()) return
+
+    // Featured toggled on, no bundled slots left, and no payment
+    // reference yet (not returning from Paystack) — send them to pay
+    // instead of posting. handlePayForFeatured saves the current form
+    // to sessionStorage first so nothing is lost across the redirect.
+    if (formData.is_featured && featuredRemaining === 0 && !overrideReference) {
+      handlePayForFeatured()
+      return
+    }
+
     setIsLoading(true)
     setUpgradeRequired(false)
     try {
       const response = await fetch("/api/school/jobs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          ...(overrideReference ? { featured_payment_reference: overrideReference } : {}),
+        }),
       })
       const data = await response.json()
       if (!response.ok) {
         if (data.upgrade_required) setUpgradeRequired(true)
+        if (data.featured_payment_required) {
+          // Payment reference didn't verify (expired, already used,
+          // wrong amount) — let them retry paying rather than dead-end.
+          setFeaturedPaymentReference(null)
+        }
         throw new Error(data.error || "Failed to post job")
       }
+      // New job changes what the dashboard's Active Jobs/Total
+      // Applicants counts and jobs list should show — clear the cached
+      // copy so the next dashboard visit fetches fresh instead of
+      // showing stale pre-post numbers.
+      clearCached("school:jobs")
       setSubmitted(true)
     } catch (err: unknown) {
       setErrors({
@@ -430,7 +549,18 @@ export default function PostJobPage() {
               placeholder="Describe the job vacancy in your own words..."
               className="w-full px-4 py-3 border border-purple-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 bg-white resize-none mb-3"
             />
-            {aiError && <p className="text-red-500 text-xs mb-3">{aiError}</p>}
+            {aiError && (
+              <div className="flex items-center justify-between gap-3 flex-wrap mb-3">
+                <p className="text-red-500 text-xs">{aiError}</p>
+                {aiUpgradeRequired && (
+                  <Link href="/dashboard/school/subscription">
+                    <Button size="sm" className="bg-ink-700 hover:bg-ink-800 text-white flex-shrink-0">
+                      Upgrade Plan
+                    </Button>
+                  </Link>
+                )}
+              </div>
+            )}
             {aiSuccess && (
               <div className="flex items-center gap-2 text-ink-700 text-sm mb-3 bg-ink-50 border border-ink-200 px-3 py-2 rounded-lg">
                 <CheckCircle2 className="h-4 w-4 flex-shrink-0" />
@@ -727,12 +857,20 @@ export default function PostJobPage() {
                 <div>
                   <p className="font-medium text-gray-900 text-sm flex items-center gap-2">
                     Featured Listing
-                    <span className="px-2 py-0.5 bg-yellow-100 text-yellow-700 text-xs rounded-full font-medium">
-                      +₦10,000
-                    </span>
+                    {featuredRemaining === null ? null : featuredRemaining > 0 ? (
+                      <span className="px-2 py-0.5 bg-ink-100 text-ink-700 text-xs rounded-full font-medium">
+                        {featuredRemaining} included with your plan
+                      </span>
+                    ) : (
+                      <span className="px-2 py-0.5 bg-yellow-100 text-yellow-700 text-xs rounded-full font-medium">
+                        +₦{getFeaturedAddonPrice(isPaidPlan).toLocaleString()}
+                      </span>
+                    )}
                   </p>
                   <p className="text-gray-500 text-xs mt-0.5">
-                    Appear at the top of search results
+                    {featuredRemaining !== null && featuredRemaining === 0
+                      ? "You've used the featured listings included in your plan — this one requires payment at submit."
+                      : "Appear at the top of search results"}
                   </p>
                 </div>
                 <Toggle
@@ -1131,14 +1269,24 @@ export default function PostJobPage() {
               </Button>
             </Link>
             <Button
-              onClick={handleSubmit}
-              disabled={isLoading}
+              onClick={() => handleSubmit()}
+              disabled={isLoading || payingForFeatured}
               className="bg-ink-700 hover:bg-ink-800 text-white px-8 flex items-center gap-2"
             >
-              {isLoading ? (
+              {payingForFeatured ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Redirecting to payment...
+                </>
+              ) : isLoading ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
                   Posting...
+                </>
+              ) : formData.is_featured && featuredRemaining === 0 ? (
+                <>
+                  <Star className="h-4 w-4" />
+                  Pay ₦{getFeaturedAddonPrice(isPaidPlan).toLocaleString()} &amp; Post Job
                 </>
               ) : (
                 <>
@@ -1152,5 +1300,13 @@ export default function PostJobPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function PostJobPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-ink-600" /></div>}>
+      <PostJobPageInner />
+    </Suspense>
   )
 }

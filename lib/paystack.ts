@@ -12,7 +12,7 @@
 // ============================================================
 
 import type { SupabaseClient } from "@supabase/supabase-js"
-import { getPlanDurationDays, getPlanPriceNaira } from "@/lib/pricing"
+import { getPlanDurationDays, getPlanPriceNaira, getPlanFeaturedCredits } from "@/lib/pricing"
 
 export interface PaystackTransaction {
   reference: string
@@ -75,6 +75,8 @@ export async function activateSubscriptionFromPayment(
       starts_at: startsAt.toISOString(),
       expires_at: expiresAt.toISOString(),
       is_active: true,
+      featured_listings_included: getPlanFeaturedCredits(plan_id),
+      featured_listings_used: 0,
     })
     .select()
     .single()
