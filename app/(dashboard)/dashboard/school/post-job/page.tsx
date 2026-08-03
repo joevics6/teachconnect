@@ -1330,7 +1330,7 @@ function PostJobPageInner() {
               ) : formData.is_featured && featuredRemaining === 0 ? (
                 <>
                   <Star className="h-4 w-4" />
-                  Pay ₦{getFeaturedAddonPrice(isPaidPlan).toLocaleString()} &amp; Post Job
+                  Pay ₦{getFeaturedAddonPrice(!!isPaidPlan).toLocaleString()} &amp; Post Job
                 </>
               ) : (
                 <>
