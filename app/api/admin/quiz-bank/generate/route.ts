@@ -20,10 +20,10 @@ import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { requireAdmin } from "@/lib/admin"
 import { TEACHING_LEVELS, getSubjectsForLevel, getTopicsForSubject } from "@/lib/constants"
+import { generateWithGemini, parseGeminiJson } from "@/lib/gemini"
 import type { TeachingLevel } from "@/types"
 import crypto from "crypto"
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY!
 const VALID_OPTIONS = new Set(["a", "b", "c", "d"])
 const VALID_LEVELS = new Set(TEACHING_LEVELS.map((l) => l.value))
 
@@ -42,34 +42,6 @@ function normalizeOption(value: unknown): string | null {
   if (typeof value !== "string") return null
   const v = value.trim().toLowerCase().replace(/[).]/g, "")
   return VALID_OPTIONS.has(v) ? v : null
-}
-
-async function callGemini(prompt: string): Promise<string> {
-  const models = ["gemini-2.5-flash", "gemini-2.5-flash-lite"]
-  let lastErr: unknown = null
-  for (const model of models) {
-    try {
-      const res = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: { temperature: 0.6, maxOutputTokens: 8000 },
-          }),
-        }
-      )
-      if (!res.ok) throw new Error(`Gemini ${model} responded ${res.status}`)
-      const data = await res.json()
-      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text
-      if (!text) throw new Error(`Gemini ${model} returned empty content`)
-      return text
-    } catch (err) {
-      lastErr = err
-    }
-  }
-  throw lastErr instanceof Error ? lastErr : new Error("Gemini generation failed")
 }
 
 function buildPrompt(subject: string, level: string, count: number, topics?: string[]): string {
@@ -152,13 +124,15 @@ export async function POST(request: Request) {
 
   try {
     const topics = getTopicsForSubject(level as TeachingLevel, subject)
-    const raw = await callGemini(buildPrompt(subject, level, targetCount, topics))
-    const cleaned = raw.replace(/```json|```/g, "").trim()
+    const raw = await generateWithGemini(buildPrompt(subject, level, targetCount, topics), {
+      temperature: 0.6,
+      maxOutputTokens: 8000,
+    })
     let questions: RawQuestion[]
     try {
-      questions = JSON.parse(cleaned)
+      questions = parseGeminiJson<RawQuestion[]>(raw)
     } catch {
-      await log("error", "Gemini response was not valid JSON", { snippet: cleaned.slice(0, 500) })
+      await log("error", "Gemini response was not valid JSON", { snippet: raw.slice(0, 500) })
       throw new Error("Gemini response was not valid JSON")
     }
 

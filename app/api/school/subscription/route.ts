@@ -47,12 +47,12 @@ export async function GET() {
 
     const planType = subscription?.plan_type || "free"
 
-    // Get usage stats — window matches the actual enforcement logic in
-    // lib/job-limits.ts: Free is a concurrent cap (no time window),
-    // Standard is scoped to the current purchase (starts_at), Monthly
-    // is a concurrent cap, Term is unlimited.
+    // Get usage stats — mirrors the actual enforcement logic in
+    // lib/job-limits.ts: Free is a LIFETIME cap counting active+closed
+    // jobs (not drafts, no time window), Standard is scoped to the
+    // current purchase (starts_at), Monthly/Term are concurrent caps.
     const jobsWindowStart =
-      planType === "free" || planType === "monthly"
+      planType === "free"
         ? new Date(0).toISOString()
         : subscription?.starts_at || new Date(0).toISOString()
 
@@ -60,7 +60,7 @@ export async function GET() {
       .from("jobs")
       .select("id", { count: "exact" })
       .eq("school_id", school.id)
-      .eq("status", "active")
+      .in("status", planType === "free" ? ["active", "closed"] : ["active"])
       .gte("created_at", jobsWindowStart)
 
     const { count: totalApplicants } = await supabase

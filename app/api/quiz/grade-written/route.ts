@@ -7,6 +7,7 @@
 
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
+import { generateWithGemini, parseGeminiJson } from "@/lib/gemini"
 
 interface QuestionAnswer {
   id: string
@@ -23,8 +24,6 @@ interface GradedQuestion {
   max_score: number
   feedback: string
 }
-
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY!
 
 async function gradeWithGemini(
   subject: string,
@@ -63,40 +62,8 @@ Return this exact JSON array structure:
   }
 ]`
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${GEMINI_API_KEY}`
-
-  const response = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: {
-        temperature: 0.2,
-        maxOutputTokens: 2000,
-      },
-    }),
-  })
-
-  if (!response.ok) {
-    // Fallback to gemini-2.5-flash
-    const fallbackUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`
-    const fallbackResponse = await fetch(fallbackUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { temperature: 0.2, maxOutputTokens: 2000 },
-      }),
-    })
-    if (!fallbackResponse.ok) throw new Error("Grading failed")
-    const fallbackData = await fallbackResponse.json()
-    const text = fallbackData?.candidates?.[0]?.content?.parts?.[0]?.text || ""
-    return JSON.parse(text.replace(/```json|```/g, "").trim())
-  }
-
-  const data = await response.json()
-  const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || ""
-  return JSON.parse(text.replace(/```json|```/g, "").trim())
+  const text = await generateWithGemini(prompt, { temperature: 0.2, maxOutputTokens: 2000 })
+  return parseGeminiJson<GradedQuestion[]>(text)
 }
 
 export async function POST(request: Request) {

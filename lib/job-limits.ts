@@ -7,10 +7,11 @@
 //
 // (see lib/pricing.ts for the numbers)
 // - Free:     3 job posts total, EVER — a lifetime cap, not a
-//             concurrent one. Closing a job doesn't free up a slot;
-//             upgrading is the only way to post more. Deliberately
-//             tight at launch to push conversion once a school is
-//             actually engaged enough to have posted 3 jobs.
+//             concurrent one. Counts jobs that have been active or
+//             closed; closing a job doesn't free up a slot. Draft
+//             copies (e.g. from duplicating a job) don't count until
+//             actually published — upgrading is the only way to post
+//             more once the 3 are used.
 // - Standard: 1 job per purchase (each purchase is its own
 //             subscription row — the window is "since that row's
 //             starts_at", since it's a single-use posting credit)
@@ -55,12 +56,15 @@ export async function checkJobPostingLimit(supabase: SupabaseClient, schoolId: s
   }
 
   if (planType === "free") {
-    // Lifetime cap — counts ALL jobs ever created (any status), not just
-    // active ones, so closing a job doesn't free up a slot.
+    // Lifetime cap — counts every job that has EVER been active (status
+    // active or closed), not drafts. A school duplicating a job creates
+    // a draft copy (see jobs/[id]/duplicate/route.ts) that shouldn't
+    // silently burn a lifetime slot before it's even published.
     const { count: jobsEverPosted } = await supabase
       .from("jobs")
       .select("id", { count: "exact", head: true })
       .eq("school_id", schoolId)
+      .in("status", ["active", "closed"])
 
     if ((jobsEverPosted || 0) >= FREE_PLAN_JOB_LIMIT) {
       return {
