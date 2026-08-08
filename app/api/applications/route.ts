@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
+import { notifyUser } from "@/lib/notifications"
+import { getServerElapsedSeconds } from "@/lib/quiz-timer"
 
 export async function POST(request: Request) {
   try {
@@ -107,6 +109,12 @@ export async function POST(request: Request) {
     let attemptId: string | null = null
 
     if (isQuizApplication) {
+      // Authoritative elapsed time — never trust the client's self-reported
+      // value (see lib/quiz-timer.ts).
+      const serverTimeTaken = await getServerElapsedSeconds(
+        supabase, teacher.id, "job", job_id, time_taken
+      )
+
       const { data: attempt, error: attemptError } = await supabase
         .from("quiz_attempts")
         .insert({
@@ -114,7 +122,7 @@ export async function POST(request: Request) {
           job_id,
           score,
           passed,
-          time_taken_seconds: time_taken,
+          time_taken_seconds: serverTimeTaken,
           answers: answers || {},
           mode,
           subjects: subjects || [],
@@ -162,12 +170,14 @@ export async function POST(request: Request) {
     // Notify school
     if (school?.user_id) {
       const scoreText = score !== null && score !== undefined ? ` Quiz score: ${score}%.` : ""
-      await supabase.from("notifications").insert({
-        user_id: school.user_id,
+      await notifyUser(supabase, {
+        userId: school.user_id,
+        role: "school",
         type: "new_application",
         title: "New Application Received",
         message: `${teacher.full_name} applied for ${jobTitle || "a job"}.${scoreText}`,
         metadata: { job_id, application_id: application.id, quiz_score: score, quiz_passed: passed },
+        prefKey: "new_applicant",
       })
     }
 
@@ -175,22 +185,26 @@ export async function POST(request: Request) {
     if (isQuizApplication) {
       const schoolName = school?.school_name || "The school"
 
-      await supabase.from("notifications").insert({
-        user_id: user.id,
+      await notifyUser(supabase, {
+        userId: user.id,
+        role: "teacher",
         type: passed ? "quiz_passed" : "quiz_failed",
         title: passed ? "Quiz passed — application submitted!" : "Quiz not passed",
         message: passed
           ? `You scored ${score}% on the ${jobTitle || "the position"} quiz at ${schoolName}. Your application has been submitted.`
           : `You scored ${score}% on the ${jobTitle || "the position"} quiz at ${schoolName}. The required pass mark was not met.`,
         metadata: { job_id, application_id: application?.id, quiz_score: score },
+        prefKey: "application_updates",
       })
     } else {
-      await supabase.from("notifications").insert({
-        user_id: user.id,
+      await notifyUser(supabase, {
+        userId: user.id,
+        role: "teacher",
         type: "application_submitted",
         title: "Application submitted",
         message: `Your application has been sent. The school will review your profile and be in touch if shortlisted.`,
         metadata: { job_id, application_id: application?.id },
+        prefKey: "application_updates",
       })
     }
 

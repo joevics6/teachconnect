@@ -203,6 +203,28 @@ export default function TeacherProfilePage() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState("")
   const [isInviting, setIsInviting] = useState(false)
+  const [downloadingCv, setDownloadingCv] = useState(false)
+
+  const handleDownloadCv = async (teacherId: string) => {
+    setDownloadingCv(true)
+    try {
+      const res = await fetch("/api/teacher/cv-signed-url", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ teacher_id: teacherId }),
+      })
+      const data = await res.json()
+      if (res.ok && data.url) {
+        window.open(data.url, "_blank", "noopener,noreferrer")
+      } else {
+        alert(data.error || "Couldn't open this CV — try again.")
+      }
+    } catch {
+      alert("Couldn't open this CV — try again.")
+    } finally {
+      setDownloadingCv(false)
+    }
+  }
   const [inviteSuccess, setInviteSuccess] = useState(false)
   const [schoolJobs, setSchoolJobs] = useState<{ id: string; title: string }[]>([])
   const [selectedJobId, setSelectedJobId] = useState("")
@@ -883,19 +905,15 @@ export default function TeacherProfilePage() {
                     </div>
                   )}
                   {profile.cv_url && (
-                    <a
-                      href={profile.cv_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                    <Button
+                      variant="outline"
+                      onClick={() => handleDownloadCv(profileId)}
+                      disabled={downloadingCv}
+                      className="w-full flex items-center gap-2"
                     >
-                      <Button
-                        variant="outline"
-                        className="w-full flex items-center gap-2"
-                      >
-                        <Download className="h-4 w-4" />
-                        Download CV
-                      </Button>
-                    </a>
+                      <Download className="h-4 w-4" />
+                      {downloadingCv ? "Opening..." : "Download CV"}
+                    </Button>
                   )}
                 </div>
               )}
@@ -904,19 +922,15 @@ export default function TeacherProfilePage() {
               {isOwnProfile && (
                 <div className="space-y-3 mb-5">
                   {profile.cv_url && (
-                    <a
-                      href={profile.cv_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                    <Button
+                      variant="outline"
+                      onClick={() => handleDownloadCv(profileId)}
+                      disabled={downloadingCv}
+                      className="w-full flex items-center gap-2 text-sm"
                     >
-                      <Button
-                        variant="outline"
-                        className="w-full flex items-center gap-2 text-sm"
-                      >
-                        <Download className="h-4 w-4" />
-                        View My CV
-                      </Button>
-                    </a>
+                      <Download className="h-4 w-4" />
+                      View My CV
+                    </Button>
                   )}
                   <Link href="/jobs">
                     <Button className="w-full bg-ink-600 hover:bg-ink-700 text-white flex items-center gap-2 text-sm">

@@ -3,6 +3,7 @@
 
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
+import { cvStoragePath } from "@/lib/cv-storage"
 
 export async function POST(request: Request) {
   try {
@@ -23,7 +24,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "CV must be under 10MB" }, { status: 400 })
     }
 
-    const cvPath = `${user.id}/cv.pdf`
+    const cvPath = cvStoragePath(user.id)
     const buffer = await file.arrayBuffer()
 
     const { error: uploadError } = await supabase.storage
@@ -32,15 +33,11 @@ export async function POST(request: Request) {
 
     if (uploadError) throw uploadError
 
-    // Public URL — the cvs bucket is public (see supabase/cvs_public_bucket.sql),
-    // so this link never expires, unlike the old 1-year signed URL.
-    const { data: publicUrl } = supabase.storage
-      .from("cvs")
-      .getPublicUrl(cvPath)
-
-    if (!publicUrl?.publicUrl) throw new Error("Failed to generate CV URL")
-
-    const cv_url = publicUrl.publicUrl
+    // The 'cvs' bucket is private (see supabase/cvs_private_bucket.sql) —
+    // this column is now just a "has uploaded a CV" marker, not a usable
+    // link. Actual downloads always go through /api/teacher/cv-signed-url,
+    // which generates a fresh short-lived link at the moment it's needed.
+    const cv_url = cvPath
 
     const { error: updateError } = await supabase
       .from("teacher_profiles")

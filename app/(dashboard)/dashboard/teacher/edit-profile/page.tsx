@@ -65,7 +65,31 @@ export default function EditTeacherProfilePage() {
   const [uploadingCv, setUploadingCv] = useState(false)
   const [cvError,     setCvError]     = useState("")
   const [cvSuccess,   setCvSuccess]   = useState(false)
+  const [downloadingCv, setDownloadingCv] = useState(false)
+  const [teacherId,   setTeacherId]   = useState<string | null>(null)
   const cvInputRef = useRef<HTMLInputElement>(null)
+
+  const handleViewCv = async () => {
+    if (!teacherId) return
+    setDownloadingCv(true)
+    try {
+      const res = await fetch("/api/teacher/cv-signed-url", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ teacher_id: teacherId }),
+      })
+      const data = await res.json()
+      if (res.ok && data.url) {
+        window.open(data.url, "_blank", "noopener,noreferrer")
+      } else {
+        setCvError(data.error || "Couldn't open your CV — try again.")
+      }
+    } catch {
+      setCvError("Couldn't open your CV — try again.")
+    } finally {
+      setDownloadingCv(false)
+    }
+  }
 
   // Load current profile
   useEffect(() => {
@@ -76,6 +100,7 @@ export default function EditTeacherProfilePage() {
         const data = await res.json()
         const p = data.profile
         if (!p) return
+        if (p.id) setTeacherId(p.id)
         if (p.photo_url) setPhotoPreview(p.photo_url)
         if (p.cv_url) setCvUrl(p.cv_url)
         setForm({
@@ -339,14 +364,14 @@ export default function EditTeacherProfilePage() {
                   <FileText className="h-5 w-5 text-ink-600 flex-shrink-0" />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-ink-800">CV uploaded</p>
-                    <a
-                      href={cvUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs text-ink-600 hover:underline"
+                    <button
+                      type="button"
+                      onClick={handleViewCv}
+                      disabled={downloadingCv}
+                      className="text-xs text-ink-600 hover:underline disabled:opacity-50"
                     >
-                      View current CV →
-                    </a>
+                      {downloadingCv ? "Opening..." : "View current CV →"}
+                    </button>
                   </div>
                 </div>
               ) : (

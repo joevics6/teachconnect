@@ -6,6 +6,7 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
+import { cvStoragePath } from "@/lib/cv-storage"
  
 export async function POST(request: Request) {
   try {
@@ -115,22 +116,20 @@ export async function POST(request: Request) {
     // ── Upload CV ───────────────────────────────────────────
     let cv_url: string | null = null
     if (cv_file && cv_file.size > 0) {
-      const cvPath = `${userId}/cv.pdf`
+      const cvPath = cvStoragePath(userId)
       const cvBuffer = await cv_file.arrayBuffer()
- 
+
       const { error: cvError } = await supabase.storage
         .from("cvs")
         .upload(cvPath, cvBuffer, {
           contentType: "application/pdf",
           upsert: true,
         })
- 
-      if (!cvError) {
-        const { data: publicUrl } = supabase.storage
-          .from("cvs")
-          .getPublicUrl(cvPath)
-        cv_url = publicUrl?.publicUrl || null
-      }
+
+      // 'cvs' is a private bucket -- this is just a "has a CV" marker,
+      // not a usable link. Real downloads go through
+      // /api/teacher/cv-signed-url (see lib/cv-storage.ts).
+      if (!cvError) cv_url = cvPath
     }
  
     // ── Create teacher profile ──────────────────────────────

@@ -45,6 +45,7 @@ interface QuizMeta {
   question_count: number
   pass_mark: number
   questions: QuizQuestion[]
+  started_at: string
 }
 
 interface WrittenFeedback {
@@ -216,9 +217,11 @@ function MCQQuiz({
 }) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [answers, setAnswers] = useState<Record<string, string>>({})
-  const [timeLeft, setTimeLeft] = useState(meta.duration_minutes * 60)
+  const startTime = useRef(new Date(meta.started_at).getTime())
+  const [timeLeft, setTimeLeft] = useState(() =>
+    Math.max(0, meta.duration_minutes * 60 - Math.floor((Date.now() - startTime.current) / 1000))
+  )
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const startTime = useRef(Date.now())
   const timerRef = useRef<NodeJS.Timeout | undefined>(undefined)
 
   const questions = meta.questions
@@ -517,7 +520,7 @@ function WrittenQuiz({
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState("")
   const [gradingProgress, setGradingProgress] = useState("")
-  const startTime = useRef(Date.now())
+  const startTime = useRef(new Date(meta.started_at).getTime())
 
   const questions = meta.questions.slice(0, meta.question_count)
   const answeredCount = Object.values(answers).filter((a) => a.trim().length > 0).length

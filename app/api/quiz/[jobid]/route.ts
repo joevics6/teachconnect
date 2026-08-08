@@ -5,6 +5,7 @@
 
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
+import { getOrCreateQuizStart } from "@/lib/quiz-timer"
 
 export async function GET(
   request: NextRequest,
@@ -168,6 +169,8 @@ export async function GET(
         ? shuffled.map(({ id, subject, question_text }) => ({ id, subject, question_text }))
         : shuffled.map(({ correct_option: _co, ...q }) => q)
 
+    const startedAt = await getOrCreateQuizStart(supabase, teacherProfile.id, "job", jobId)
+
     return NextResponse.json({
       job_id: job.id,
       job_title: job.title,
@@ -179,6 +182,7 @@ export async function GET(
       question_count: shuffled.length,
       pass_mark: job.quiz_pass_mark || 70,
       questions: safeQuestions,
+      started_at: startedAt,
       ...(shortages.length ? { subject_shortages: shortages } : {}),
     })
   } catch (err) {

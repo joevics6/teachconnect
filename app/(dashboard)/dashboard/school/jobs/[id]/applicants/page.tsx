@@ -274,6 +274,28 @@ function ApplicantCard({
 }) {
   const QuizIcon = getQuizModeIcon(applicant.quiz_mode || jobInfo.quiz_mode)
   const isRejected = applicant.pipeline_stage === "rejected"
+  const [downloadingCv, setDownloadingCv] = useState(false)
+
+  const handleDownloadCv = async () => {
+    setDownloadingCv(true)
+    try {
+      const res = await fetch("/api/teacher/cv-signed-url", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ teacher_id: applicant.teacher_id }),
+      })
+      const data = await res.json()
+      if (res.ok && data.url) {
+        window.open(data.url, "_blank", "noopener,noreferrer")
+      } else {
+        alert(data.error || "Couldn't open this CV — try again.")
+      }
+    } catch {
+      alert("Couldn't open this CV — try again.")
+    } finally {
+      setDownloadingCv(false)
+    }
+  }
 
   return (
     <div
@@ -435,20 +457,16 @@ function ApplicantCard({
               </Button>
             </Link>
             {applicant.cv_url ? (
-              <a
-                href={applicant.cv_url}
-                target="_blank"
-                rel="noopener noreferrer"
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleDownloadCv}
+                disabled={downloadingCv}
+                className="text-xs h-8 flex items-center gap-1.5"
               >
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="text-xs h-8 flex items-center gap-1.5"
-                >
-                  <Download className="h-3.5 w-3.5" />
-                  Download CV
-                </Button>
-              </a>
+                <Download className="h-3.5 w-3.5" />
+                {downloadingCv ? "Opening..." : "Download CV"}
+              </Button>
             ) : cvLocked ? (
               <Link href="/dashboard/school/subscription">
                 <Button

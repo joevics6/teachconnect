@@ -13,6 +13,7 @@
 
 import type { SupabaseClient } from "@supabase/supabase-js"
 import { getPlanDurationDays, getPlanPriceNaira, getPlanFeaturedCredits } from "@/lib/pricing"
+import { notifyUser } from "@/lib/notifications"
 
 export interface PaystackTransaction {
   reference: string
@@ -87,8 +88,11 @@ export async function activateSubscriptionFromPayment(
     .from("school_profiles").select("user_id").eq("id", school_id).single()
 
   if (school) {
-    await supabase.from("notifications").insert({
-      user_id: school.user_id,
+    // Transactional (payment receipt) — always sends regardless of
+    // notification preferences, hence no prefKey.
+    await notifyUser(supabase, {
+      userId: school.user_id,
+      role: "school",
       type: "subscription_activated",
       title: "Subscription Activated",
       message: `Your ${planLabel(plan_id)} subscription is now active.`,

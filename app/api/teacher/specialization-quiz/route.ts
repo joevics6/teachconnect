@@ -6,6 +6,7 @@
 
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
+import { getOrCreateQuizStart, getServerElapsedSeconds } from "@/lib/quiz-timer"
 
 // Speed quiz: 30 questions, 5 minutes
 const QUESTION_COUNT = 30
@@ -79,12 +80,15 @@ export async function GET(request: NextRequest) {
     // Shuffle and take QUESTION_COUNT
     const shuffled = [...questions].sort(() => Math.random() - 0.5).slice(0, QUESTION_COUNT)
 
+    const startedAt = await getOrCreateQuizStart(supabase, teacher.id, "specialization", `${subject}|${level}`)
+
     return NextResponse.json({
       subject,
       level,
       duration_minutes: DURATION_MINUTES,
       question_count: shuffled.length,
       questions: shuffled,
+      started_at: startedAt,
     })
   } catch (err) {
     console.error("GET specialization-quiz error:", err)
@@ -129,6 +133,13 @@ export async function POST(request: NextRequest) {
     const total = questionIds.length
     const score = total > 0 ? Math.round((correct / total) * 100) : 0
 
+    // Authoritative elapsed time — never trust the client's self-reported
+    // value (see lib/quiz-timer.ts). Falls back to it only if there's no
+    // server-recorded start (shouldn't normally happen).
+    const serverTimeTaken = await getServerElapsedSeconds(
+      supabase, teacher.id, "specialization", `${subject}|${level}`, time_taken_seconds
+    )
+
     // Calculate percentile: how many OTHER teachers scored BELOW this score on the same subject
     const { count: totalOthers } = await supabase
       .from("specialization_quiz_results")
@@ -162,7 +173,7 @@ export async function POST(request: NextRequest) {
         score,
         correct_answers: correct,
         total_questions: total,
-        time_taken_seconds,
+        time_taken_seconds: serverTimeTaken,
         percentile,
       })
       .select("id, score, percentile, subject, level, created_at")
