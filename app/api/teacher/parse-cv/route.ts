@@ -6,7 +6,8 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { ALL_SUBJECTS, NIGERIAN_STATES } from "@/lib/constants"
-import { generateWithGemini, parseGeminiJson } from "@/lib/gemini"
+import { parseGeminiJson } from "@/lib/gemini"
+import { callGeminiWithDocument, isAcceptedDocumentType, ACCEPTED_DOCUMENT_LABEL, MAX_DOCUMENT_SIZE_BYTES } from "@/lib/document-extract"
 
 const CV_PROMPT = `You are an expert CV/resume parser for a Nigerian teacher recruitment platform called ClassHire.
 Extract ALL available information from this CV and return a single valid JSON object.
@@ -101,45 +102,43 @@ export async function POST(request: Request) {
       )
     }
 
-    // Validate file type — PDF or a photo of a CV (Gemini vision handles
-    // both natively via inline_data, so no separate OCR step is needed)
-    const ALLOWED_TYPES = ["application/pdf", "image/jpeg", "image/jpg", "image/png", "image/webp"]
-    if (!ALLOWED_TYPES.includes(file.type)) {
+    // Validate file type — PDF, DOC/DOCX, or a photo of a CV. PDFs and
+    // images go straight to Gemini's vision/document understanding;
+    // Word docs get text-extracted first (see lib/document-extract.ts —
+    // the shared utility every document-upload feature on the site
+    // should use, so format support never drifts between call sites).
+    if (!isAcceptedDocumentType(file.type)) {
       return NextResponse.json(
-        { error: "Only PDF, JPG, or PNG files are supported" },
+        { error: `Only ${ACCEPTED_DOCUMENT_LABEL} files are supported` },
         { status: 400 }
       )
     }
 
     // Validate file size (5MB max)
-    if (file.size > 5 * 1024 * 1024) {
+    if (file.size > MAX_DOCUMENT_SIZE_BYTES) {
       return NextResponse.json(
         { error: "File must be under 5MB" },
         { status: 400 }
       )
     }
 
-    // Convert to base64
-    const buffer = await file.arrayBuffer()
-    const base64 = Buffer.from(buffer).toString("base64")
-
     let parsed: Record<string, unknown> | null = null
 
-    // generateWithGemini already tries both models across every
-    // configured API key before giving up (see lib/gemini.ts) — this
-    // used to be a single manual two-model fallback on one key, which
-    // is exactly the kind of thing that produces "parsing failed" the
-    // moment that one key hits its rate/quota limit.
+    // generateWithGemini (called inside callGeminiWithDocument) already
+    // tries both models across every configured API key before giving
+    // up (see lib/gemini.ts) — this used to be a single manual
+    // two-model fallback on one key, which is exactly the kind of thing
+    // that produces "parsing failed" the moment that one key hits its
+    // rate/quota limit.
     try {
-      const text = await generateWithGemini(CV_PROMPT, {
-        maxOutputTokens: 4096,
-        inlineData: { mimeType: file.type, data: base64 },
-      })
+      const text = await callGeminiWithDocument(CV_PROMPT, file, { maxOutputTokens: 4096 })
       parsed = parseGeminiJson(text)
     } catch (err) {
       console.error("CV parsing failed on every model/key combination:", err)
       return NextResponse.json(
-        { error: "CV parsing failed. Please fill in the form manually." },
+        { error: err instanceof Error && err.message.startsWith("Couldn't extract")
+            ? err.message
+            : "CV parsing failed. Please fill in the form manually." },
         { status: 500 }
       )
     }

@@ -12,7 +12,7 @@
 
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
-import { getSignedCvUrl } from "@/lib/cv-storage"
+import { getSignedCvUrl, resolveCvStoragePath } from "@/lib/cv-storage"
 import { getActivePlanType, isPremiumPlan } from "@/lib/school-plan"
 
 export async function POST(request: Request) {
@@ -26,7 +26,7 @@ export async function POST(request: Request) {
 
     const { data: targetTeacher } = await supabase
       .from("teacher_profiles")
-      .select("id, user_id")
+      .select("id, user_id, cv_url")
       .eq("id", teacher_id)
       .single()
 
@@ -60,7 +60,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Not authorized to view this CV" }, { status: 403 })
     }
 
-    const signedUrl = await getSignedCvUrl(supabase, targetTeacher.user_id)
+    const storagePath = resolveCvStoragePath(targetTeacher.cv_url, targetTeacher.user_id)
+    const signedUrl = await getSignedCvUrl(supabase, storagePath)
     if (!signedUrl) {
       return NextResponse.json({ error: "This teacher hasn't uploaded a CV" }, { status: 404 })
     }

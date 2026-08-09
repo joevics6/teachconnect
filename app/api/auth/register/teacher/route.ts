@@ -116,13 +116,13 @@ export async function POST(request: Request) {
     // ── Upload CV ───────────────────────────────────────────
     let cv_url: string | null = null
     if (cv_file && cv_file.size > 0) {
-      const cvPath = cvStoragePath(userId)
+      const cvPath = cvStoragePath(userId, cv_file.type)
       const cvBuffer = await cv_file.arrayBuffer()
 
       const { error: cvError } = await supabase.storage
         .from("cvs")
         .upload(cvPath, cvBuffer, {
-          contentType: "application/pdf",
+          contentType: cv_file.type,
           upsert: true,
         })
 

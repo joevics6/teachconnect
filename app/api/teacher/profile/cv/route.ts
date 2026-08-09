@@ -1,9 +1,10 @@
 // app/api/teacher/profile/cv/route.ts
-// POST — upload or replace teacher CV (PDF only, max 10MB)
+// POST — upload or replace teacher CV (PDF, DOC/DOCX, JPG, or PNG — max 5MB)
 
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { cvStoragePath } from "@/lib/cv-storage"
+import { isAcceptedDocumentType, ACCEPTED_DOCUMENT_LABEL, MAX_DOCUMENT_SIZE_BYTES } from "@/lib/document-extract"
 
 export async function POST(request: Request) {
   try {
@@ -17,26 +18,27 @@ export async function POST(request: Request) {
     if (!file || file.size === 0) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 })
     }
-    if (file.type !== "application/pdf") {
-      return NextResponse.json({ error: "CV must be a PDF file" }, { status: 400 })
+    if (!isAcceptedDocumentType(file.type)) {
+      return NextResponse.json({ error: `CV must be one of: ${ACCEPTED_DOCUMENT_LABEL}` }, { status: 400 })
     }
-    if (file.size > 10 * 1024 * 1024) {
-      return NextResponse.json({ error: "CV must be under 10MB" }, { status: 400 })
+    if (file.size > MAX_DOCUMENT_SIZE_BYTES) {
+      return NextResponse.json({ error: "File must be under 5MB" }, { status: 400 })
     }
 
-    const cvPath = cvStoragePath(user.id)
+    const cvPath = cvStoragePath(user.id, file.type)
     const buffer = await file.arrayBuffer()
 
     const { error: uploadError } = await supabase.storage
       .from("cvs")
-      .upload(cvPath, buffer, { contentType: "application/pdf", upsert: true })
+      .upload(cvPath, buffer, { contentType: file.type, upsert: true })
 
     if (uploadError) throw uploadError
 
     // The 'cvs' bucket is private (see supabase/cvs_private_bucket.sql) —
-    // this column is now just a "has uploaded a CV" marker, not a usable
-    // link. Actual downloads always go through /api/teacher/cv-signed-url,
-    // which generates a fresh short-lived link at the moment it's needed.
+    // this column is now just a "has uploaded a CV" marker + its exact
+    // storage path, not a usable link. Actual downloads always go
+    // through /api/teacher/cv-signed-url, which generates a fresh
+    // short-lived link at the moment it's needed.
     const cv_url = cvPath
 
     const { error: updateError } = await supabase
