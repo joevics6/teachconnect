@@ -42,10 +42,10 @@ interface WrittenFeedback {
   feedback: string
 }
 
-function getModeIcon(mode: string) {
-  if (mode === "speed") return Zap
-  if (mode === "written") return PenLine
-  return BookOpen
+function renderModeIcon(mode: string, className: string) {
+  if (mode === "speed") return <Zap className={className} />
+  if (mode === "written") return <PenLine className={className} />
+  return <BookOpen className={className} />
 }
 
 function getModeLabel(mode: string) {
@@ -68,7 +68,6 @@ function formatTime(seconds: number) {
 
 function QuizResultCard({ result }: { result: QuizResult }) {
   const [showFeedback, setShowFeedback] = useState(false)
-  const ModeIcon = getModeIcon(result.mode)
   const modeColor = getModeColor(result.mode)
 
   return (
@@ -80,7 +79,7 @@ function QuizResultCard({ result }: { result: QuizResult }) {
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
           <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${modeColor}`}>
-            <ModeIcon className="h-3 w-3" />
+            {renderModeIcon(result.mode, "h-3 w-3")}
             {getModeLabel(result.mode)}
           </span>
           <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${

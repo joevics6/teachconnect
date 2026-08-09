@@ -22,7 +22,6 @@ export default function AdminResourcesPage() {
   const [busyId, setBusyId] = useState<string | null>(null)
 
   const load = () => {
-    setIsLoading(true)
     fetch("/api/admin/resources")
       .then(async (res) => {
         if (!res.ok) return

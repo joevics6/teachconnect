@@ -235,6 +235,7 @@ export default function TeacherDashboardPage() {
     if (cachedProfile) {
       applyProfileResponse(cachedProfile)
     } else {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- only shown on a cold visit (no cache); the cached branch above skips this entirely
       setLoadingProfile(true)
     }
 

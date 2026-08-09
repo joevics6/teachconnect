@@ -7,7 +7,7 @@ export async function GET() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
-    let { data: schoolRows } = await supabase
+    const { data: schoolRows } = await supabase
       .from("school_profiles")
       .select("*")
       .eq("user_id", user.id)

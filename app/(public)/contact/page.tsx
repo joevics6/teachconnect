@@ -144,7 +144,7 @@ export default function ContactPage() {
                 </div>
                 <h3 className="text-lg font-bold text-gray-900 mb-2">Message Sent!</h3>
                 <p className="text-gray-500 text-sm mb-6">
-                  We've received your message and will get back to you within 24 hours.
+                  We&apos;ve received your message and will get back to you within 24 hours.
                 </p>
                 <Button
                   variant="outline"

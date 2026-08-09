@@ -63,6 +63,7 @@ export default function SavedTeachersPage() {
   const [loading, setLoading]           = useState(true)
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- resets the loading spinner each time the folder filter changes, not just on mount
     setLoading(true)
     const url = activeFolder
       ? `/api/school/saved-teachers?folder=${activeFolder}`

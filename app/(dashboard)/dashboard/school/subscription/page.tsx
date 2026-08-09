@@ -305,29 +305,6 @@ function SubscriptionPageInner() {
   const [paymentSuccess, setPaymentSuccess] = useState(false)
   const [paymentError, setPaymentError] = useState("")
 
-  useEffect(() => {
-    const fetchSubscription = async () => {
-      try {
-        const response = await fetch("/api/school/subscription")
-        const data = await response.json()
-        setSubscription(data.subscription)
-        setUsage(data.usage || [])
-        setHistory(data.history || [])
-      } catch (err) {
-        console.error("Failed to fetch subscription:", err)
-      } finally {
-        setIsLoading(false)
-      }
-    }
-    fetchSubscription()
-
-    // Check for Paystack callback
-    const reference = searchParams.get("reference")
-    if (reference) {
-      verifyPayment(reference)
-    }
-  }, [searchParams])
-
   const verifyPayment = async (reference: string) => {
     try {
       const response = await fetch("/api/school/subscription/verify", {
@@ -354,6 +331,31 @@ function SubscriptionPageInner() {
       setPaymentError("Could not verify payment. Contact support.")
     }
   }
+
+  useEffect(() => {
+    const fetchSubscription = async () => {
+      try {
+        const response = await fetch("/api/school/subscription")
+        const data = await response.json()
+        setSubscription(data.subscription)
+        setUsage(data.usage || [])
+        setHistory(data.history || [])
+      } catch (err) {
+        console.error("Failed to fetch subscription:", err)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    fetchSubscription()
+
+    // Check for Paystack callback
+    const reference = searchParams.get("reference")
+    if (reference) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- verifyPayment is async; no state is set synchronously before its first await
+      verifyPayment(reference)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams])
 
   const handlePurchase = async (planId: string) => {
     setIsPurchasing(planId)

@@ -27,6 +27,44 @@ function Section({ title, description, children }: {
   )
 }
 
+function SettingsSidebar({ mobile = false, onNavigate }: { mobile?: boolean; onNavigate: () => void }) {
+  return (
+    <nav className={mobile ? "flex flex-col h-full" : ""}>
+      <div className="p-5 border-b border-gray-100">
+        <Link href="/" className="flex items-center gap-2">
+          <div className="bg-ink-600 text-white p-1.5 rounded-lg">
+            <Building2 className="h-4 w-4" />
+          </div>
+          <span className="font-bold text-sm text-gray-900">ClassHire</span>
+        </Link>
+      </div>
+      <div className="p-3 flex-1">
+        {NAV_ITEMS.map((item) => {
+          const active = item.href === "/dashboard/school/settings"
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              onClick={onNavigate}
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm mb-0.5 transition-colors ${
+                active
+                  ? "bg-ink-50 text-ink-700 font-medium"
+                  : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+              }`}
+            >
+              <item.icon className="h-4 w-4 flex-shrink-0" />
+              {item.label}
+            </Link>
+          )
+        })}
+      </div>
+      <div className="p-3 border-t border-gray-100">
+        <LogoutButton label="Sign Out" />
+      </div>
+    </nav>
+  )
+}
+
 export default function SchoolSettingsPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
@@ -150,46 +188,10 @@ export default function SchoolSettingsPage() {
     }
   }
 
-  const Sidebar = ({ mobile = false }: { mobile?: boolean }) => (
-    <nav className={mobile ? "flex flex-col h-full" : ""}>
-      <div className="p-5 border-b border-gray-100">
-        <Link href="/" className="flex items-center gap-2">
-          <div className="bg-ink-600 text-white p-1.5 rounded-lg">
-            <Building2 className="h-4 w-4" />
-          </div>
-          <span className="font-bold text-sm text-gray-900">ClassHire</span>
-        </Link>
-      </div>
-      <div className="p-3 flex-1">
-        {NAV_ITEMS.map((item) => {
-          const active = item.href === "/dashboard/school/settings"
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={() => setSidebarOpen(false)}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm mb-0.5 transition-colors ${
-                active
-                  ? "bg-ink-50 text-ink-700 font-medium"
-                  : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-              }`}
-            >
-              <item.icon className="h-4 w-4 flex-shrink-0" />
-              {item.label}
-            </Link>
-          )
-        })}
-      </div>
-      <div className="p-3 border-t border-gray-100">
-        <LogoutButton label="Sign Out" />
-      </div>
-    </nav>
-  )
-
   return (
     <div className="min-h-screen bg-gray-50 flex">
       <aside className="hidden lg:flex flex-col w-56 bg-white border-r border-gray-200 fixed inset-y-0">
-        <Sidebar />
+        <SettingsSidebar onNavigate={() => setSidebarOpen(false)} />
       </aside>
 
       {sidebarOpen && (
@@ -200,7 +202,7 @@ export default function SchoolSettingsPage() {
               <span className="font-bold text-sm">Menu</span>
               <button onClick={() => setSidebarOpen(false)}><X className="h-5 w-5" /></button>
             </div>
-            <Sidebar mobile />
+            <SettingsSidebar mobile onNavigate={() => setSidebarOpen(false)} />
           </div>
         </div>
       )}

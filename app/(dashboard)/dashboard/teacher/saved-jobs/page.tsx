@@ -4,7 +4,7 @@
 // app/(dashboard)/dashboard/teacher/saved-jobs/page.tsx
 // ============================================================
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import Link from "next/link"
 import {
   Menu,
@@ -80,8 +80,10 @@ export default function SavedJobsPage() {
     }
   }
 
+  // eslint-disable-next-line react-hooks/purity -- display-only "days left" countdown; doesn't need certified determinism across renders
+  const nowMs = useMemo(() => Date.now(), [])
   const daysLeft = (deadline: string) =>
-    Math.ceil((new Date(deadline).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+    Math.ceil((new Date(deadline).getTime() - nowMs) / (1000 * 60 * 60 * 24))
 
   return (
     <div className="min-h-screen bg-gray-50 flex">

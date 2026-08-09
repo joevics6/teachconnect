@@ -29,7 +29,6 @@ export default function AdminQuizBankPage() {
   const [activeLevel, setActiveLevel] = useState<string>("jss")
 
   const load = useCallback(() => {
-    setIsLoading(true)
     fetch("/api/admin/quiz-bank/coverage")
       .then(async (res) => {
         if (!res.ok) return
@@ -59,6 +58,7 @@ export default function AdminQuizBankPage() {
           ...prev,
           [key]: `+${data.generated} added${data.duplicates ? `, ${data.duplicates} dupes` : ""}${data.failed ? `, ${data.failed} failed` : ""}`,
         }))
+        setIsLoading(true)
         load()
       }
     } catch (err) {

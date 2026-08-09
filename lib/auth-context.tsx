@@ -51,8 +51,12 @@ async function fetchAuthUser(): Promise<AuthUser | null> {
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user,      setUser]      = useState<AuthUser | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  // Stale-while-revalidate: seed state from the cache synchronously via
+  // the lazy initializer (not an effect) so a returning user paints
+  // instantly with no loading flash, while the effect below still kicks
+  // off a fresh fetch to confirm/update in the background.
+  const [user,      setUser]      = useState<AuthUser | null>(() => getCached<AuthUser>(CACHE_KEY))
+  const [isLoading, setIsLoading] = useState(() => !getCached<AuthUser>(CACHE_KEY))
 
   const refresh = useCallback(async () => {
     try {
@@ -66,17 +70,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     let cancelled = false
-
-    // Stale-while-revalidate: a cached user (from earlier this tab
-    // session) paints instantly — no loading flash on every navigation —
-    // while a fresh fetch confirms/updates in the background. This is
-    // what was making the navbar feel slow: every full page load was
-    // waiting on a network round trip before showing anything.
     const cachedUser = getCached<AuthUser>(CACHE_KEY)
-    if (cachedUser) {
-      setUser(cachedUser)
-      setIsLoading(false)
-    }
 
     fetchAuthUser()
       .then((u) => {
