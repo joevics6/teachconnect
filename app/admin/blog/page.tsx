@@ -21,7 +21,6 @@ export default function AdminBlogPage() {
   const [busyId, setBusyId] = useState<string | null>(null)
 
   const load = () => {
-    setIsLoading(true)
     fetch("/api/admin/blog")
       .then(async (res) => {
         if (!res.ok) return

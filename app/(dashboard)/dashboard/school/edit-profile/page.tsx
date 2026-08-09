@@ -51,6 +51,17 @@ interface SchoolForm {
   logo_url: string | null
 }
 
+const VERIFICATION_BADGE_MAP: Record<string, { label: string; color: string }> = {
+  unverified: { label: "Not Verified", color: "bg-gray-100 text-gray-500" },
+  pending:    { label: "Pending Verification", color: "bg-yellow-100 text-yellow-700" },
+  verified:   { label: "Verified", color: "bg-ink-100 text-ink-700" },
+}
+
+function VerificationBadge({ status }: { status: string }) {
+  const v = VERIFICATION_BADGE_MAP[status] || VERIFICATION_BADGE_MAP.unverified
+  return <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${v.color}`}>{v.label}</span>
+}
+
 export default function EditSchoolProfilePage() {
   const router = useRouter()
   const logoInputRef = useRef<HTMLInputElement>(null)
@@ -172,16 +183,6 @@ export default function EditSchoolProfilePage() {
 
   const inputClass = "w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ink-500"
 
-  const VerificationBadge = () => {
-    const map: Record<string, { label: string; color: string }> = {
-      unverified: { label: "Not Verified", color: "bg-gray-100 text-gray-500" },
-      pending:    { label: "Pending Verification", color: "bg-yellow-100 text-yellow-700" },
-      verified:   { label: "Verified", color: "bg-ink-100 text-ink-700" },
-    }
-    const v = map[verificationStatus] || map.unverified
-    return <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${v.color}`}>{v.label}</span>
-  }
-
   if (loading) return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
       <Loader2 className="h-6 w-6 animate-spin text-ink-600" />
@@ -207,7 +208,7 @@ export default function EditSchoolProfilePage() {
             </Link>
             <div>
               <h1 className="text-lg font-bold text-gray-900">Edit School Profile</h1>
-              <VerificationBadge />
+              <VerificationBadge status={verificationStatus} />
             </div>
           </div>
           <Button onClick={handleSave} disabled={saving || success}
@@ -445,7 +446,7 @@ export default function EditSchoolProfilePage() {
         <section className="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="font-bold text-gray-900">School Registration</h2>
-            <VerificationBadge />
+            <VerificationBadge status={verificationStatus} />
           </div>
           <div>
             <label className="text-sm font-medium text-gray-700 block mb-1">

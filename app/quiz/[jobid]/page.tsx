@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef, useCallback } from "react"
+import { useState, useEffect, useRef, useCallback, useMemo } from "react"
 import { useParams, useRouter } from "next/navigation"
 import {
   Clock,
@@ -73,10 +73,10 @@ function formatTime(seconds: number) {
   return `${m}:${s.toString().padStart(2, "0")}`
 }
 
-function getModeIcon(mode: QuizMode) {
-  if (mode === "speed") return Zap
-  if (mode === "written") return PenLine
-  return BookOpen
+function renderModeIcon(mode: QuizMode, className: string) {
+  if (mode === "speed") return <Zap className={className} />
+  if (mode === "written") return <PenLine className={className} />
+  return <BookOpen className={className} />
 }
 
 function getModeLabel(mode: QuizMode) {
@@ -104,7 +104,6 @@ function PreQuizScreen({
   meta: QuizMeta
   onStart: () => void
 }) {
-  const ModeIcon = getModeIcon(meta.mode)
   const modeColor = getModeColor(meta.mode)
 
   const modeDescriptions: Record<QuizMode, string> = {
@@ -120,7 +119,7 @@ function PreQuizScreen({
 
           {/* Mode Badge */}
           <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium border mb-6 ${modeColor}`}>
-            <ModeIcon className="h-4 w-4" />
+            {renderModeIcon(meta.mode, "h-4 w-4")}
             {getModeLabel(meta.mode)}
           </div>
 
@@ -217,9 +216,9 @@ function MCQQuiz({
 }) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [answers, setAnswers] = useState<Record<string, string>>({})
-  const startTime = useRef(new Date(meta.started_at).getTime())
+  const startTimeMs = useMemo(() => new Date(meta.started_at).getTime(), [meta.started_at])
   const [timeLeft, setTimeLeft] = useState(() =>
-    Math.max(0, meta.duration_minutes * 60 - Math.floor((Date.now() - startTime.current) / 1000))
+    Math.max(0, meta.duration_minutes * 60 - Math.floor((Date.now() - startTimeMs) / 1000))
   )
   const [isSubmitting, setIsSubmitting] = useState(false)
   const timerRef = useRef<NodeJS.Timeout | undefined>(undefined)
@@ -233,7 +232,7 @@ function MCQQuiz({
     if (isSubmitting) return
     setIsSubmitting(true)
 
-    const timeTaken = Math.floor((Date.now() - startTime.current) / 1000)
+    const timeTaken = Math.floor((Date.now() - startTimeMs) / 1000)
     const attempted = Object.keys(answers).length
 
     // Note: the client never receives correct_option (stripped server-side
@@ -520,13 +519,13 @@ function WrittenQuiz({
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState("")
   const [gradingProgress, setGradingProgress] = useState("")
-  const startTime = useRef(new Date(meta.started_at).getTime())
+  const startTimeMs = useMemo(() => new Date(meta.started_at).getTime(), [meta.started_at])
 
   const questions = meta.questions.slice(0, meta.question_count)
   const answeredCount = Object.values(answers).filter((a) => a.trim().length > 0).length
   const allAnswered = answeredCount === questions.length
 
-  const handleSubmit = async () => {
+  const handleSubmit = useCallback(async () => {
     if (!allAnswered) {
       setSubmitError("Please answer all questions before submitting.")
       return
@@ -535,7 +534,7 @@ function WrittenQuiz({
     setSubmitError("")
     setGradingProgress("Sending answers to AI for grading...")
 
-    const timeTaken = Math.floor((Date.now() - startTime.current) / 1000)
+    const timeTaken = Math.floor((Date.now() - startTimeMs) / 1000)
 
     try {
       setGradingProgress("AI is reading your answers...")
@@ -593,7 +592,7 @@ function WrittenQuiz({
       setIsSubmitting(false)
       setGradingProgress("")
     }
-  }
+  }, [allAnswered, startTimeMs, meta.job_id, meta.subject, meta.subjects, meta.pass_mark, questions, answers, onComplete])
 
   if (isSubmitting) {
     return (

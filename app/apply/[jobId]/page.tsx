@@ -5,7 +5,7 @@
 // Direct application for jobs without quiz screening
 // ============================================================
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { useParams, useRouter } from "next/navigation"
 import Link from "next/link"
 import {
@@ -64,6 +64,8 @@ export default function ApplyPage() {
   const [success, setSuccess] = useState(false)
   const [coverLetter, setCoverLetter] = useState("")
   const [alreadyApplied, setAlreadyApplied] = useState(false)
+  // eslint-disable-next-line react-hooks/purity -- display-only "days left" countdown; doesn't need certified determinism across renders
+  const nowMs = useMemo(() => Date.now(), [])
 
   useEffect(() => {
     const fetchData = async () => {
@@ -198,7 +200,7 @@ export default function ApplyPage() {
   }
 
   const daysLeft = job ? Math.ceil(
-    (new Date(job.deadline).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
+    (new Date(job.deadline).getTime() - nowMs) / (1000 * 60 * 60 * 24)
   ) : 0
 
   return (

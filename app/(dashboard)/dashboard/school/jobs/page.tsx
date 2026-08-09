@@ -177,7 +177,6 @@ function SchoolJobsContent() {
   }, [])
 
   const fetchJobs = useCallback(async () => {
-    setIsLoading(true)
     try {
       const response = await fetch("/api/school/jobs")
       const data = await response.json()
@@ -190,6 +189,7 @@ function SchoolJobsContent() {
   }, [])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- fetchJobs is async; no state is set synchronously before its first await
     fetchJobs()
   }, [fetchJobs])
 

@@ -73,32 +73,34 @@ export default function SchoolDashboardPage() {
   const router = useRouter()
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
-  const [planType, setPlanType]               = useState<"free" | "standard" | "term">("free")
-  const [jobs, setJobs]                       = useState<Job[]>([])
+  const [planType, setPlanType]               = useState<"free" | "standard" | "term">(
+    () => getCached<"free" | "standard" | "term">("school:plan-type") || "free"
+  )
+  const [jobs, setJobs]                       = useState<Job[]>(() => getCached<Job[]>("school:jobs") || [])
   const [recentApplicants, setRecentApplicants] = useState<Applicant[]>([])
-  const [notifications, setNotifications]     = useState<Notification[]>([])
-  const [schoolName, setSchoolName]           = useState("School")
+  const [notifications, setNotifications]     = useState<Notification[]>(() => getCached<Notification[]>("school:notifications") || [])
+  const [schoolName, setSchoolName]           = useState(() =>
+    getCached<{ school_name?: string }>("school:profile")?.school_name || "School"
+  )
 
-  const [loadingProfile, setLoadingProfile]         = useState(true)
+  const [loadingProfile, setLoadingProfile]         = useState(
+    () => !getCached<{ school_name?: string }>("school:profile")?.school_name
+  )
   const [accountDisabled, setAccountDisabled]       = useState(false)
-  const [loadingJobs, setLoadingJobs]               = useState(true)
-  const [loadingNotifications, setLoadingNotifications] = useState(true)
+  const [loadingJobs, setLoadingJobs]               = useState(() => !getCached<Job[]>("school:jobs"))
+  const [loadingNotifications, setLoadingNotifications] = useState(() => !getCached<Notification[]>("school:notifications"))
   const [loadingApplicants, setLoadingApplicants]   = useState(false)
-  const [metrics, setMetrics] = useState({
-    interviews: 0, offers: 0, hired: 0, avgScore: 0
-  })
+  const [metrics, setMetrics] = useState(() =>
+    getCached<{ interviews: number; offers: number; hired: number; avgScore: number }>("school:metrics") ||
+    { interviews: 0, offers: 0, hired: 0, avgScore: 0 }
+  )
 
   // ── Load all data via API routes (same pattern as teacher dashboard) ──
   useEffect(() => {
     // School profile — cached first for instant paint on repeat visits
-    // within this tab, then always refetched in the background. The
-    // school edit-profile page clears this key on save.
-    const cachedSchool = getCached<{ school_name?: string }>("school:profile")
-    if (cachedSchool?.school_name) {
-      setSchoolName(cachedSchool.school_name)
-      setLoadingProfile(false)
-    }
-
+    // within this tab (seeded via lazy useState initializer above), then
+    // always refetched in the background. The school edit-profile page
+    // clears this key on save.
     fetch("/api/school/profile")
       .then(async (res) => {
         if (res.status === 401) { router.push("/login"); return }
@@ -116,9 +118,7 @@ export default function SchoolDashboardPage() {
       .catch(console.error)
       .finally(() => setLoadingProfile(false))
 
-    // Subscription — cached first, refetched in background
-    const cachedPlan = getCached<"free" | "standard" | "term">("school:plan-type")
-    if (cachedPlan) setPlanType(cachedPlan)
+    // Subscription — cached first (via lazy initializer above), refetched in background
     fetch("/api/school/subscription")
       .then(async (res) => {
         if (!res.ok) return
@@ -129,13 +129,9 @@ export default function SchoolDashboardPage() {
       })
       .catch(console.error)
 
-    // Jobs — cached first, refetched in background. Applicants for the
-    // first active job are always fetched fresh (job-dependent, cheap).
-    const cachedJobs = getCached<Job[]>("school:jobs")
-    if (cachedJobs) {
-      setJobs(cachedJobs)
-      setLoadingJobs(false)
-    }
+    // Jobs — cached first (via lazy initializer above), refetched in
+    // background. Applicants for the first active job are always fetched
+    // fresh (job-dependent, cheap).
     fetch("/api/school/jobs")
       .then(async (res) => {
         if (!res.ok) return
@@ -180,9 +176,8 @@ export default function SchoolDashboardPage() {
       .catch(console.error)
       .finally(() => setLoadingJobs(false))
 
-    // Recruiter metrics from applications — cached first, refetched in background
-    const cachedMetrics = getCached<{ interviews: number; offers: number; hired: number; avgScore: number }>("school:metrics")
-    if (cachedMetrics) setMetrics(cachedMetrics)
+    // Recruiter metrics from applications — cached first (via lazy
+    // initializer above), refetched in background
     fetch("/api/school/metrics")
       .then(async (res) => {
         if (!res.ok) return
@@ -193,12 +188,7 @@ export default function SchoolDashboardPage() {
       })
       .catch(console.error)
 
-    // Notifications — cached first, refetched in background
-    const cachedNotifs = getCached<Notification[]>("school:notifications")
-    if (cachedNotifs) {
-      setNotifications(cachedNotifs)
-      setLoadingNotifications(false)
-    }
+    // Notifications — cached first (via lazy initializer above), refetched in background
     fetch("/api/teacher/notifications")
       .then(async (res) => {
         if (!res.ok) return

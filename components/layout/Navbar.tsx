@@ -7,8 +7,29 @@ import { Menu, X, ChevronDown, LogOut, User, LayoutDashboard } from "lucide-reac
 import { Logo } from "@/components/ui/Logo"
 import { Button } from "@/components/ui/button"
 import { createClient } from "@/lib/supabase/client"
-import { useAuth } from "@/lib/auth-context"
+import { useAuth, type AuthUser } from "@/lib/auth-context"
 import { clearAllUserCache } from "@/lib/client-cache"
+
+function getInitials(name: string) {
+  return name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
+}
+
+function Avatar({ user, size = "sm" }: { user: AuthUser | null; size?: "sm" | "lg" }) {
+  const dim = size === "sm" ? "w-8 h-8" : "w-10 h-10"
+  const txt = size === "sm" ? "text-xs" : "text-sm"
+  return user?.photo_url ? (
+    // eslint-disable-next-line @next/next/no-img-element -- small avatar thumbnail, next/image adds no real benefit here
+    <img
+      src={user.photo_url}
+      alt={user.display_name}
+      className={`${dim} rounded-full object-cover flex-shrink-0`}
+    />
+  ) : (
+    <div className={`${dim} rounded-full bg-ink-100 flex items-center justify-center flex-shrink-0`}>
+      <span className={`text-ink-700 font-bold ${txt}`}>{getInitials(user?.display_name || "U")}</span>
+    </div>
+  )
+}
 
 export default function Navbar() {
   const { user, isLoading, dashboardLink } = useAuth()
@@ -29,25 +50,6 @@ export default function Navbar() {
       clearAllUserCache()
       window.location.href = "/"
     }
-  }
-
-  const getInitials = (name: string) =>
-    name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
-
-  const Avatar = ({ size = "sm" }: { size?: "sm" | "lg" }) => {
-    const dim = size === "sm" ? "w-8 h-8" : "w-10 h-10"
-    const txt = size === "sm" ? "text-xs" : "text-sm"
-    return user?.photo_url ? (
-      <img
-        src={user.photo_url}
-        alt={user.display_name}
-        className={`${dim} rounded-full object-cover flex-shrink-0`}
-      />
-    ) : (
-      <div className={`${dim} rounded-full bg-ink-100 flex items-center justify-center flex-shrink-0`}>
-        <span className={`text-ink-700 font-bold ${txt}`}>{getInitials(user?.display_name || "U")}</span>
-      </div>
-    )
   }
 
   // Dashboard/admin pages have their own complete header + sidebar
@@ -101,7 +103,7 @@ export default function Navbar() {
               <div className="relative">
                 <div className="flex items-center">
                   <Link href={dashboardLink} className="flex items-center gap-2 pl-2 pr-1 py-1.5 rounded-l-xl hover:bg-gray-50 transition">
-                    <Avatar size="sm" />
+                    <Avatar user={user} size="sm" />
                     <div className="text-left hidden lg:block">
                       <p className="text-xs font-semibold text-gray-900 max-w-32 truncate">{user.display_name}</p>
                       <p className="text-xs text-gray-400 capitalize">{user.role}</p>
@@ -120,7 +122,7 @@ export default function Navbar() {
                     <div className="fixed inset-0 z-10" onClick={() => setUserMenuOpen(false)} />
                     <div className="absolute right-0 top-full mt-1 w-48 bg-white border border-gray-200 rounded-xl shadow-lg z-20 overflow-hidden">
                       <div className="px-3 py-2.5 border-b border-gray-100 flex items-center gap-2">
-                        <Avatar size="sm" />
+                        <Avatar user={user} size="sm" />
                         <div className="min-w-0">
                           <p className="text-xs font-semibold text-gray-900 truncate">{user.display_name}</p>
                           <p className="text-xs text-gray-400 truncate">{user.email}</p>
@@ -178,7 +180,7 @@ export default function Navbar() {
             ) : user ? (
               <div className="mb-3 pb-3 border-b border-gray-100">
                 <div className="flex items-center gap-3 px-1 py-2 mb-2">
-                  <Avatar size="lg" />
+                  <Avatar user={user} size="lg" />
                   <div>
                     <p className="text-sm font-semibold text-gray-900">{user.display_name}</p>
                     <p className="text-xs text-gray-400 capitalize">{user.role}</p>

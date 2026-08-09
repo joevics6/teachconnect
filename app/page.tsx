@@ -6,7 +6,7 @@ import {
   CheckCircle2, BookOpen, Shield, Clock, ArrowRight, X,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { useAuth } from "@/lib/auth-context"
+import { useAuth, type AuthUser } from "@/lib/auth-context"
 
 // ─── Signature hero visual — the actual product mechanic, not a
 // decorative illustration: quiz scores rank applicants automatically,
@@ -63,85 +63,85 @@ function RankingCard() {
   )
 }
 
+function HeroCTAs({ user, isLoading, dashboardLink }: { user: AuthUser | null; isLoading: boolean; dashboardLink: string }) {
+  if (isLoading) return <div className="h-14 w-64 bg-ink-100 rounded-xl animate-pulse" />
+  if (user?.role === "teacher") return (
+    <div className="flex flex-col sm:flex-row gap-3">
+      <Link href="/jobs">
+        <Button size="lg" className="w-full sm:w-auto bg-ink-800 hover:bg-ink-900 text-white px-7 py-6 text-base rounded-xl">
+          <Search className="h-5 w-5 mr-2" />Browse Teaching Jobs
+        </Button>
+      </Link>
+      <Link href={dashboardLink}>
+        <Button size="lg" variant="outline" className="w-full sm:w-auto px-7 py-6 text-base rounded-xl border-ink-200">
+          Go to Dashboard
+        </Button>
+      </Link>
+    </div>
+  )
+  if (user?.role === "school") return (
+    <div className="flex flex-col sm:flex-row gap-3">
+      <Link href="/dashboard/school/post-job">
+        <Button size="lg" className="w-full sm:w-auto bg-ink-800 hover:bg-ink-900 text-white px-7 py-6 text-base rounded-xl">
+          <Building2 className="h-5 w-5 mr-2" />Post a Job
+        </Button>
+      </Link>
+      <Link href="/talent">
+        <Button size="lg" variant="outline" className="w-full sm:w-auto px-7 py-6 text-base rounded-xl border-ink-200">
+          Browse Teachers
+        </Button>
+      </Link>
+    </div>
+  )
+  return (
+    <div className="flex flex-col sm:flex-row gap-3">
+      <Link href="/register/teacher">
+        <Button size="lg" className="w-full sm:w-auto bg-ink-800 hover:bg-ink-900 text-white px-7 py-6 text-base rounded-xl">
+          <Search className="h-5 w-5 mr-2" />Find Teaching Jobs
+        </Button>
+      </Link>
+      <Link href="/register/school">
+        <Button size="lg" variant="outline" className="w-full sm:w-auto px-7 py-6 text-base rounded-xl border-ink-200">
+          <Building2 className="h-5 w-5 mr-2" />Hire Qualified Teachers
+        </Button>
+      </Link>
+    </div>
+  )
+}
+
+function BottomCTA({ user }: { user: AuthUser | null }) {
+  if (user?.role === "teacher") return (
+    <Link href="/jobs">
+      <Button size="lg" className="bg-white text-ink-900 hover:bg-brass-50 px-8 py-6 text-base rounded-xl">
+        Browse Jobs Now
+      </Button>
+    </Link>
+  )
+  if (user?.role === "school") return (
+    <Link href="/dashboard/school/post-job">
+      <Button size="lg" className="bg-white text-ink-900 hover:bg-brass-50 px-8 py-6 text-base rounded-xl">
+        Post a Job
+      </Button>
+    </Link>
+  )
+  return (
+    <div className="flex flex-col sm:flex-row gap-3 justify-center">
+      <Link href="/register/teacher">
+        <Button size="lg" className="bg-white text-ink-900 hover:bg-brass-50 px-8 py-6 text-base rounded-xl">
+          Join as a Teacher
+        </Button>
+      </Link>
+      <Link href="/register/school">
+        <Button size="lg" variant="outline" className="border-ink-400 text-white hover:bg-ink-800 px-8 py-6 text-base rounded-xl">
+          Register Your School
+        </Button>
+      </Link>
+    </div>
+  )
+}
+
 export default function HomePage() {
   const { user, isLoading, dashboardLink } = useAuth()
-
-  const HeroCTAs = () => {
-    if (isLoading) return <div className="h-14 w-64 bg-ink-100 rounded-xl animate-pulse" />
-    if (user?.role === "teacher") return (
-      <div className="flex flex-col sm:flex-row gap-3">
-        <Link href="/jobs">
-          <Button size="lg" className="w-full sm:w-auto bg-ink-800 hover:bg-ink-900 text-white px-7 py-6 text-base rounded-xl">
-            <Search className="h-5 w-5 mr-2" />Browse Teaching Jobs
-          </Button>
-        </Link>
-        <Link href={dashboardLink}>
-          <Button size="lg" variant="outline" className="w-full sm:w-auto px-7 py-6 text-base rounded-xl border-ink-200">
-            Go to Dashboard
-          </Button>
-        </Link>
-      </div>
-    )
-    if (user?.role === "school") return (
-      <div className="flex flex-col sm:flex-row gap-3">
-        <Link href="/dashboard/school/post-job">
-          <Button size="lg" className="w-full sm:w-auto bg-ink-800 hover:bg-ink-900 text-white px-7 py-6 text-base rounded-xl">
-            <Building2 className="h-5 w-5 mr-2" />Post a Job
-          </Button>
-        </Link>
-        <Link href="/talent">
-          <Button size="lg" variant="outline" className="w-full sm:w-auto px-7 py-6 text-base rounded-xl border-ink-200">
-            Browse Teachers
-          </Button>
-        </Link>
-      </div>
-    )
-    return (
-      <div className="flex flex-col sm:flex-row gap-3">
-        <Link href="/register/teacher">
-          <Button size="lg" className="w-full sm:w-auto bg-ink-800 hover:bg-ink-900 text-white px-7 py-6 text-base rounded-xl">
-            <Search className="h-5 w-5 mr-2" />Find Teaching Jobs
-          </Button>
-        </Link>
-        <Link href="/register/school">
-          <Button size="lg" variant="outline" className="w-full sm:w-auto px-7 py-6 text-base rounded-xl border-ink-200">
-            <Building2 className="h-5 w-5 mr-2" />Hire Qualified Teachers
-          </Button>
-        </Link>
-      </div>
-    )
-  }
-
-  const BottomCTA = () => {
-    if (user?.role === "teacher") return (
-      <Link href="/jobs">
-        <Button size="lg" className="bg-white text-ink-900 hover:bg-brass-50 px-8 py-6 text-base rounded-xl">
-          Browse Jobs Now
-        </Button>
-      </Link>
-    )
-    if (user?.role === "school") return (
-      <Link href="/dashboard/school/post-job">
-        <Button size="lg" className="bg-white text-ink-900 hover:bg-brass-50 px-8 py-6 text-base rounded-xl">
-          Post a Job
-        </Button>
-      </Link>
-    )
-    return (
-      <div className="flex flex-col sm:flex-row gap-3 justify-center">
-        <Link href="/register/teacher">
-          <Button size="lg" className="bg-white text-ink-900 hover:bg-brass-50 px-8 py-6 text-base rounded-xl">
-            Join as a Teacher
-          </Button>
-        </Link>
-        <Link href="/register/school">
-          <Button size="lg" variant="outline" className="border-ink-400 text-white hover:bg-ink-800 px-8 py-6 text-base rounded-xl">
-            Register Your School
-          </Button>
-        </Link>
-      </div>
-    )
-  }
 
   return (
     <div className="flex flex-col">
@@ -169,7 +169,7 @@ export default function HomePage() {
             <p className="text-base text-gray-500 mb-10 max-w-lg">
               Teachers build a profile once and get matched to schools hiring for their subject and level.
             </p>
-            <HeroCTAs />
+            <HeroCTAs user={user} isLoading={isLoading} dashboardLink={dashboardLink} />
           </div>
 
           <div className="relative flex justify-center lg:justify-end">
@@ -362,7 +362,7 @@ export default function HomePage() {
               ? "Post your next vacancy or browse the teacher talent pool."
               : "Join the schools and teachers already hiring properly on ClassHire."}
           </p>
-          <BottomCTA />
+          <BottomCTA user={user} />
         </div>
       </section>
 

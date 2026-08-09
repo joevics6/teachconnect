@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef, useCallback } from "react"
+import { useState, useEffect, useRef, useCallback, useMemo } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import Link from "next/link"
 import {
@@ -298,9 +298,9 @@ function QuizScreen({
 }) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [answers, setAnswers] = useState<Record<string, string>>({})
-  const startTime = useRef(new Date(meta.started_at).getTime())
+  const startTimeMs = useMemo(() => new Date(meta.started_at).getTime(), [meta.started_at])
   const [timeLeft, setTimeLeft] = useState(() =>
-    Math.max(0, meta.duration_minutes * 60 - Math.floor((Date.now() - startTime.current) / 1000))
+    Math.max(0, meta.duration_minutes * 60 - Math.floor((Date.now() - startTimeMs) / 1000))
   )
   const [isSubmitting, setIsSubmitting] = useState(false)
   const timerRef = useRef<NodeJS.Timeout | undefined>(undefined)
@@ -315,7 +315,7 @@ function QuizScreen({
     setIsSubmitting(true)
     clearInterval(timerRef.current)
 
-    const timeTaken = Math.floor((Date.now() - startTime.current) / 1000)
+    const timeTaken = Math.floor((Date.now() - startTimeMs) / 1000)
 
     try {
       const response = await fetch("/api/teacher/specialization-quiz", {
@@ -645,18 +645,6 @@ function SpecializationQuizPage() {
   const [retakeAt, setRetakeAt] = useState("")
   const [errorMsg, setErrorMsg] = useState("")
 
-  // Allow pre-selecting subject from URL param
-  useEffect(() => {
-    const subjectParam = searchParams.get("subject")
-    const levelParam   = searchParams.get("level")
-    if (subjectParam && levelParam) {
-      setSelectedSubject(subjectParam)
-      setSelectedLevel(levelParam)
-      loadQuiz(subjectParam, levelParam)
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
   const loadQuiz = async (subject: string, level: string) => {
     setPhase("loading")
     setSelectedSubject(subject)
@@ -687,6 +675,19 @@ function SpecializationQuizPage() {
       setPhase("error")
     }
   }
+
+  // Allow pre-selecting subject from URL param
+  useEffect(() => {
+    const subjectParam = searchParams.get("subject")
+    const levelParam   = searchParams.get("level")
+    if (subjectParam && levelParam) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time pre-select from URL params on mount, not tied to any external cache
+      setSelectedSubject(subjectParam)
+      setSelectedLevel(levelParam)
+      loadQuiz(subjectParam, levelParam)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const handleComplete = (quizResult: QuizResult) => {
     setResult(quizResult)
@@ -729,7 +730,7 @@ function SpecializationQuizPage() {
           <div className="w-14 h-14 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <AlertCircle className="h-7 w-7 text-red-500" />
           </div>
-          <h2 className="text-xl font-bold text-gray-900 mb-2">Couldn't Load Quiz</h2>
+          <h2 className="text-xl font-bold text-gray-900 mb-2">Couldn&apos;t Load Quiz</h2>
           <p className="text-gray-500 text-sm mb-6">{errorMsg}</p>
           <Button onClick={handleReset} className="bg-ink-600 hover:bg-ink-700 text-white">
             Try Again

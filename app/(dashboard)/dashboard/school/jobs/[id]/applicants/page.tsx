@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useMemo } from "react"
 import Link from "next/link"
 import { useParams } from "next/navigation"
 import {
@@ -106,10 +106,10 @@ function formatTime(seconds: number) {
   return `${m}m ${s}s`
 }
 
-function getQuizModeIcon(mode?: string) {
-  if (mode === "speed") return Zap
-  if (mode === "written") return PenLine
-  return BookOpen
+function renderQuizModeIcon(mode: string | undefined, className: string) {
+  if (mode === "speed") return <Zap className={className} />
+  if (mode === "written") return <PenLine className={className} />
+  return <BookOpen className={className} />
 }
 
 function getQuizModeLabel(mode?: string) {
@@ -272,7 +272,10 @@ function ApplicantCard({
   stageLoading: string | null
   cvLocked: boolean
 }) {
-  const QuizIcon = getQuizModeIcon(applicant.quiz_mode || jobInfo.quiz_mode)
+  const quizIconEl = useMemo(
+    () => renderQuizModeIcon(applicant.quiz_mode || jobInfo.quiz_mode, "h-3.5 w-3.5"),
+    [applicant.quiz_mode, jobInfo.quiz_mode]
+  )
   const isRejected = applicant.pipeline_stage === "rejected"
   const [downloadingCv, setDownloadingCv] = useState(false)
 
@@ -409,7 +412,7 @@ function ApplicantCard({
                     : "bg-gray-50 border-gray-200 text-gray-500"
                 }`}
               >
-                <QuizIcon className="h-3.5 w-3.5" />
+                {quizIconEl}
                 {applicant.quiz_score !== null ? (
                   <>
                     {getQuizModeLabel(applicant.quiz_mode || jobInfo.quiz_mode)} Quiz:{" "}
@@ -526,7 +529,6 @@ export default function ApplicantsPage() {
   const [cvLocked, setCvLocked] = useState(false)
 
   const fetchApplicants = useCallback(async () => {
-    setIsLoading(true)
     try {
       const response = await fetch(
         `/api/school/jobs/${jobId}/applicants`
@@ -543,6 +545,7 @@ export default function ApplicantsPage() {
   }, [jobId])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- fetchApplicants is async; no state is set synchronously before its first await
     if (jobId) fetchApplicants()
   }, [fetchApplicants, jobId])
 

@@ -583,7 +583,7 @@ export default function EditTeacherProfilePage() {
 
           <div>
             <label className="text-sm font-medium text-gray-700 block mb-2">Preferred States</label>
-            <p className="text-xs text-gray-500 mb-2">Select states you'd be willing to work in</p>
+            <p className="text-xs text-gray-500 mb-2">Select states you&apos;d be willing to work in</p>
             <div className="flex flex-wrap gap-2 max-h-48 overflow-y-auto">
               {NIGERIAN_STATES.map((state) => (
                 <button

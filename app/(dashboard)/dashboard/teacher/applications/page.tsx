@@ -68,9 +68,6 @@ function getInitials(name: string) {
 function ApplicationCard({ app }: { app: Application }) {
   const stage = getStageInfo(app.pipeline_stage)
   const StageIcon = stage.icon
-  const daysLeft = Math.ceil(
-    (new Date(app.deadline).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
-  )
 
   return (
     <div className={`bg-white border rounded-xl p-5 transition-all ${
