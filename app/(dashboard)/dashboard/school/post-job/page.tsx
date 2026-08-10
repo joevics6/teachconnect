@@ -543,9 +543,6 @@ function PostJobPageInner() {
                 <Sparkles className="h-4 w-4 text-purple-600" />
               </div>
               <h2 className="font-bold text-gray-900">AI Job Parser</h2>
-              <span className="px-2 py-0.5 bg-purple-100 text-purple-700 text-xs rounded-full font-medium">
-                Premium
-              </span>
             </div>
             <p className="text-sm text-gray-500 mb-4">
               Describe the job in plain English and AI will fill the form for
@@ -561,13 +558,8 @@ function PostJobPageInner() {
                 setAiSuccess(false)
               }}
               rows={4}
-              disabled={isPaidPlan !== true}
-              placeholder={
-                isPaidPlan === false
-                  ? "Requires a paid plan to use AI parsing"
-                  : "Describe the job vacancy in your own words..."
-              }
-              className="w-full px-4 py-3 border border-purple-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 bg-white resize-none mb-3 disabled:bg-gray-50 disabled:text-gray-400 disabled:cursor-not-allowed"
+              placeholder="Describe the job vacancy in your own words..."
+              className="w-full px-4 py-3 border border-purple-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 bg-white resize-none mb-3"
             />
             {aiError && (
               <div className="flex items-center justify-between gap-3 flex-wrap mb-3">
@@ -587,33 +579,24 @@ function PostJobPageInner() {
                 Form filled successfully. Review and adjust before posting.
               </div>
             )}
-            {isPaidPlan === false ? (
-              <Link href="/dashboard/school/subscription">
-                <Button type="button" className="bg-purple-600 hover:bg-purple-700 text-white flex items-center gap-2">
-                  <Lock className="h-4 w-4" />
-                  Upgrade to Unlock
-                </Button>
-              </Link>
-            ) : (
-              <Button
-                type="button"
-                onClick={handleAiParse}
-                disabled={aiParsing || isPaidPlan !== true}
-                className="bg-purple-600 hover:bg-purple-700 text-white flex items-center gap-2"
-              >
-                {aiParsing ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Parsing with AI...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="h-4 w-4" />
-                    Parse &amp; Fill Form
-                  </>
-                )}
-              </Button>
-            )}
+            <Button
+              type="button"
+              onClick={handleAiParse}
+              disabled={aiParsing}
+              className="bg-purple-600 hover:bg-purple-700 text-white flex items-center gap-2"
+            >
+              {aiParsing ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Parsing with AI...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="h-4 w-4" />
+                  Parse &amp; Fill Form
+                </>
+              )}
+            </Button>
           </div>
 
           {/* ── Job Details ── */}

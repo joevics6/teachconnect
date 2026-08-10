@@ -12,6 +12,7 @@ import { useRouter } from "next/navigation"
 import { SchoolSidebar } from "@/components/dashboard/SchoolSidebar"
 import { LogoutButton } from "@/components/layout/LogoutButton"
 import { getCached, setCached } from "@/lib/client-cache"
+import { getInitials } from "@/lib/utils"
 
 interface Job {
   id: string; title: string; subject: string
@@ -57,9 +58,6 @@ function JobsSkeleton() {
   )
 }
 
-function getInitials(name: string) {
-  return name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
-}
 function getStageBadge(stage: string) {
   switch (stage) {
     case "shortlisted": return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-ink-100 text-ink-700"><CheckCircle2 className="h-3 w-3" />Shortlisted</span>

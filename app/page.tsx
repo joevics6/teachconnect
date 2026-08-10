@@ -353,7 +353,7 @@ export default function HomePage() {
       <section className="py-20 px-4 bg-ink-900 text-white text-center">
         <div className="max-w-2xl mx-auto">
           <h2 className="font-display text-3xl mb-4">
-            {user ? `Welcome back, ${user.display_name.split(" ")[0]}.` : "Ready to get started?"}
+            {user ? `Welcome back, ${user.display_name?.split(" ")[0] || "there"}.` : "Ready to get started?"}
           </h2>
           <p className="text-ink-200 mb-8 text-lg">
             {user?.role === "teacher"

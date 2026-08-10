@@ -21,7 +21,7 @@ import {
   DollarSign,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { formatCurrency } from "@/lib/utils"
+import { formatCurrency, getInitials } from "@/lib/utils"
 
 // ─── Types ───────────────────────────────────────────────────
 
@@ -93,14 +93,6 @@ function getDaysLeft(deadline: string) {
   )
 }
 
-function getInitials(name: string) {
-  return name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2)
-}
 
 // ─── Job Card ─────────────────────────────────────────────────
 

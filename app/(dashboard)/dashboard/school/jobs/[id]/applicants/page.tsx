@@ -24,6 +24,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { SchoolSidebar } from "@/components/dashboard/SchoolSidebar"
 import { clearCached } from "@/lib/client-cache"
+import { getInitials } from "@/lib/utils"
 
 // ─── Types ───────────────────────────────────────────────────
 
@@ -91,14 +92,6 @@ function getStageStyle(stage: PipelineStage) {
   return PIPELINE_STAGES.find((s) => s.value === stage) || PIPELINE_STAGES[0]
 }
 
-function getInitials(name: string) {
-  return name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2)
-}
 
 function formatTime(seconds: number) {
   const m = Math.floor(seconds / 60)

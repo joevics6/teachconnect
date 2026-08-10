@@ -26,6 +26,7 @@ import { FREE_PLAN_TALENT_LIMIT } from "@/lib/pricing"
 import type { TeachingLevel } from "@/types"
 import { useAuth } from "@/lib/auth-context"
 import { SchoolSidebar } from "@/components/dashboard/SchoolSidebar"
+import { getInitials } from "@/lib/utils"
 
 // ─── Types ───────────────────────────────────────────────────
 
@@ -64,14 +65,6 @@ interface Filters {
 
 // ─── Helpers ─────────────────────────────────────────────────
 
-function getInitials(name: string) {
-  return name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2)
-}
 
 function formatCurrency(amount: number) {
   return new Intl.NumberFormat("en-NG", {

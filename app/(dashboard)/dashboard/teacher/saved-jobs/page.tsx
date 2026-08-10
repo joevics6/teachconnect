@@ -17,7 +17,7 @@ import {
   Eye,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { formatCurrency } from "@/lib/utils"
+import { formatCurrency, getInitials } from "@/lib/utils"
 import { TeacherSidebar } from "@/components/dashboard/TeacherSidebar"
 
 interface SavedJob {
@@ -39,9 +39,6 @@ interface SavedJob {
   has_applied: boolean
 }
 
-function getInitials(name: string) {
-  return name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
-}
 
 export default function SavedJobsPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false)

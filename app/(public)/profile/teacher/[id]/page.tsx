@@ -24,6 +24,7 @@ import {
   TrendingUp,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { getInitials } from "@/lib/utils"
 
 // ─── Types ───────────────────────────────────────────────────
 
@@ -84,14 +85,6 @@ const LEVEL_LABELS: Record<string, string> = {
 
 // ─── Helpers ─────────────────────────────────────────────────
 
-function getInitials(name: string) {
-  return name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2)
-}
 
 function formatCurrency(amount: number) {
   return new Intl.NumberFormat("en-NG", {

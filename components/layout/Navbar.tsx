@@ -9,10 +9,8 @@ import { Button } from "@/components/ui/button"
 import { createClient } from "@/lib/supabase/client"
 import { useAuth, type AuthUser } from "@/lib/auth-context"
 import { clearAllUserCache } from "@/lib/client-cache"
+import { getInitials } from "@/lib/utils"
 
-function getInitials(name: string) {
-  return name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
-}
 
 function Avatar({ user, size = "sm" }: { user: AuthUser | null; size?: "sm" | "lg" }) {
   const dim = size === "sm" ? "w-8 h-8" : "w-10 h-10"

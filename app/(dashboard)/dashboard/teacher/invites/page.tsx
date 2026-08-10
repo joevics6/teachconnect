@@ -9,6 +9,7 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { TeacherSidebar } from "@/components/dashboard/TeacherSidebar"
+import { getInitials } from "@/lib/utils"
 
 interface Invite {
   id: string
@@ -39,9 +40,6 @@ function StatusBadge({ status }: { status: string }) {
   )
 }
 
-function getInitials(name: string) {
-  return name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
-}
 
 export default function TeacherInvitesPage() {
   const router = useRouter()

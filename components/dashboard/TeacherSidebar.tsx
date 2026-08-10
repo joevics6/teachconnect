@@ -26,6 +26,7 @@ import {
 } from "lucide-react"
 import { LogoutButton } from "@/components/layout/LogoutButton"
 import { Logo } from "@/components/ui/Logo"
+import { getInitials } from "@/lib/utils"
 
 export const TEACHER_NAV_ITEMS = [
   { href: "/dashboard/teacher",                     label: "Overview",        icon: GraduationCap },
@@ -46,9 +47,6 @@ interface SidebarProfile {
   is_visible: boolean
 }
 
-function getInitials(name: string) {
-  return name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
-}
 
 export function TeacherSidebar({ open, onClose }: { open: boolean; onClose: () => void }) {
   const pathname = usePathname()

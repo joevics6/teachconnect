@@ -9,6 +9,7 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { SchoolSidebar } from "@/components/dashboard/SchoolSidebar"
+import { getInitials } from "@/lib/utils"
 
 const FOLDERS = [
   { value: "",               label: "All Saved",         icon: Star       },
@@ -37,9 +38,6 @@ interface SavedTeacher {
   }
 }
 
-function getInitials(name: string) {
-  return name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
-}
 
 function AvailabilityBadge({ value }: { value: string }) {
   const map: Record<string, { label: string; color: string }> = {

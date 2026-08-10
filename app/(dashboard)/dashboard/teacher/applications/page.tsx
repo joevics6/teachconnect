@@ -19,7 +19,7 @@ import {
   BookOpen as QuizIcon,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { formatCurrency } from "@/lib/utils"
+import { formatCurrency, getInitials } from "@/lib/utils"
 import { TeacherSidebar } from "@/components/dashboard/TeacherSidebar"
 
 type PipelineStage =
@@ -61,9 +61,6 @@ function getStageInfo(stage: PipelineStage) {
   return map[stage] || map.applied
 }
 
-function getInitials(name: string) {
-  return name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
-}
 
 function ApplicationCard({ app }: { app: Application }) {
   const stage = getStageInfo(app.pipeline_stage)

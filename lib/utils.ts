@@ -21,13 +21,16 @@ export function formatDate(date: string): string {
   }).format(new Date(date))
 }
 
-export function getInitials(name: string): string {
-  return name
+export function getInitials(name: string | null | undefined): string {
+  if (!name) return "?"
+  const initials = name
     .split(" ")
+    .filter(Boolean)
     .map((n) => n[0])
     .join("")
     .toUpperCase()
     .slice(0, 2)
+  return initials || "?"
 }
 
 export function calculateProfileCompletion(

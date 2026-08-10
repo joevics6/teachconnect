@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { ALL_SUBJECTS, BENEFITS } from "@/lib/constants"
-import { getActivePlanType, isPremiumPlan } from "@/lib/school-plan"
 import { generateWithGemini, parseGeminiJson } from "@/lib/gemini"
 
 const PROMPT = (description: string) => `
@@ -37,15 +36,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    // AI job-description parsing is a premium feature — was previously
-    // reachable by any school regardless of plan.
-    const planType = await getActivePlanType(supabase, user.id)
-    if (!isPremiumPlan(planType)) {
-      return NextResponse.json(
-        { error: "AI job parsing requires a paid plan (Single Post, Monthly, or Term).", upgrade_required: true },
-        { status: 402 }
-      )
-    }
+    // AI job-description parsing is available to every school, including
+    // the Free plan — no plan check here.
 
     const { description } = await request.json()
     if (!description?.trim()) {
