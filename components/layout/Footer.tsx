@@ -28,7 +28,7 @@ export default function Footer() {
           {/* Brand */}
           <div className="col-span-1">
             <Link href="/" className="flex items-center gap-2 mb-4">
-              <Logo className="h-9 w-9" />
+              <Logo className="h-9 w-9" variant="light" />
               <div className="flex flex-col leading-none">
                 <span className="font-bold text-sm text-white">
                   JobMeter
