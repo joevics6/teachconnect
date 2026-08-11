@@ -3,12 +3,13 @@
 import Link from "next/link"
 import {
   Search, FileCheck, Building2, MapPin,
-  CheckCircle2, BookOpen, Shield, Clock, ArrowRight, X,
+  CheckCircle2, BookOpen, Shield, ArrowRight, X,
+  Star, Users, GraduationCap,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useAuth, type AuthUser } from "@/lib/auth-context"
 
-// ─── Signature hero visual — the actual product mechanic, not a
+// ─── Signature hero visual #1 — the actual product mechanic, not a
 // decorative illustration: quiz scores rank applicants automatically,
 // so a school opens a short, ordered shortlist instead of a CV pile. ──
 function RankingCard() {
@@ -18,91 +19,111 @@ function RankingCard() {
     { name: "Ngozi E.",    subject: "Mathematics", score: 81, top: false },
   ]
   return (
-    <div className="relative w-full max-w-sm">
-      <div className="bg-white rounded-2xl border border-ink-100 shadow-xl shadow-ink-900/5 p-5">
-        <div className="flex items-center justify-between mb-4">
-          <p className="text-xs font-semibold text-ink-500 uppercase tracking-wide">Mathematics Teacher — Ranked</p>
-          <span className="text-xs text-gray-400">Auto-sorted</span>
-        </div>
-        <div className="space-y-2.5">
-          {rows.map((r, i) => (
-            <div
-              key={r.name}
-              className={`flex items-center gap-3 rounded-xl px-3 py-2.5 ${
-                r.top ? "bg-brass-50 border border-brass-200" : "bg-gray-50 border border-transparent"
-              }`}
-            >
-              <span className={`font-display text-sm w-5 text-center ${r.top ? "text-brass-600" : "text-gray-400"}`}>
-                {i + 1}
-              </span>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 truncate">{r.name}</p>
-                <p className="text-xs text-gray-500">{r.subject}</p>
-              </div>
-              <span className={`text-sm font-semibold ${r.top ? "text-brass-700" : "text-ink-600"}`}>
-                {r.score}%
-              </span>
+    <div className="bg-white rounded-2xl border border-ink-100 shadow-xl shadow-ink-900/10 p-5">
+      <div className="flex items-center justify-between mb-4">
+        <p className="text-xs font-semibold text-ink-500 uppercase tracking-wide">Mathematics Teacher — Ranked</p>
+        <span className="text-xs text-gray-400">Auto-sorted</span>
+      </div>
+      <div className="space-y-2.5">
+        {rows.map((r, i) => (
+          <div
+            key={r.name}
+            className={`flex items-center gap-3 rounded-xl px-3 py-2.5 ${
+              r.top ? "bg-brass-50 border border-brass-200" : "bg-gray-50 border border-transparent"
+            }`}
+          >
+            <span className={`font-display text-sm w-5 text-center ${r.top ? "text-brass-600" : "text-gray-400"}`}>
+              {i + 1}
+            </span>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-gray-900 truncate">{r.name}</p>
+              <p className="text-xs text-gray-500">{r.subject}</p>
             </div>
-          ))}
+            <span className={`text-sm font-semibold ${r.top ? "text-brass-700" : "text-ink-600"}`}>
+              {r.score}%
+            </span>
+          </div>
+        ))}
+      </div>
+      <div className="mt-3 pt-3 border-t border-gray-100 flex items-center justify-between">
+        <p className="text-xs text-gray-400">18 more applicants screened</p>
+        <CheckCircle2 className="h-4 w-4 text-ink-400" />
+      </div>
+    </div>
+  )
+}
+
+// ─── Signature hero visual #2 — a verified teacher profile card. Paired
+// with the ranking card, these two mockups ARE the product, so the hero
+// composition is a real screenshot of what happens on both sides of a
+// hire rather than stock photography. ──
+function ProfileCard() {
+  return (
+    <div className="bg-white rounded-2xl border border-ink-100 shadow-lg shadow-ink-900/10 p-4 w-64">
+      <div className="flex items-center gap-3">
+        <div className="h-11 w-11 rounded-full bg-ink-800 flex items-center justify-center flex-shrink-0">
+          <GraduationCap className="h-5 w-5 text-brass-400" />
         </div>
-        <div className="mt-3 pt-3 border-t border-gray-100 flex items-center justify-between">
-          <p className="text-xs text-gray-400">18 more applicants screened</p>
-          <CheckCircle2 className="h-4 w-4 text-ink-400" />
+        <div className="min-w-0">
+          <p className="text-sm font-semibold text-gray-900 truncate">Amara N.</p>
+          <p className="text-xs text-gray-500">Biology · SS1–SS3</p>
         </div>
       </div>
-      {/* Contrast callout — the "before" this replaces */}
-      <div className="absolute -bottom-6 -left-6 hidden sm:flex items-center gap-2 bg-white rounded-xl border border-gray-200 shadow-lg px-4 py-3">
-        <div className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center">
-          <X className="h-3.5 w-3.5 text-gray-400" />
-        </div>
-        <p className="text-xs text-gray-500 leading-tight">
-          No more<br /><span className="font-medium text-gray-700">200-CV inbox</span>
-        </p>
+      <div className="mt-3 flex items-center gap-1.5 text-xs font-medium text-emerald-700 bg-emerald-50 rounded-lg px-2.5 py-1.5 w-fit">
+        <CheckCircle2 className="h-3.5 w-3.5" />
+        TRCN Verified
       </div>
     </div>
   )
 }
 
 function HeroCTAs({ user, isLoading, dashboardLink }: { user: AuthUser | null; isLoading: boolean; dashboardLink: string }) {
-  if (isLoading) return <div className="h-14 w-64 bg-ink-100 rounded-xl animate-pulse" />
+  if (isLoading) return <div className="h-12 w-64 bg-ink-100 rounded-xl animate-pulse" />
   if (user?.role === "teacher") return (
-    <div className="flex flex-col sm:flex-row gap-3">
+    <div className="grid grid-cols-2 gap-3 max-w-md">
       <Link href="/jobs">
-        <Button size="lg" className="w-full sm:w-auto bg-ink-800 hover:bg-ink-900 text-white px-7 py-6 text-base rounded-xl">
-          <Search className="h-5 w-5 mr-2" />Browse Teaching Jobs
+        <Button size="lg" className="w-full bg-ink-800 hover:bg-ink-900 text-white px-4 py-6 text-sm sm:text-base rounded-xl">
+          <Search className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2 flex-shrink-0" />
+          <span className="hidden sm:inline">Browse Teaching Jobs</span>
+          <span className="sm:hidden">Browse Jobs</span>
         </Button>
       </Link>
       <Link href={dashboardLink}>
-        <Button size="lg" variant="outline" className="w-full sm:w-auto px-7 py-6 text-base rounded-xl border-ink-200">
-          Go to Dashboard
+        <Button size="lg" variant="outline" className="w-full px-4 py-6 text-sm sm:text-base rounded-xl border-ink-200">
+          <span className="hidden sm:inline">Go to Dashboard</span>
+          <span className="sm:hidden">Dashboard</span>
         </Button>
       </Link>
     </div>
   )
   if (user?.role === "school") return (
-    <div className="flex flex-col sm:flex-row gap-3">
+    <div className="grid grid-cols-2 gap-3 max-w-md">
       <Link href="/dashboard/school/post-job">
-        <Button size="lg" className="w-full sm:w-auto bg-ink-800 hover:bg-ink-900 text-white px-7 py-6 text-base rounded-xl">
-          <Building2 className="h-5 w-5 mr-2" />Post a Job
+        <Button size="lg" className="w-full bg-ink-800 hover:bg-ink-900 text-white px-4 py-6 text-sm sm:text-base rounded-xl">
+          <Building2 className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2 flex-shrink-0" />Post a Job
         </Button>
       </Link>
       <Link href="/talent">
-        <Button size="lg" variant="outline" className="w-full sm:w-auto px-7 py-6 text-base rounded-xl border-ink-200">
+        <Button size="lg" variant="outline" className="w-full px-4 py-6 text-sm sm:text-base rounded-xl border-ink-200">
           Browse Teachers
         </Button>
       </Link>
     </div>
   )
   return (
-    <div className="flex flex-col sm:flex-row gap-3">
+    <div className="grid grid-cols-2 gap-3 max-w-md">
       <Link href="/register/teacher">
-        <Button size="lg" className="w-full sm:w-auto bg-ink-800 hover:bg-ink-900 text-white px-7 py-6 text-base rounded-xl">
-          <Search className="h-5 w-5 mr-2" />Find Teaching Jobs
+        <Button size="lg" className="w-full bg-ink-800 hover:bg-ink-900 text-white px-4 py-6 text-sm sm:text-base rounded-xl">
+          <Search className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2 flex-shrink-0" />
+          <span className="hidden sm:inline">Find Teaching Jobs</span>
+          <span className="sm:hidden">Find Jobs</span>
         </Button>
       </Link>
       <Link href="/register/school">
-        <Button size="lg" variant="outline" className="w-full sm:w-auto px-7 py-6 text-base rounded-xl border-ink-200">
-          <Building2 className="h-5 w-5 mr-2" />Hire Qualified Teachers
+        <Button size="lg" variant="outline" className="w-full px-4 py-6 text-sm sm:text-base rounded-xl border-ink-200">
+          <Building2 className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2 flex-shrink-0" />
+          <span className="hidden sm:inline">Hire Qualified Teachers</span>
+          <span className="sm:hidden">Hire Teachers</span>
         </Button>
       </Link>
     </div>
@@ -125,20 +146,49 @@ function BottomCTA({ user }: { user: AuthUser | null }) {
     </Link>
   )
   return (
-    <div className="flex flex-col sm:flex-row gap-3 justify-center">
+    <div className="grid grid-cols-2 gap-3 max-w-md mx-auto">
       <Link href="/register/teacher">
-        <Button size="lg" className="bg-white text-ink-900 hover:bg-brass-50 px-8 py-6 text-base rounded-xl">
-          Join as a Teacher
+        <Button size="lg" className="w-full bg-white text-ink-900 hover:bg-brass-50 px-4 py-6 text-sm sm:text-base rounded-xl">
+          <span className="hidden sm:inline">Join as a Teacher</span>
+          <span className="sm:hidden">Join as Teacher</span>
         </Button>
       </Link>
       <Link href="/register/school">
-        <Button size="lg" variant="outline" className="border-ink-400 text-white hover:bg-ink-800 px-8 py-6 text-base rounded-xl">
-          Register Your School
+        <Button size="lg" variant="outline" className="w-full bg-transparent border-ink-400 text-white hover:bg-ink-800 px-4 py-6 text-sm sm:text-base rounded-xl">
+          <span className="hidden sm:inline">Register Your School</span>
+          <span className="sm:hidden">Register School</span>
         </Button>
       </Link>
     </div>
   )
 }
+
+const TRUST_POINTS = [
+  { icon: Shield, label: "TRCN status verified" },
+  { icon: MapPin, label: "Every state, LGA-level" },
+  { icon: Users,  label: "Direct — no recruiters" },
+]
+
+const TEACHER_STEPS = [
+  { icon: FileCheck, title: "Build your profile", desc: "Upload your CV, add your subjects, teaching levels, and TRCN status. Takes 5 minutes." },
+  { icon: Search,    title: "Browse & apply",     desc: "Filter jobs by subject, level, location and salary. Apply in one click." },
+  { icon: BookOpen,  title: "Pass the quiz",      desc: "Some schools include a subject quiz. Pass it and your application rises to the top." },
+]
+
+const SCHOOL_STEPS = [
+  { icon: Building2, title: "Post your vacancy",       desc: "Describe the role, set the salary, choose a subject quiz. Live in under 5 minutes." },
+  { icon: Shield,    title: "Quiz does the screening", desc: "Only teachers who pass your subject quiz at your required score appear in your pipeline." },
+  { icon: MapPin,    title: "Review & hire",           desc: "Browse ranked applicants, view full profiles and CVs, and move candidates through your pipeline." },
+]
+
+const FEATURES = [
+  { icon: BookOpen,     title: "Subject Mastery Quiz", desc: "Teachers prove their knowledge. Schools get a percentile rank on every applicant." },
+  { icon: FileCheck,    title: "CV Parsing",           desc: "Upload once. We extract your experience, subjects, and skills automatically." },
+  { icon: CheckCircle2, title: "TRCN Verification",    desc: "Teachers show their registration status. Schools can filter for registered teachers." },
+  { icon: MapPin,       title: "Location Matching",    desc: "Filter by state and LGA. Find opportunities — or talent — right in your area." },
+  { icon: Shield,       title: "Verified Profiles",    desc: "Every school and teacher profile is tied to a verified account." },
+  { icon: Search,       title: "Direct Applications",  desc: "No recruiters or middlemen. Teachers and schools deal with each other directly." },
+]
 
 export default function HomePage() {
   const { user, isLoading, dashboardLink } = useAuth()
@@ -146,47 +196,64 @@ export default function HomePage() {
   return (
     <div className="flex flex-col">
 
-      {/* Hero — thesis statement on the left; on the right, a layered
-          composition: a real photo (transparent PNG, dropped in by the
-          person running the site — see public/images/README.md) with
-          the ranking-card mockup anchored over it, so the product
-          visual and a human presence share the same frame instead of
-          competing for attention. */}
-      <section className="relative bg-white pt-16 pb-24 px-4 sm:pt-20 sm:pb-28 overflow-hidden">
-        <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-16 items-center">
-          <div>
-            <div className="inline-flex items-center gap-2 text-ink-700 text-xs font-semibold uppercase tracking-wide mb-6">
-              <span className="h-1.5 w-1.5 rounded-full bg-brass-500" />
+      {/* Hero — thesis statement on the left; on the right, two layered
+          product-mockup cards (ranking + verified profile) instead of
+          stock photography, so the visual IS the value proposition. A
+          trust strip sits right under the CTAs to close the gap before
+          the next section and answer "why should I trust this" fast. */}
+      <section className="relative bg-white pt-14 pb-14 px-4 sm:pt-20 sm:pb-20 overflow-hidden">
+        <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-12 lg:gap-16 items-center">
+          {/* Centered on mobile — badge, heading, copy, and CTAs all
+              stack centered, matching the /pricing hero pattern. From
+              lg up it switches to the left-aligned column beside the
+              product visual. */}
+          <div className="text-center lg:text-left">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-ink-50 text-ink-700 text-xs font-semibold uppercase tracking-wide rounded-full mb-5">
+              <Star className="h-3.5 w-3.5 text-brass-500" />
               Built for Nigerian schools & teachers
             </div>
-            <h1 className="font-display text-4xl sm:text-5xl lg:text-[3.4rem] text-ink-950 leading-[1.08] mb-6">
+            <h1 className="font-display text-4xl sm:text-5xl lg:text-[3.4rem] text-ink-950 leading-[1.08] mb-5">
               Stop drowning in CVs.<br />
               <span className="italic text-ink-600">Start hiring teachers who can actually teach.</span>
             </h1>
-            <p className="text-lg text-gray-600 mb-3 leading-relaxed max-w-lg">
+            <p className="text-lg text-gray-600 mb-2.5 leading-relaxed max-w-lg mx-auto lg:mx-0">
               A subject quiz screens every applicant automatically — schools open a ranked shortlist, not a 200-CV inbox.
             </p>
-            <p className="text-base text-gray-500 mb-10 max-w-lg">
+            <p className="text-base text-gray-500 mb-8 max-w-lg mx-auto lg:mx-0">
               Teachers build a profile once and get matched to schools hiring for their subject and level.
             </p>
-            <HeroCTAs user={user} isLoading={isLoading} dashboardLink={dashboardLink} />
+            <div className="mx-auto lg:mx-0 w-fit">
+              <HeroCTAs user={user} isLoading={isLoading} dashboardLink={dashboardLink} />
+            </div>
+
+            <div className="flex flex-wrap justify-center lg:justify-start gap-x-6 gap-y-2 mt-8 pt-6 border-t border-gray-100">
+              {TRUST_POINTS.map((t) => (
+                <div key={t.label} className="flex items-center gap-2 text-sm text-gray-600">
+                  <t.icon className="h-4 w-4 text-ink-500 flex-shrink-0" />
+                  {t.label}
+                </div>
+              ))}
+            </div>
           </div>
 
           <div className="relative flex justify-center lg:justify-end">
-            {/* Soft field the transparent PNG sits into — keeps the
-                composition intentional even before the image is added */}
             <div className="absolute -inset-x-8 -inset-y-12 -z-10 bg-gradient-to-br from-brass-50 via-ink-50/60 to-transparent rounded-[3rem] blur-2xl" />
 
-            <div className="relative w-full max-w-sm h-[420px] sm:h-[480px]">
-              {/* Hero photo — transparent background, drop the file at
-                  public/images/hero-teacher.png. Empty until then. */}
-              <img
-                src="/images/hero-teacher.png"
-                alt=""
-                className="absolute inset-x-0 bottom-0 mx-auto h-full w-auto max-w-none object-contain object-bottom pointer-events-none select-none hidden sm:block"
-              />
-              <div className="absolute left-1/2 -translate-x-1/2 sm:left-auto sm:translate-x-0 sm:right-0 bottom-6">
+            <div className="relative w-full max-w-sm">
+              <div className="hidden sm:block absolute -top-8 -left-4 rotate-[-4deg] z-0">
+                <ProfileCard />
+              </div>
+              <div className="relative z-10 sm:mt-16">
                 <RankingCard />
+              </div>
+              {/* Contrast callout — the "before" this replaces */}
+              <div className="absolute -bottom-5 -right-3 hidden sm:flex items-center gap-2 bg-white rounded-xl border border-gray-200 shadow-lg px-4 py-3 z-20">
+                <div className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
+                  <X className="h-3.5 w-3.5 text-gray-400" />
+                </div>
+                <p className="text-xs text-gray-500 leading-tight">
+                  No more<br /><span className="font-medium text-gray-700">200-CV inbox</span>
+                </p>
               </div>
             </div>
           </div>
@@ -195,7 +262,7 @@ export default function HomePage() {
 
       {/* The old way vs. the ClassHire way — a real comparison, not a
           decorative stat strip. */}
-      <section className="bg-ink-950 py-16 px-4">
+      <section className="bg-ink-950 py-14 px-4">
         <div className="max-w-5xl mx-auto">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-px bg-ink-800 rounded-2xl overflow-hidden">
             <div className="bg-ink-950 p-8">
@@ -207,7 +274,7 @@ export default function HomePage() {
                   "Interviews before you know who's qualified",
                 ].map((t) => (
                   <li key={t} className="flex gap-3 text-sm text-gray-400">
-                    <Clock className="h-4 w-4 text-gray-600 flex-shrink-0 mt-0.5" />
+                    <X className="h-4 w-4 text-gray-600 flex-shrink-0 mt-0.5" />
                     {t}
                   </li>
                 ))}
@@ -232,115 +299,86 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* How It Works — Teachers */}
-      <section className="py-24 px-4 bg-white">
+      {/* How It Works — Teachers + Schools side by side in one section
+          instead of two stacked full-height sections. Same content,
+          roughly half the scroll distance. */}
+      <section className="py-16 sm:py-20 px-4 bg-gray-50">
         <div className="max-w-6xl mx-auto">
-          <div className="mb-14 max-w-xl">
-            <p className="text-ink-600 text-sm font-semibold uppercase tracking-wide mb-3">For Teachers</p>
-            <h2 className="font-display text-3xl text-ink-950 mb-3">Your next job is three steps away</h2>
-            <p className="text-gray-500">
-              No recruiters, no middlemen. Apply directly to verified Nigerian schools.
-            </p>
+          <div className="mb-10 max-w-xl">
+            <h2 className="font-display text-3xl text-ink-950 mb-3">Three steps, either side of the hire</h2>
+            <p className="text-gray-500">No recruiters, no middlemen. Teachers and schools deal with each other directly.</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-10 relative">
-            <div className="hidden md:block absolute top-6 left-[16.5%] right-[16.5%] h-px bg-gray-200" />
-            {[
-              { icon: FileCheck, title: "Build your profile", desc: "Upload your CV, add your subjects, teaching levels, and TRCN status. Takes 5 minutes." },
-              { icon: Search,    title: "Browse & apply",     desc: "Filter jobs by subject, level, location and salary. Apply in one click." },
-              { icon: BookOpen,  title: "Pass the quiz",      desc: "Some schools include a subject quiz. Pass it and your application rises to the top." },
-            ].map((item, i) => (
-              <div key={item.title} className="relative">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="relative z-10 w-12 h-12 bg-white border-2 border-ink-800 rounded-full flex items-center justify-center">
-                    <span className="font-display text-sm text-ink-800">{i + 1}</span>
-                  </div>
-                </div>
-                <item.icon className="h-5 w-5 text-ink-500 mb-3" />
-                <h3 className="font-semibold text-ink-950 mb-1.5">{item.title}</h3>
-                <p className="text-sm text-gray-500 leading-relaxed">{item.desc}</p>
-              </div>
-            ))}
-          </div>
-          {!user && (
-            <div className="mt-12">
-              <Link href="/register/teacher" className="inline-flex items-center gap-2 text-ink-700 font-medium hover:text-ink-900 transition">
-                Create your teacher profile <ArrowRight className="h-4 w-4" />
-              </Link>
-            </div>
-          )}
-          {user?.role === "teacher" && (
-            <div className="mt-12">
-              <Link href="/jobs" className="inline-flex items-center gap-2 text-ink-700 font-medium hover:text-ink-900 transition">
-                Browse jobs <ArrowRight className="h-4 w-4" />
-              </Link>
-            </div>
-          )}
-        </div>
-      </section>
 
-      {/* How It Works — Schools */}
-      <section className="py-24 px-4 bg-gray-50">
-        <div className="max-w-6xl mx-auto">
-          <div className="mb-14 max-w-xl">
-            <p className="text-brass-600 text-sm font-semibold uppercase tracking-wide mb-3">For Schools</p>
-            <h2 className="font-display text-3xl text-ink-950 mb-3">Hire faster. Hire better.</h2>
-            <p className="text-gray-500">
-              Post a job in minutes, let the quiz filter for you, and only meet candidates who are qualified.
-            </p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-10 relative">
-            <div className="hidden md:block absolute top-6 left-[16.5%] right-[16.5%] h-px bg-gray-300" />
-            {[
-              { icon: Building2, title: "Post your vacancy",       desc: "Describe the role, set the salary, choose a subject quiz. Live in under 5 minutes." },
-              { icon: Shield,    title: "Quiz does the screening", desc: "Only teachers who pass your subject quiz at your required score appear in your pipeline." },
-              { icon: MapPin,    title: "Review & hire",           desc: "Browse ranked applicants, view full profiles and CVs, and move candidates through your pipeline." },
-            ].map((item, i) => (
-              <div key={item.title} className="relative">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="relative z-10 w-12 h-12 bg-gray-50 border-2 border-brass-500 rounded-full flex items-center justify-center">
-                    <span className="font-display text-sm text-brass-700">{i + 1}</span>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="bg-white rounded-2xl border border-gray-200 p-6 sm:p-8">
+              <p className="text-ink-600 text-xs font-semibold uppercase tracking-wide mb-5">For Teachers</p>
+              <div className="space-y-5">
+                {TEACHER_STEPS.map((item, i) => (
+                  <div key={item.title} className="flex gap-4">
+                    <div className="flex-shrink-0 w-9 h-9 rounded-full bg-ink-50 flex items-center justify-center">
+                      <item.icon className="h-4 w-4 text-ink-700" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-ink-950 text-sm mb-0.5">{i + 1}. {item.title}</h3>
+                      <p className="text-sm text-gray-500 leading-relaxed">{item.desc}</p>
+                    </div>
                   </div>
-                </div>
-                <item.icon className="h-5 w-5 text-brass-600 mb-3" />
-                <h3 className="font-semibold text-ink-950 mb-1.5">{item.title}</h3>
-                <p className="text-sm text-gray-500 leading-relaxed">{item.desc}</p>
+                ))}
               </div>
-            ))}
+              {!user && (
+                <Link href="/register/teacher" className="inline-flex items-center gap-2 text-ink-700 font-medium text-sm hover:text-ink-900 transition mt-6">
+                  Create your teacher profile <ArrowRight className="h-4 w-4" />
+                </Link>
+              )}
+              {user?.role === "teacher" && (
+                <Link href="/jobs" className="inline-flex items-center gap-2 text-ink-700 font-medium text-sm hover:text-ink-900 transition mt-6">
+                  Browse jobs <ArrowRight className="h-4 w-4" />
+                </Link>
+              )}
+            </div>
+
+            <div className="bg-white rounded-2xl border border-gray-200 p-6 sm:p-8">
+              <p className="text-brass-600 text-xs font-semibold uppercase tracking-wide mb-5">For Schools</p>
+              <div className="space-y-5">
+                {SCHOOL_STEPS.map((item, i) => (
+                  <div key={item.title} className="flex gap-4">
+                    <div className="flex-shrink-0 w-9 h-9 rounded-full bg-brass-50 flex items-center justify-center">
+                      <item.icon className="h-4 w-4 text-brass-700" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-ink-950 text-sm mb-0.5">{i + 1}. {item.title}</h3>
+                      <p className="text-sm text-gray-500 leading-relaxed">{item.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {!user && (
+                <Link href="/register/school" className="inline-flex items-center gap-2 text-brass-700 font-medium text-sm hover:text-brass-800 transition mt-6">
+                  Register your school <ArrowRight className="h-4 w-4" />
+                </Link>
+              )}
+              {user?.role === "school" && (
+                <Link href="/dashboard/school/post-job" className="inline-flex items-center gap-2 text-brass-700 font-medium text-sm hover:text-brass-800 transition mt-6">
+                  Post a job now <ArrowRight className="h-4 w-4" />
+                </Link>
+              )}
+            </div>
           </div>
-          {!user && (
-            <div className="mt-12">
-              <Link href="/register/school" className="inline-flex items-center gap-2 text-brass-700 font-medium hover:text-brass-800 transition">
-                Register your school <ArrowRight className="h-4 w-4" />
-              </Link>
-            </div>
-          )}
-          {user?.role === "school" && (
-            <div className="mt-12">
-              <Link href="/dashboard/school/post-job" className="inline-flex items-center gap-2 text-brass-700 font-medium hover:text-brass-800 transition">
-                Post a job now <ArrowRight className="h-4 w-4" />
-              </Link>
-            </div>
-          )}
         </div>
       </section>
 
       {/* Features */}
-      <section className="py-24 px-4 bg-white">
+      <section className="py-16 sm:py-20 px-4 bg-white">
         <div className="max-w-6xl mx-auto">
-          <div className="mb-14 max-w-xl">
+          <div className="mb-10 max-w-xl">
             <h2 className="font-display text-3xl text-ink-950">Everything you need to hire, or get hired</h2>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-10">
-            {[
-              { icon: BookOpen,     title: "Subject Mastery Quiz", desc: "Teachers prove their knowledge. Schools get a percentile rank on every applicant." },
-              { icon: FileCheck,    title: "CV Parsing",           desc: "Upload once. We extract your experience, subjects, and skills automatically." },
-              { icon: CheckCircle2, title: "TRCN Verification",    desc: "Teachers show their registration status. Schools can filter for registered teachers." },
-              { icon: MapPin,       title: "Location Matching",    desc: "Filter by state and LGA. Find opportunities — or talent — right in your area." },
-              { icon: Shield,       title: "Verified Profiles",    desc: "Every school and teacher profile is tied to a verified account." },
-              { icon: Search,       title: "Direct Applications",  desc: "No recruiters or middlemen. Teachers and schools deal with each other directly." },
-            ].map((f) => (
-              <div key={f.title} className="pt-5 border-t-2 border-ink-900">
-                <f.icon className="h-5 w-5 text-ink-700 mb-3" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-8">
+            {FEATURES.map((f) => (
+              <div key={f.title} className="p-5 rounded-xl bg-gray-50 border border-gray-100">
+                <div className="w-10 h-10 rounded-lg bg-white border border-gray-200 flex items-center justify-center mb-3.5">
+                  <f.icon className="h-5 w-5 text-ink-700" />
+                </div>
                 <h3 className="font-semibold text-ink-950 mb-1.5">{f.title}</h3>
                 <p className="text-sm text-gray-500 leading-relaxed">{f.desc}</p>
               </div>
@@ -350,7 +388,7 @@ export default function HomePage() {
       </section>
 
       {/* Bottom CTA */}
-      <section className="py-20 px-4 bg-ink-900 text-white text-center">
+      <section className="py-16 sm:py-20 px-4 bg-ink-900 text-white text-center">
         <div className="max-w-2xl mx-auto">
           <h2 className="font-display text-3xl mb-4">
             {user ? `Welcome back, ${user.display_name?.split(" ")[0] || "there"}.` : "Ready to get started?"}
