@@ -48,12 +48,15 @@ export async function GET() {
     const planType = subscription?.plan_type || "free"
 
     // Get usage stats — mirrors the actual enforcement logic in
-    // lib/job-limits.ts: Free is a LIFETIME cap counting active+closed
-    // jobs (not drafts, no time window), Standard is scoped to the
-    // current purchase (starts_at), Monthly/Term are concurrent caps.
+    // lib/job-limits.ts: Free is a per-calendar-month cap counting
+    // active+closed jobs (not drafts) since the 1st of this month,
+    // Standard is scoped to the current purchase (starts_at),
+    // Monthly/Term are concurrent caps.
+    const now = new Date()
+    const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)).toISOString()
     const jobsWindowStart =
       planType === "free"
-        ? new Date(0).toISOString()
+        ? monthStart
         : subscription?.starts_at || new Date(0).toISOString()
 
     const { count: jobsPosted } = await supabase
@@ -84,7 +87,7 @@ export async function GET() {
 
     // Which count/limit pair is the actual binding constraint differs by
     // plan — see lib/job-limits.ts for the enforcement this mirrors:
-    // Free = lifetime total (any status), Standard = active-since-purchase,
+    // Free = per-calendar-month total (any status), Standard = active-since-purchase,
     // Monthly/Term = concurrent active cap.
     const usage =
       planType === "monthly" || planType === "term"
@@ -99,7 +102,7 @@ export async function GET() {
           ]
         : [
             {
-              label: "Jobs Posted",
+              label: planType === "free" ? "Jobs Posted This Month" : "Jobs Posted",
               used: jobsPosted || 0,
               limit: planType === "standard" ? (PLANS.standard.job_limit as number) : FREE_PLAN_JOB_LIMIT,
             },

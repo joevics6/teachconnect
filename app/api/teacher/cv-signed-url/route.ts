@@ -5,9 +5,11 @@
 //
 // Authorized if the caller is:
 //   (a) that teacher themselves, or
-//   (b) a school on any paid plan (Single Post, Monthly, or Term) —
-//       matches the existing contact-detail gate on the public
-//       profile page, which isn't scoped to actual applicants only.
+//   (b) a school the teacher has actually applied to — free on every
+//       plan, since this isn't "discovery" the way talent search is, or
+//   (c) a school on any paid plan (Single Post, Monthly, or Term) —
+//       matches the existing contact-detail gate on the public profile
+//       page, for teachers found via talent search who haven't applied.
 // ============================================================
 
 import { NextResponse } from "next/server"
@@ -45,14 +47,24 @@ export async function POST(request: Request) {
         .single()
 
       if (school) {
-        const planType = await getActivePlanType(supabase, school.id)
-        // Any school on a paid plan can view any teacher's CV — this
+        // (b) The teacher applied to one of this school's jobs — free on
+        // every plan, including Free.
+        const { count: applicationCount } = await supabase
+          .from("applications")
+          .select("id, jobs!inner(school_id)", { count: "exact", head: true })
+          .eq("teacher_id", teacher_id)
+          .eq("jobs.school_id", school.id)
+
+        authorized = (applicationCount || 0) > 0
+
+        // (c) Otherwise, any paid plan can view any teacher's CV — this
         // matches the existing contact-detail paywall on the public
-        // profile page (app/api/teacher/profile/[id]/route.ts), which
-        // isn't scoped to "actual applicants only". If that's ever
-        // tightened, add an `applications` check here for (teacher_id,
-        // school.id) before setting authorized = true.
-        authorized = isPremiumPlan(planType)
+        // profile page (app/api/teacher/profile/[id]/route.ts), for
+        // teachers surfaced via talent search who haven't applied.
+        if (!authorized) {
+          const planType = await getActivePlanType(supabase, school.id)
+          authorized = isPremiumPlan(planType)
+        }
       }
     }
 

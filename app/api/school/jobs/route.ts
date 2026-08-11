@@ -104,17 +104,10 @@ export async function POST(request: Request) {
     }
 
     // Enforce premium-only fields (see pricing page comparison table) —
-    // Free plan can't turn on quiz screening, private postings, or
-    // featured placement. These fields were previously accepted from any
-    // school regardless of plan.
+    // Free plan can't turn on private postings or featured placement.
+    // Quiz screening is available to every plan, including Free.
     const planType = await getActivePlanType(supabase, school.id)
     if (!isPremiumPlan(planType)) {
-      if (body.quiz_enabled) {
-        return NextResponse.json(
-          { error: "Quiz screening requires a paid plan (Single Post, Monthly, or Term).", upgrade_required: true },
-          { status: 402 }
-        )
-      }
       if (body.is_private) {
         return NextResponse.json(
           { error: "Private postings require a paid plan (Single Post, Monthly, or Term).", upgrade_required: true },

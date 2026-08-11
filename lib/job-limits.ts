@@ -6,12 +6,11 @@
 // becomes a live, counted posting, so both need the same gate.
 //
 // (see lib/pricing.ts for the numbers)
-// - Free:     3 job posts total, EVER — a lifetime cap, not a
-//             concurrent one. Counts jobs that have been active or
-//             closed; closing a job doesn't free up a slot. Draft
-//             copies (e.g. from duplicating a job) don't count until
-//             actually published — upgrading is the only way to post
-//             more once the 3 are used.
+// - Free:     3 job posts per calendar month — resets on the 1st.
+//             Counts jobs that have been active or closed within
+//             the current month; closing a job doesn't free up a
+//             slot early. Draft copies (e.g. from duplicating a
+//             job) don't count until actually published.
 // - Standard: 1 job per purchase (each purchase is its own
 //             subscription row — the window is "since that row's
 //             starts_at", since it's a single-use posting credit)
@@ -56,20 +55,24 @@ export async function checkJobPostingLimit(supabase: SupabaseClient, schoolId: s
   }
 
   if (planType === "free") {
-    // Lifetime cap — counts every job that has EVER been active (status
-    // active or closed), not drafts. A school duplicating a job creates
-    // a draft copy (see jobs/[id]/duplicate/route.ts) that shouldn't
-    // silently burn a lifetime slot before it's even published.
-    const { count: jobsEverPosted } = await supabase
+    // Per-calendar-month cap — counts every job that has been active or
+    // closed since the start of the current month (not drafts). A school
+    // duplicating a job creates a draft copy (see jobs/[id]/duplicate/
+    // route.ts) that shouldn't silently burn a monthly slot before it's
+    // even published.
+    const now = new Date()
+    const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)).toISOString()
+    const { count: jobsThisMonth } = await supabase
       .from("jobs")
       .select("id", { count: "exact", head: true })
       .eq("school_id", schoolId)
       .in("status", ["active", "closed"])
+      .gte("created_at", monthStart)
 
-    if ((jobsEverPosted || 0) >= FREE_PLAN_JOB_LIMIT) {
+    if ((jobsThisMonth || 0) >= FREE_PLAN_JOB_LIMIT) {
       return {
         allowed: false as const,
-        error: `Free accounts can post ${FREE_PLAN_JOB_LIMIT} jobs total. Upgrade to Single Post, Monthly, or Term to post more.`,
+        error: `Free accounts can post ${FREE_PLAN_JOB_LIMIT} jobs per month. Upgrade to Single Post, Monthly, or Term to post more now, or wait until next month.`,
       }
     }
     return { allowed: true as const }

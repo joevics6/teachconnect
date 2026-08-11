@@ -34,6 +34,8 @@ export async function POST(request: Request) {
     const availability = formData.get("availability") as string
     const salary_min = parseInt(formData.get("salary_min") as string || "0") || null
     const bio = formData.get("bio") as string || null
+    const phone_calls_enabled = formData.get("phone_calls_enabled") === "true"
+    const whatsapp_enabled = formData.get("whatsapp_enabled") === "true"
     const cv_file = formData.get("cv_file") as File | null
     const photo_file = formData.get("photo_file") as File | null
 
@@ -153,6 +155,8 @@ export async function POST(request: Request) {
         availability,
         salary_min: salary_min ?? null,
         bio,
+        phone_calls_enabled,
+        whatsapp_enabled,
         photo_url,
         cv_url,
         is_visible: true,

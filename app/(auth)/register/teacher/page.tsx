@@ -65,6 +65,8 @@ interface FormData {
   bio: string
   talent_pool: boolean
   photo_file: File | null
+  phone_calls_enabled: boolean
+  whatsapp_enabled: boolean
 }
 
 // ─── Salary display helper ────────────────────────────────────────────────────
@@ -118,6 +120,7 @@ export default function TeacherRegisterPage() {
     preferred_states: [], willing_to_relocate: false,
     accommodation_needed: false, availability: "", salary_min: "",
     bio: "", talent_pool: true, photo_file: null,
+    phone_calls_enabled: false, whatsapp_enabled: false,
   })
 
   // ── Helpers ───────────────────────────────────────────────────────────────
@@ -699,6 +702,23 @@ export default function TeacherRegisterPage() {
                   <input type="tel" value={formData.phone} onChange={(e) => update("phone", e.target.value)}
                     placeholder="e.g. 08012345678" className={inputClass} />
                   {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone}</p>}
+                  <div className="mt-2 space-y-1.5">
+                    <label className="flex items-center gap-2 text-xs text-gray-600 cursor-pointer">
+                      <input type="checkbox" checked={formData.phone_calls_enabled}
+                        onChange={(e) => update("phone_calls_enabled", e.target.checked)}
+                        className="rounded border-gray-300 text-ink-600 focus:ring-ink-500" />
+                      This number can be used for calls
+                    </label>
+                    <label className="flex items-center gap-2 text-xs text-gray-600 cursor-pointer">
+                      <input type="checkbox" checked={formData.whatsapp_enabled}
+                        onChange={(e) => update("whatsapp_enabled", e.target.checked)}
+                        className="rounded border-gray-300 text-ink-600 focus:ring-ink-500" />
+                      This number is on WhatsApp
+                    </label>
+                    <p className="text-xs text-gray-400">
+                      Only visible to schools on paid plans. Leave both unchecked to keep your number private.
+                    </p>
+                  </div>
                 </div>
               </div>
 

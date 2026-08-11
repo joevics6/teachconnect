@@ -5,7 +5,6 @@
 
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
-import { getActivePlanType, isPremiumPlan } from "@/lib/school-plan"
 
 export async function GET(
   request: NextRequest,
@@ -51,13 +50,11 @@ export async function GET(
 
     if (error) throw error
 
-    // CV downloads are a Standard/Term perk (see pricing page) — strip the
-    // link for Free-plan schools rather than relying on the UI to hide it.
-    const planType = await getActivePlanType(supabase, school.id)
-    const shapedApplicants = isPremiumPlan(planType)
-      ? (applicants || [])
-      : (applicants || []).map((a) => ({ ...a, cv_url: null }))
-
+    // CV downloads for a school's own applicants are free on every plan —
+    // someone who applied to your job isn't a "discovery" the way talent
+    // search is, so there's no reason to withhold their CV once they've
+    // applied. (Talent-page browsing is the paid gate — see
+    // lib/school-plan.ts hasTalentAccess.)
     const jobInfo = {
       ...job,
       total_applicants: applicants?.length || 0,
@@ -66,8 +63,8 @@ export async function GET(
 
     return NextResponse.json({
       job: jobInfo,
-      applicants: shapedApplicants,
-      cv_downloads_locked: !isPremiumPlan(planType),
+      applicants: applicants || [],
+      cv_downloads_locked: false,
     })
   } catch (err) {
     console.error("GET applicants error:", err)

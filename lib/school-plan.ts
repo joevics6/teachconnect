@@ -21,12 +21,12 @@ export async function getActivePlanType(supabase: SupabaseClient, schoolId: stri
   return ((subRows ?? [])[0]?.plan_type as PlanType) || "free"
 }
 
-/** Quiz screening, private postings, CV downloads, applicant notes/alerts — any paid plan. */
+/** Private postings, applicant notes/alerts, CV/TRCN visibility on talent search — any paid plan. */
 export function isPremiumPlan(planType: PlanType): boolean {
   return planType === "standard" || planType === "monthly" || planType === "term"
 }
 
-/** Talent-page browsing and direct messaging are Monthly/Term only — NOT the single-post plan. */
+/** Talent-page browsing and Call/WhatsApp contact buttons are Monthly/Term only — NOT the single-post plan. */
 export function hasTalentAccess(planType: PlanType): boolean {
   return planType === "monthly" || planType === "term"
 }

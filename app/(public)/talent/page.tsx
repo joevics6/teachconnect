@@ -419,6 +419,7 @@ export default function TalentPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [totalCount, setTotalCount] = useState(0)
   const [isPremium, setIsPremium] = useState(false)
+  const [schoolPlanType, setSchoolPlanType] = useState<string>("free")
   const [showFilters, setShowFilters] = useState(false)
   const [invitingTeacher, setInvitingTeacher] = useState<string | null>(null)
   const [inviteLoading, setInviteLoading] = useState(false)
@@ -490,6 +491,7 @@ export default function TalentPage() {
       setTeachers(teachersData.teachers || [])
       setTotalCount(teachersData.total || 0)
       setIsPremium(teachersData.is_premium || false)
+      setSchoolPlanType(teachersData.plan_type || "free")
       setJobs(jobsData.jobs || [])
     } catch (err) {
       console.error("Failed to fetch talent:", err)
@@ -554,7 +556,7 @@ export default function TalentPage() {
                 <Lock className="h-4 w-4 text-yellow-600 flex-shrink-0" />
                 <div>
                   <p className="text-xs font-semibold text-yellow-800">
-                    Free Plan — {FREE_TIER_LIMIT} profiles visible
+                    {schoolPlanType === "free" ? "Free Plan" : "Your Plan"} — {FREE_TIER_LIMIT} profiles visible
                   </p>
                   <Link
                     href="/dashboard/school/subscription"

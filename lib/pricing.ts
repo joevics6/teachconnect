@@ -51,7 +51,7 @@ export const PLANS: Record<Exclude<PlanType, "free">, PlanDetails> = {
       "Private posting option",
       "Applicant notes + email alerts",
     ],
-    limitations: ["No talent page access", "No direct messaging"],
+    limitations: ["Limited talent page access (5 profiles/search)", "No Call/WhatsApp contact buttons"],
   },
   monthly: {
     id: "monthly",
@@ -71,7 +71,7 @@ export const PLANS: Record<Exclude<PlanType, "free">, PlanDetails> = {
       "Private posting option",
       "1 featured listing included",
       "Unlimited talent page browsing",
-      "Direct messaging to teachers",
+      "Call & WhatsApp contact buttons",
       "Analytics dashboard",
     ],
   },
@@ -119,7 +119,7 @@ export const ADDONS = {
 
 export type AddonType = keyof typeof ADDONS
 
-/** Free plan's job-posting cap — LIFETIME total (any status), not concurrent. Upgrading is the only way to post more. */
+/** Free plan's job-posting cap — per calendar month (resets on the 1st), not lifetime. */
 export const FREE_PLAN_JOB_LIMIT = 3
 
 /** How many teacher profiles a Free-plan school can view per talent search. */

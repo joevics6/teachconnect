@@ -203,12 +203,13 @@ function PostJobPageInner() {
   // many they've used. null while still loading (toggle stays enabled
   // but the "pay" framing only appears once we actually know the price).
   const [featuredRemaining, setFeaturedRemaining] = useState<number | null>(null)
-  // null while loading — premium-only controls (quiz, private posting,
-  // AI parser) stay locked until we actually know the plan, so they
-  // never flash as enabled then get yanked away. Featured Listing is
-  // the one exception — it's available on EVERY plan including Free,
-  // just priced differently (see getFeaturedAddonPrice), so it never
-  // checks this flag to lock itself.
+  // null while loading — the Private Posting toggle stays locked until we
+  // actually know the plan, so it never flashes as enabled then gets
+  // yanked away. Featured Listing and Quiz Screening are exceptions —
+  // Quiz Screening is free on every plan (no lock at all), and Featured
+  // Listing is available on EVERY plan including Free, just priced
+  // differently (see getFeaturedAddonPrice), so neither checks this flag
+  // to lock itself.
   const [isPaidPlan, setIsPaidPlan] = useState<boolean | null>(null)
   const [featuredPaymentReference, setFeaturedPaymentReference] = useState<string | null>(null)
   const [payingForFeatured, setPayingForFeatured] = useState(false)
@@ -908,25 +909,18 @@ function PostJobPageInner() {
             <div className="flex items-center justify-between mb-2">
               <h2 className="font-bold text-gray-900 flex items-center gap-2">
                 Quiz Screening
-                <span className={`px-2 py-0.5 text-xs rounded-full font-medium ${
-                  isPaidPlan === false ? "bg-purple-100 text-purple-700" : "bg-ink-100 text-ink-700"
-                }`}>
-                  {isPaidPlan === false ? "Premium" : "Recommended"}
+                <span className="px-2 py-0.5 text-xs rounded-full font-medium bg-ink-100 text-ink-700">
+                  Recommended
                 </span>
               </h2>
               <Toggle
                 value={formData.quiz_enabled}
                 onChange={(v) => update("quiz_enabled", v)}
                 color="green"
-                locked={isPaidPlan !== true}
               />
             </div>
             <p className="text-gray-500 text-xs mb-5">
-              {isPaidPlan === false ? (
-                <>Requires a paid plan (Single Post, Monthly, or Term) — <Link href="/dashboard/school/subscription" className="text-ink-600 underline font-medium">Upgrade</Link></>
-              ) : (
-                "Teachers must pass a subject quiz before their application reaches you. Only qualified candidates get through."
-              )}
+              Teachers must pass a subject quiz before their application reaches you. Only qualified candidates get through.
             </p>
 
             {formData.quiz_enabled && (

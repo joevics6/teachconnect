@@ -22,8 +22,12 @@ import {
   Zap,
   Trophy,
   TrendingUp,
+  Phone,
+  MessageCircle,
+  Lock,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { toE164Nigeria } from "@/lib/utils"
 import { getInitials } from "@/lib/utils"
 
 // ─── Types ───────────────────────────────────────────────────
@@ -34,6 +38,8 @@ interface TeacherProfile {
   state: string
   lga: string
   phone: string
+  phone_calls_enabled?: boolean
+  whatsapp_enabled?: boolean
   subjects: string[]
   teaching_levels: string[]
   level_subjects?: { level: string; subjects: string[] }[]
@@ -225,6 +231,7 @@ export default function TeacherProfilePage() {
   const [viewerRole, setViewerRole] = useState<"teacher" | "school" | "guest">(
     "guest"
   )
+  const [viewerHasContactAccess, setViewerHasContactAccess] = useState(false)
   const [isTogglingVisibility, setIsTogglingVisibility] = useState(false)
 
   useEffect(() => {
@@ -239,6 +246,7 @@ export default function TeacherProfilePage() {
         setProfile(data.profile)
         setQuizResults(data.quiz_results || [])
         setViewerRole(data.viewer_role || "guest")
+        setViewerHasContactAccess(data.viewer_has_contact_access || false)
 
         // Detect own profile — fetch logged-in teacher's ID and compare
         try {
@@ -907,6 +915,38 @@ export default function TeacherProfilePage() {
                       <Download className="h-4 w-4" />
                       {downloadingCv ? "Opening..." : "Download CV"}
                     </Button>
+                  )}
+                  {viewerHasContactAccess ? (
+                    <>
+                      {profile.phone_calls_enabled && profile.phone && (
+                        <a href={`tel:${toE164Nigeria(profile.phone) || profile.phone}`} className="block">
+                          <Button variant="outline" className="w-full flex items-center gap-2">
+                            <Phone className="h-4 w-4" />
+                            Call {profile.full_name.split(" ")[0]}
+                          </Button>
+                        </a>
+                      )}
+                      {profile.whatsapp_enabled && toE164Nigeria(profile.phone) && (
+                        <a
+                          href={`https://wa.me/${toE164Nigeria(profile.phone)!.replace("+", "")}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="block"
+                        >
+                          <Button variant="outline" className="w-full flex items-center gap-2 border-green-200 text-green-700 hover:bg-green-50">
+                            <MessageCircle className="h-4 w-4" />
+                            WhatsApp {profile.full_name.split(" ")[0]}
+                          </Button>
+                        </a>
+                      )}
+                    </>
+                  ) : (
+                    <Link href="/dashboard/school/subscription" className="block">
+                      <Button variant="outline" className="w-full flex items-center gap-2 text-gray-500">
+                        <Lock className="h-4 w-4" />
+                        Call/WhatsApp — Monthly or Term plan
+                      </Button>
+                    </Link>
                   )}
                 </div>
               )}

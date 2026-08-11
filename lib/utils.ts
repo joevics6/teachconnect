@@ -33,6 +33,24 @@ export function getInitials(name: string | null | undefined): string {
   return initials || "?"
 }
 
+/**
+ * Normalizes a Nigerian phone number to E.164 (+234...) for tel:/wa.me
+ * links. Handles the common input shapes: local "080...", "+234...",
+ * "234...", and anything with spaces/dashes. Returns null if the
+ * number doesn't look like a valid 10-digit Nigerian subscriber number
+ * once normalized, rather than producing a broken link.
+ */
+export function toE164Nigeria(phone: string | null | undefined): string | null {
+  if (!phone) return null
+  const digits = phone.replace(/\D/g, "")
+  let national: string | null = null
+  if (digits.startsWith("234") && digits.length === 13) national = digits.slice(3)
+  else if (digits.startsWith("0") && digits.length === 11) national = digits.slice(1)
+  else if (digits.length === 10) national = digits
+  if (!national || national.length !== 10) return null
+  return `+234${national}`
+}
+
 export function calculateProfileCompletion(
   profile: Record<string, unknown>
 ): number {

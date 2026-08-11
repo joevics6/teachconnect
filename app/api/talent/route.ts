@@ -62,13 +62,15 @@ export async function GET(request: Request) {
     const school = (schoolRows ?? [])[0] ?? null
 
     let isPremium = false
+    let planTypeForResponse: PlanType = "free"
     if (school) {
       const { data: subRows } = await supabase
         .from("subscriptions").select("id, plan_type")
         .eq("school_id", school.id).eq("is_active", true)
         .gte("expires_at", new Date().toISOString())
         .order("created_at", { ascending: false }).limit(1)
-      isPremium = hasTalentAccess(((subRows ?? [])[0]?.plan_type as PlanType) || "free")
+      planTypeForResponse = ((subRows ?? [])[0]?.plan_type as PlanType) || "free"
+      isPremium = hasTalentAccess(planTypeForResponse)
     }
 
     // Filters
@@ -127,7 +129,7 @@ export async function GET(request: Request) {
       match_score: calcMatchScore(t as Record<string, unknown>, { subject, level, state }),
     })).sort((a, b) => b.match_score - a.match_score)
 
-    return NextResponse.json({ teachers: scored, total: subject && level ? filtered.length : (count || 0), is_premium: isPremium })
+    return NextResponse.json({ teachers: scored, total: subject && level ? filtered.length : (count || 0), is_premium: isPremium, plan_type: planTypeForResponse })
   } catch (err) {
     console.error("GET /api/talent error:", err)
     return NextResponse.json({ error: "Failed to fetch teachers" }, { status: 500 })

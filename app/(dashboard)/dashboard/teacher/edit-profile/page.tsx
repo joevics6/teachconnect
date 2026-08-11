@@ -29,6 +29,8 @@ interface ProfileForm {
   availability: "immediate" | "2-weeks" | "1-month" | "employed" | "part-time" | "online" | "weekend"
   salary_min: number | ""
   demo_video_url: string
+  phone_calls_enabled: boolean
+  whatsapp_enabled: boolean
 }
 
 const AVAILABILITY_OPTIONS = [
@@ -50,6 +52,7 @@ export default function EditTeacherProfilePage() {
     willing_to_relocate: false, accommodation_needed: false,
     availability: "immediate", salary_min: "",
     demo_video_url: "",
+    phone_calls_enabled: false, whatsapp_enabled: false,
   })
   const [loading, setLoading]       = useState(true)
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -119,6 +122,8 @@ export default function EditTeacherProfilePage() {
           availability:        p.availability       || "immediate",
           salary_min:          p.salary_min         ?? "",
           demo_video_url:      p.demo_video_url     || "",
+          phone_calls_enabled: p.phone_calls_enabled ?? false,
+          whatsapp_enabled:    p.whatsapp_enabled    ?? false,
         })
       })
       .catch(console.error)
@@ -433,6 +438,23 @@ export default function EditTeacherProfilePage() {
               className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ink-500"
               placeholder="e.g. 08012345678"
             />
+            <div className="mt-2 space-y-1.5">
+              <label className="flex items-center gap-2 text-xs text-gray-600 cursor-pointer">
+                <input type="checkbox" checked={form.phone_calls_enabled}
+                  onChange={(e) => setForm({ ...form, phone_calls_enabled: e.target.checked })}
+                  className="rounded border-gray-300 text-ink-600 focus:ring-ink-500" />
+                This number can be used for calls
+              </label>
+              <label className="flex items-center gap-2 text-xs text-gray-600 cursor-pointer">
+                <input type="checkbox" checked={form.whatsapp_enabled}
+                  onChange={(e) => setForm({ ...form, whatsapp_enabled: e.target.checked })}
+                  className="rounded border-gray-300 text-ink-600 focus:ring-ink-500" />
+                This number is on WhatsApp
+              </label>
+              <p className="text-xs text-gray-400">
+                Only visible to schools on paid plans. Leave both unchecked to keep your number private.
+              </p>
+            </div>
           </div>
 
           <StateLgaSelect

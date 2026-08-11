@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
-import { isPremiumPlan } from "@/lib/school-plan"
+import { hasTalentAccess, isPremiumPlan } from "@/lib/school-plan"
 import type { PlanType } from "@/lib/school-plan"
 
 export async function GET(
@@ -13,7 +13,12 @@ export async function GET(
 
     // Determine viewer role from auth metadata — avoids users table lookup
     let viewerRole: "teacher" | "school" | "guest" = "guest"
+    // CV/TRCN: any paid plan (Single Post, Monthly, or Term) — matches the
+    // CV-download gate for talent-search discovery in cv-signed-url/route.ts.
     let viewerIsPremiumSchool = false
+    // Phone + Call/WhatsApp buttons: Monthly/Term only — this is the paid
+    // "contact" tier, not just "posted a job once" (see hasTalentAccess).
+    let viewerHasContactAccess = false
     const { data: { user } } = await supabase.auth.getUser()
     if (user) {
       const role = user.user_metadata?.role
@@ -30,7 +35,9 @@ export async function GET(
             .eq("school_id", school.id).eq("is_active", true)
             .gte("expires_at", new Date().toISOString())
             .order("created_at", { ascending: false }).limit(1)
-          viewerIsPremiumSchool = isPremiumPlan(((subRows ?? [])[0]?.plan_type as PlanType) || "free")
+          const planType = ((subRows ?? [])[0]?.plan_type as PlanType) || "free"
+          viewerIsPremiumSchool = isPremiumPlan(planType)
+          viewerHasContactAccess = hasTalentAccess(planType)
         }
       }
     }
@@ -45,7 +52,7 @@ export async function GET(
          willing_to_relocate, accommodation_needed, availability,
          salary_min, salary_max, bio, photo_url, profile_completion,
          is_visible, created_at,
-         cv_url, phone`
+         cv_url, phone, phone_calls_enabled, whatsapp_enabled`
       )
       .eq("id", id)
       .order("created_at", { ascending: false })
@@ -60,13 +67,19 @@ export async function GET(
       )
     }
 
-    // Hide phone/cv/TRCN number from non-premium-school viewers — only
-    // paying schools (any paid plan) get contact details, matching
-    // the paywall already shown on the talent browse page.
+    // Hide CV/TRCN number from non-premium-school viewers — any paid plan
+    // gets these, matching the talent-page CV-download paywall.
     if (!viewerIsPremiumSchool) {
       delete (profile as Record<string, unknown>).cv_url
-      delete (profile as Record<string, unknown>).phone
       delete (profile as Record<string, unknown>).trcn_number
+    }
+
+    // Phone number + Call/WhatsApp buttons are a Monthly/Term-only perk —
+    // stricter than the CV/TRCN gate above.
+    if (!viewerHasContactAccess) {
+      delete (profile as Record<string, unknown>).phone
+      delete (profile as Record<string, unknown>).phone_calls_enabled
+      delete (profile as Record<string, unknown>).whatsapp_enabled
     }
 
     // Quiz results — show to schools
@@ -94,6 +107,7 @@ export async function GET(
       quiz_results: quizResults,
       viewer_role:  viewerRole,
       viewer_is_premium: viewerIsPremiumSchool,
+      viewer_has_contact_access: viewerHasContactAccess,
     })
   } catch (err) {
     console.error("GET public teacher profile error:", err)
