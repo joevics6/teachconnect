@@ -4,7 +4,7 @@ import Link from "next/link"
 import {
   Search, FileCheck, Building2, MapPin,
   CheckCircle2, BookOpen, Shield, ArrowRight, X,
-  Star, Users, GraduationCap,
+  Users, GraduationCap,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useAuth, type AuthUser } from "@/lib/auth-context"
@@ -208,19 +208,12 @@ export default function HomePage() {
               lg up it switches to the left-aligned column beside the
               product visual. */}
           <div className="text-center lg:text-left">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-ink-50 text-ink-700 text-xs font-semibold uppercase tracking-wide rounded-full mb-5">
-              <Star className="h-3.5 w-3.5 text-brass-500" />
-              Built for Nigerian schools & teachers
-            </div>
-            <h1 className="font-display text-[2rem] sm:text-5xl lg:text-[3.4rem] text-ink-950 leading-[1.25] sm:leading-[1.08] mb-5">
+            <h1 className="font-display text-[2.25rem] sm:text-5xl lg:text-[3.4rem] text-ink-950 leading-[1.2] sm:leading-[1.08] mb-5">
               Stop drowning in CVs.<br />
-              <span className="italic text-ink-600">Start hiring teachers who can actually teach.</span>
+              <span className="italic text-ink-600">Start hiring teachers<br className="sm:hidden" /> who can actually teach.</span>
             </h1>
-            <p className="text-lg text-gray-600 mb-2.5 leading-relaxed max-w-lg mx-auto lg:mx-0">
-              A subject quiz screens every applicant automatically — schools open a ranked shortlist, not a 200-CV inbox.
-            </p>
-            <p className="text-base text-gray-500 mb-8 max-w-lg mx-auto lg:mx-0">
-              Teachers build a profile once and get matched to schools hiring for their subject and level.
+            <p className="text-lg text-gray-600 mb-8 leading-relaxed max-w-lg mx-auto lg:mx-0">
+              Every teacher takes a short subject quiz before applying, so instead of hundreds of CVs, you get a shortlist already ranked by who knows the subject best.
             </p>
             <div className="mx-auto lg:mx-0 w-fit">
               <HeroCTAs user={user} isLoading={isLoading} dashboardLink={dashboardLink} />
@@ -234,6 +227,9 @@ export default function HomePage() {
                 </div>
               ))}
             </div>
+            <p className="text-sm text-gray-500 mt-4 max-w-lg mx-auto lg:mx-0">
+              Teachers build a profile once and get matched to schools hiring for their subject and level.
+            </p>
           </div>
 
           <div className="relative flex justify-center lg:justify-end">
