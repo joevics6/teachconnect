@@ -212,7 +212,7 @@ export default function HomePage() {
               <Star className="h-3.5 w-3.5 text-brass-500" />
               Built for Nigerian schools & teachers
             </div>
-            <h1 className="font-display text-4xl sm:text-5xl lg:text-[3.4rem] text-ink-950 leading-[1.08] mb-5">
+            <h1 className="font-display text-[2rem] sm:text-5xl lg:text-[3.4rem] text-ink-950 leading-[1.25] sm:leading-[1.08] mb-5">
               Stop drowning in CVs.<br />
               <span className="italic text-ink-600">Start hiring teachers who can actually teach.</span>
             </h1>
