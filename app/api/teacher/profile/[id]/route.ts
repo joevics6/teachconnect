@@ -102,9 +102,22 @@ export async function GET(
       }))
     }
 
+    // Subject Mastery quiz results — scoped to the profile being viewed
+    // (not the viewer). Previously the frontend called a separate
+    // endpoint that always returned the LOGGED-IN caller's own results
+    // regardless of which profile page they were on — so it only ever
+    // worked by coincidence for a teacher viewing their own profile
+    // while actively logged in, and never for schools or guests.
+    const { data: specResults } = await supabase
+      .from("specialization_quiz_results")
+      .select("id, subject, level, score, correct_answers, total_questions, time_taken_seconds, percentile, created_at")
+      .eq("teacher_id", id)
+      .order("created_at", { ascending: false })
+
     return NextResponse.json({
       profile,
       quiz_results: quizResults,
+      specialization_results: specResults || [],
       viewer_role:  viewerRole,
       viewer_is_premium: viewerIsPremiumSchool,
       viewer_has_contact_access: viewerHasContactAccess,

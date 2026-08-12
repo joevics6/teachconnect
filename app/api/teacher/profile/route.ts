@@ -38,7 +38,7 @@ export async function GET() {
     }
 
     // Fetch onboarding_data in parallel with quiz results
-    const [quizRes, onboardingRes] = await Promise.all([
+    const [quizRes, onboardingRes, specRes] = await Promise.all([
       supabase
         .from("quiz_attempts")
         .select("id, score, passed, mode, created_at, jobs(subject)")
@@ -58,7 +58,12 @@ export async function GET() {
         `)
         .eq("user_id", user.id)
         .order("created_at", { ascending: false })
-        .limit(1)
+        .limit(1),
+      supabase
+        .from("specialization_quiz_results")
+        .select("id, subject, level, score, correct_answers, total_questions, time_taken_seconds, percentile, created_at")
+        .eq("teacher_id", profile.id)
+        .order("created_at", { ascending: false })
     ])
 
     const formattedResults = (quizRes.data || []).map((r) => ({
@@ -105,6 +110,7 @@ export async function GET() {
     return NextResponse.json({
       profile: mergedProfile,
       quiz_results: formattedResults,
+      specialization_results: specRes.data || [],
       viewer_role: "teacher",
     })
   } catch (err) {

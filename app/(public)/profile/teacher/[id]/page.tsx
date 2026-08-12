@@ -245,6 +245,7 @@ export default function TeacherProfilePage() {
         const data = await response.json()
         setProfile(data.profile)
         setQuizResults(data.quiz_results || [])
+        setSpecializationResults(data.specialization_results || [])
         setViewerRole(data.viewer_role || "guest")
         setViewerHasContactAccess(data.viewer_has_contact_access || false)
 
@@ -258,18 +259,6 @@ export default function TeacherProfilePage() {
             }
           }
         } catch { /* not a teacher or not logged in */ }
-
-        // Fetch specialization quiz results separately
-        const specUrl = isOwnProfile
-          ? "/api/teacher/specialization-quiz/results"
-          : "/api/teacher/specialization-quiz/results"
-        try {
-          const specRes = await fetch(specUrl)
-          if (specRes.ok) {
-            const specData = await specRes.json()
-            setSpecializationResults(specData.results || [])
-          }
-        } catch { /* non-critical */ }
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load profile")
       } finally {

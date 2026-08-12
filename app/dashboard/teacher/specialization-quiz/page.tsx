@@ -80,12 +80,31 @@ function getOrdinal(n: number) {
 
 // ─── Subject Selection Screen ─────────────────────────────────
 
-function SubjectSelectScreen({ onSelect }: { onSelect: (subject: string, level: string) => void }) {
+interface CompletedEntry {
+  retake_available: boolean
+  retake_available_at: string
+}
+
+function SubjectSelectScreen({
+  onSelect,
+  completedMap,
+}: {
+  onSelect: (subject: string, level: string) => void
+  completedMap: Record<string, CompletedEntry>
+}) {
   const [selected,      setSelected]      = useState("")
   const [selectedLevel, setSelectedLevel] = useState<TeachingLevel | "">("")
   const [sidebarOpen,   setSidebarOpen]   = useState(false)
 
   const subjectOptions = selectedLevel ? getSubjectsForLevel(selectedLevel) : []
+  const key = (subject: string, level: string) => `${subject}::${level}`
+  const cooldownFor = (subject: string, level: string) => {
+    const entry = completedMap[key(subject, level)]
+    if (!entry || entry.retake_available) return null
+    return entry.retake_available_at
+  }
+  const formatRetakeDate = (iso: string) =>
+    new Date(iso).toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" })
 
   const chooseLevel = (level: TeachingLevel) => {
     setSelectedLevel(level)
@@ -93,6 +112,8 @@ function SubjectSelectScreen({ onSelect }: { onSelect: (subject: string, level: 
     // Nursery/Primary only have one subject — select it automatically.
     setSelected(options.length === 1 ? options[0] : "")
   }
+
+  const selectedCooldown = selected && selectedLevel ? cooldownFor(selected, selectedLevel) : null
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
@@ -143,19 +164,26 @@ function SubjectSelectScreen({ onSelect }: { onSelect: (subject: string, level: 
             Teaching level
           </label>
           <div className="space-y-2">
-            {LEVELS.map((l) => (
-              <button
-                key={l.value}
-                onClick={() => chooseLevel(l.value)}
-                className={`w-full text-left px-4 py-2.5 rounded-xl border text-sm font-medium transition-all ${
-                  selectedLevel === l.value
-                    ? "border-ink-500 bg-ink-50 text-ink-700"
-                    : "border-gray-200 text-gray-600 hover:border-gray-300"
-                }`}
-              >
-                {l.label}
-              </button>
-            ))}
+            {LEVELS.map((l) => {
+              const levelSubjects = getSubjectsForLevel(l.value)
+              const allOnCooldown = levelSubjects.length > 0 && levelSubjects.every((s) => cooldownFor(s, l.value))
+              return (
+                <button
+                  key={l.value}
+                  onClick={() => chooseLevel(l.value)}
+                  className={`w-full text-left px-4 py-2.5 rounded-xl border text-sm font-medium transition-all flex items-center justify-between ${
+                    selectedLevel === l.value
+                      ? "border-ink-500 bg-ink-50 text-ink-700"
+                      : "border-gray-200 text-gray-600 hover:border-gray-300"
+                  }`}
+                >
+                  {l.label}
+                  {allOnCooldown && (
+                    <span className="text-xs text-gray-400 font-normal">Completed</span>
+                  )}
+                </button>
+              )
+            })}
           </div>
         </div>
 
@@ -171,11 +199,14 @@ function SubjectSelectScreen({ onSelect }: { onSelect: (subject: string, level: 
               className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-ink-500 bg-white"
             >
               <option value="">Choose a subject...</option>
-              {subjectOptions.map((s) => (
-                <option key={s} value={s}>
-                  {s}
-                </option>
-              ))}
+              {subjectOptions.map((s) => {
+                const cooldown = cooldownFor(s, selectedLevel)
+                return (
+                  <option key={s} value={s}>
+                    {s}{cooldown ? ` — retake available ${formatRetakeDate(cooldown)}` : ""}
+                  </option>
+                )
+              })}
             </select>
           </div>
         )}
@@ -183,12 +214,17 @@ function SubjectSelectScreen({ onSelect }: { onSelect: (subject: string, level: 
         {selectedLevel && subjectOptions.length === 1 && (
           <div className="bg-ink-50 border border-ink-200 rounded-xl p-4 mb-5 text-sm text-ink-700">
             This quiz covers <strong>{subjectOptions[0]}</strong> — one broad assessment for this level.
+            {selectedCooldown && (
+              <p className="text-xs text-ink-500 mt-1.5">
+                Already taken — you can retake it on {formatRetakeDate(selectedCooldown)}.
+              </p>
+            )}
           </div>
         )}
 
         <Button
-          onClick={() => selected && selectedLevel && onSelect(selected, selectedLevel)}
-          disabled={!selected || !selectedLevel}
+          onClick={() => selected && selectedLevel && !selectedCooldown && onSelect(selected, selectedLevel)}
+          disabled={!selected || !selectedLevel || !!selectedCooldown}
           className="w-full bg-ink-600 hover:bg-ink-700 text-white py-3 text-base font-semibold"
         >
           <Zap className="h-5 w-5 mr-2" />
@@ -637,6 +673,7 @@ function SpecializationQuizPage() {
   const router = useRouter()
 
   const [phase, setPhase] = useState<"select" | "loading" | "error" | "already-taken" | "quiz" | "results">("select")
+  const [completedMap, setCompletedMap] = useState<Record<string, CompletedEntry>>({})
   const [selectedSubject, setSelectedSubject] = useState("")
   const [selectedLevel,   setSelectedLevel]   = useState("")
   const [meta, setMeta] = useState<QuizMeta | null>(null)
@@ -689,6 +726,23 @@ function SpecializationQuizPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  // Fetch past results upfront so the select screen can show which
+  // subjects are already completed / still in their 30-day cooldown,
+  // instead of only surfacing that after the teacher picks one.
+  useEffect(() => {
+    fetch("/api/teacher/specialization-quiz/results")
+      .then(async (res) => {
+        if (!res.ok) return
+        const data = await res.json()
+        const map: Record<string, CompletedEntry> = {}
+        for (const r of (data.results || []) as Array<{ subject: string; level: string; retake_available: boolean; retake_available_at: string }>) {
+          map[`${r.subject}::${r.level}`] = { retake_available: r.retake_available, retake_available_at: r.retake_available_at }
+        }
+        setCompletedMap(map)
+      })
+      .catch(() => { /* non-critical */ })
+  }, [])
+
   const handleComplete = (quizResult: QuizResult) => {
     setResult(quizResult)
     setPhase("results")
@@ -707,7 +761,7 @@ function SpecializationQuizPage() {
   }
 
   if (phase === "select") {
-    return <SubjectSelectScreen onSelect={loadQuiz} />
+    return <SubjectSelectScreen onSelect={loadQuiz} completedMap={completedMap} />
   }
 
   if (phase === "loading") {
