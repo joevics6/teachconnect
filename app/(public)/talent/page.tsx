@@ -1,7 +1,8 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, Suspense } from "react"
 import Link from "next/link"
+import { useSearchParams } from "next/navigation"
 import {
   Search,
   MapPin,
@@ -410,7 +411,9 @@ function InviteModal({
 
 const FREE_TIER_LIMIT = FREE_PLAN_TALENT_LIMIT
 
-export default function TalentPage() {
+function TalentPageContent() {
+  const searchParams = useSearchParams()
+  const inviteJobId = searchParams.get("invite_job")
   const { user } = useAuth()
   const isSchoolUser = user?.role === "school"
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -568,6 +571,20 @@ export default function TalentPage() {
               </div>
             )}
           </div>
+
+          {/* Invite-for-job banner */}
+          {inviteJobId && (
+            <div className="flex items-center justify-between gap-3 px-4 py-2.5 bg-ink-50 border border-ink-200 rounded-xl mb-4">
+              <p className="text-xs text-ink-700">
+                <span className="font-semibold">Inviting for:</span>{" "}
+                {jobs.find((j) => j.id === inviteJobId)?.title || "this job"} — click{" "}
+                <span className="font-semibold">Invite to Apply</span> on any teacher below to send it directly.
+              </p>
+              <Link href="/talent" className="text-xs text-ink-600 hover:underline flex-shrink-0">
+                Clear
+              </Link>
+            </div>
+          )}
 
           {/* Search */}
           <div className="flex gap-3">
@@ -814,7 +831,10 @@ export default function TalentPage() {
                 key={teacher.id}
                 teacher={teacher}
                 isLocked={!isPremium && index >= FREE_TIER_LIMIT}
-                onInvite={(teacherId) => setInvitingTeacher(teacherId)}
+                onInvite={(teacherId) => {
+                  if (inviteJobId) handleInvite(teacherId, inviteJobId)
+                  else setInvitingTeacher(teacherId)
+                }}
                 inviting={null}
               />
             ))}
@@ -856,5 +876,13 @@ export default function TalentPage() {
       )}
       </div>
     </div>
+  )
+}
+
+export default function TalentPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gray-50 flex items-center justify-center"><Loader2 className="h-8 w-8 text-ink-600 animate-spin" /></div>}>
+      <TalentPageContent />
+    </Suspense>
   )
 }

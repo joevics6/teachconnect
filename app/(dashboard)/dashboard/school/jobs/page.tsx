@@ -18,6 +18,7 @@ import {
   AlertCircle,
   MoreVertical,
   CalendarPlus,
+  Send,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { SchoolSidebar } from "@/components/dashboard/SchoolSidebar"
@@ -460,6 +461,14 @@ function SchoolJobsContent() {
                           <Clock className="h-3 w-3" />
                           {new Date(job.created_at).toLocaleDateString("en-NG", { day: "numeric", month: "short" })}
                         </span>
+                        {job.status === "active" && (
+                          <Link href={`/talent?invite_job=${job.id}`}>
+                            <Button size="sm" variant="outline" className="text-xs h-7 flex items-center gap-1">
+                              <Send className="h-3 w-3" />
+                              Invite Teachers
+                            </Button>
+                          </Link>
+                        )}
                         <Link href={`/dashboard/school/jobs/${job.id}/applicants`}>
                           <Button size="sm" className="text-xs h-7 bg-ink-700 hover:bg-ink-800 text-white flex items-center gap-1">
                             <Users className="h-3 w-3" />
