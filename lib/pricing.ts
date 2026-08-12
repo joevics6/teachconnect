@@ -45,7 +45,7 @@ export const PLANS: Record<Exclude<PlanType, "free">, PlanDetails> = {
     description: "Perfect for schools that hire occasionally.",
     features: [
       "Single job posting (30 days)",
-      "Full quiz screening (all 3 modes)",
+      "Full quiz screening (Standard & Speed)",
       "Ranked shortlist + full applicant pipeline",
       "Download applicant CVs",
       "Private posting option",
@@ -65,7 +65,7 @@ export const PLANS: Record<Exclude<PlanType, "free">, PlanDetails> = {
     description: "For schools hiring regularly.",
     features: [
       "5 active job postings at a time",
-      "Full quiz screening (all 3 modes)",
+      "Full quiz screening (Standard & Speed)",
       "Ranked shortlist + full applicant pipeline",
       "Download applicant CVs",
       "Private posting option",

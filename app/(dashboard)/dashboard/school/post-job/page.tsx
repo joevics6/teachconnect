@@ -54,6 +54,11 @@ const QUIZ_MODES = [
     desc: "Answer as many as possible in the time. Tests breadth of knowledge.",
     color: "orange",
   },
+  // Written mode is temporarily hidden from the picker below (filtered
+  // out where QUIZ_MODES is rendered) — re-enable by removing that
+  // filter once it's ready to relaunch. Left in this array, and all the
+  // formData.quiz_mode === "written" branches elsewhere in this file,
+  // untouched so existing written-mode jobs still render/work correctly.
   {
     value: "written",
     label: "Written Quiz",
@@ -932,7 +937,7 @@ function PostJobPageInner() {
                     Quiz Mode
                   </label>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    {QUIZ_MODES.map((mode) => {
+                    {QUIZ_MODES.filter((mode) => mode.value !== "written").map((mode) => {
                       const Icon = mode.icon
                       const isSelected = formData.quiz_mode === mode.value
                       const colorMap: Record<string, string> = {

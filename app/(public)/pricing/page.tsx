@@ -56,7 +56,7 @@ const PLANS: Plan[] = [
     features: [
       `${FREE_PLAN_JOB_LIMIT} job postings per month`,
       "In-app applications",
-      "Full quiz screening (all 3 modes)",
+      "Full quiz screening (Standard & Speed)",
       "Full applicant pipeline + CV downloads",
       `View first ${FREE_PLAN_TALENT_LIMIT} teacher profiles per search`,
       "School public profile page",
@@ -298,7 +298,7 @@ function PlanCard({
 const COMPARISON_ROWS = [
   { feature: "Active job postings", free: `${FREE_PLAN_JOB_LIMIT} per month`, standard: "1 posting", monthly: "5 at a time", term: "10 at a time" },
   { feature: "Quiz screening", free: true, standard: true, monthly: true, term: true },
-  { feature: "Quiz modes", free: "All 3 modes", standard: "All 3 modes", monthly: "All 3 modes", term: "All 3 modes" },
+  { feature: "Quiz modes", free: "Standard & Speed", standard: "Standard & Speed", monthly: "Standard & Speed", term: "Standard & Speed" },
   { feature: "Applicant pipeline", free: "Full", standard: "Full", monthly: "Full", term: "Full" },
   { feature: "Download CVs", free: true, standard: true, monthly: true, term: true },
   { feature: "Private postings", free: false, standard: true, monthly: true, term: true },
