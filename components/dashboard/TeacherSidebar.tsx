@@ -25,6 +25,7 @@ import {
   Loader2,
 } from "lucide-react"
 import { LogoutButton } from "@/components/layout/LogoutButton"
+import { AdminLink } from "@/components/dashboard/AdminLink"
 import { Logo } from "@/components/ui/Logo"
 import { getInitials } from "@/lib/utils"
 
@@ -190,6 +191,7 @@ export function TeacherSidebar({ open, onClose }: { open: boolean; onClose: () =
         </nav>
 
         <div className="p-3 border-t border-gray-100">
+          <AdminLink />
           <LogoutButton />
         </div>
       </aside>

@@ -20,6 +20,7 @@ import {
   X,
 } from "lucide-react"
 import { LogoutButton } from "@/components/layout/LogoutButton"
+import { AdminLink } from "@/components/dashboard/AdminLink"
 import { Logo } from "@/components/ui/Logo"
 
 // "Applicants" isn't its own page — applicants are reviewed per-job from
@@ -161,6 +162,7 @@ export function SchoolSidebar({ open, onClose }: { open: boolean; onClose: () =>
         </nav>
 
         <div className="p-3 border-t border-gray-100">
+          <AdminLink />
           <LogoutButton />
         </div>
       </aside>
