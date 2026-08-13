@@ -226,7 +226,11 @@ export async function POST(request: Request) {
       required_qualifications:  body.required_qualifications,
       preferred_qualifications: body.preferred_qualifications || null,
       deadline:                 body.deadline,
-      status:                   "active",
+      // Every new job now needs admin approval before it's publicly
+      // visible — see /admin/jobs. The existing "status = 'active'"
+      // read policies are the actual gate; nothing else needed to
+      // change for a pending job to stay hidden until approved.
+      status:                   "pending_approval",
     }
 
     const { data: newJob, error: insertError } = await supabase

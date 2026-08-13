@@ -66,7 +66,7 @@ export async function checkJobPostingLimit(supabase: SupabaseClient, schoolId: s
       .from("jobs")
       .select("id", { count: "exact", head: true })
       .eq("school_id", schoolId)
-      .in("status", ["active", "closed"])
+      .in("status", ["active", "closed", "pending_approval"])
       .gte("created_at", monthStart)
 
     if ((jobsThisMonth || 0) >= FREE_PLAN_JOB_LIMIT) {
@@ -84,7 +84,7 @@ export async function checkJobPostingLimit(supabase: SupabaseClient, schoolId: s
     .from("jobs")
     .select("id", { count: "exact", head: true })
     .eq("school_id", schoolId)
-    .eq("status", "active")
+    .in("status", ["active", "pending_approval"])
     .gte("created_at", windowStart)
 
   if ((jobsPosted || 0) >= PLANS.standard.job_limit) {

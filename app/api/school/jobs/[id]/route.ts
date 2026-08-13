@@ -51,9 +51,14 @@ export async function PATCH(
       }
     }
 
-    // If this update would turn a non-active job (e.g. a duplicated draft)
-    // into active, it needs to pass the same plan-limit check as creating a
-    // brand new job — otherwise duplicate + activate would bypass the paywall.
+    // If this update would turn a non-active job (e.g. a duplicated draft,
+    // or reopening a closed one) into active, it needs to pass the same
+    // plan-limit check as creating a brand new job — otherwise duplicate +
+    // activate would bypass the paywall. It also now goes to
+    // 'pending_approval' rather than straight to 'active' — every job
+    // needs admin review before going live, and a school directly PATCHing
+    // status:"active" here shouldn't be able to skip that (see
+    // app/api/school/jobs/route.ts for the same rule on brand-new jobs).
     if (updates.status === "active") {
       const { data: existing } = await supabase
         .from("jobs")
@@ -67,6 +72,7 @@ export async function PATCH(
         if (!limitCheck.allowed) {
           return NextResponse.json({ error: limitCheck.error, upgrade_required: true }, { status: 402 })
         }
+        updates.status = "pending_approval"
       }
     }
 

@@ -19,17 +19,24 @@ export async function GET(request: Request) {
     const admin = await requireAdmin(supabase)
     if (!admin) return NextResponse.json({ error: "Forbidden" }, { status: 403 })
 
+    // Use the service-role client for the actual reads — teacher_profiles
+    // and school_profiles RLS only grants SELECT to the row's own owner
+    // (or, for teachers, a school account), never an admin. requireAdmin()
+    // above already did the real authorization check against the RLS-bound
+    // session; this client just executes the now-authorized query.
+    const adminDb = createAdminClient()
+
     const { searchParams } = new URL(request.url)
     const search = (searchParams.get("search") || "").trim()
 
-    let teacherQuery = supabase
+    let teacherQuery = adminDb
       .from("teacher_profiles")
       .select("id, user_id, full_name, phone, state, subjects, is_visible, is_disabled, created_at")
       .order("created_at", { ascending: false })
       .limit(300)
     if (search) teacherQuery = teacherQuery.ilike("full_name", `%${search}%`)
 
-    let schoolQuery = supabase
+    let schoolQuery = adminDb
       .from("school_profiles")
       .select("id, user_id, school_name, contact_name, contact_email, contact_phone, state, is_verified, is_disabled, created_at")
       .order("created_at", { ascending: false })
@@ -48,11 +55,10 @@ export async function GET(request: Request) {
     const emailByUserId = new Map<string, string>()
     if ((teachers || []).length > 0) {
       try {
-        const adminClient = createAdminClient()
         let page = 1
         const perPage = 1000
         while (true) {
-          const { data, error: listErr } = await adminClient.auth.admin.listUsers({ page, perPage })
+          const { data, error: listErr } = await adminDb.auth.admin.listUsers({ page, perPage })
           if (listErr) throw listErr
           for (const u of data.users) {
             if (u.email) emailByUserId.set(u.id, u.email)
@@ -128,7 +134,10 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: "Invalid action for this role" }, { status: 400 })
     }
 
-    const { error } = await supabase.from(table).update(updates).eq("id", id)
+    // Service-role client — same reasoning as GET above: no RLS policy
+    // grants an admin write access to another user's teacher/school row.
+    const adminDb = createAdminClient()
+    const { error } = await adminDb.from(table).update(updates).eq("id", id)
     if (error) throw error
 
     return NextResponse.json({ ok: true })

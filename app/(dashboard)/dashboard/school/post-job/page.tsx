@@ -481,10 +481,10 @@ function PostJobPageInner() {
             <CheckCircle2 className="h-8 w-8 text-ink-600" />
           </div>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            Job Posted Successfully
+            Job Submitted for Review
           </h2>
           <p className="text-gray-500 text-sm mb-6">
-            Your vacancy is now live. Teachers will start applying shortly.
+            Your vacancy is pending admin approval. It&apos;ll go live and start accepting applications shortly.
           </p>
           <div className="flex flex-col gap-3">
             <Link href="/dashboard/school/jobs">

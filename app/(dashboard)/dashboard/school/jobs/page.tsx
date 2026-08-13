@@ -40,7 +40,7 @@ interface Job {
   quiz_mode: string
   positions: number
   deadline: string
-  status: "active" | "closed" | "draft"
+  status: "active" | "closed" | "draft" | "pending_approval" | "rejected"
   applicants_count: number
   passed_quiz_count: number
   views: number
@@ -63,6 +63,12 @@ function getDaysLeft(deadline: string) {
 }
 
 function getStatusBadge(status: string, daysLeft: number) {
+  if (status === "pending_approval") {
+    return <span className="px-2.5 py-1 bg-amber-100 text-amber-700 text-xs rounded-full font-medium">Pending Approval</span>
+  }
+  if (status === "rejected") {
+    return <span className="px-2.5 py-1 bg-red-100 text-red-600 text-xs rounded-full font-medium">Rejected</span>
+  }
   if (status === "draft") {
     return <span className="px-2.5 py-1 bg-gray-100 text-gray-600 text-xs rounded-full font-medium">Draft</span>
   }
@@ -161,7 +167,7 @@ function SchoolJobsContent() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [jobs, setJobs] = useState<Job[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [activeFilter, setActiveFilter] = useState<"all" | "active" | "closed" | "draft">("all")
+  const [activeFilter, setActiveFilter] = useState<"all" | "active" | "closed" | "draft" | "pending_approval">("all")
   const [actionLoading, setActionLoading] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState("")
   const [addonError, setAddonError] = useState("")
@@ -295,6 +301,7 @@ function SchoolJobsContent() {
   const counts = {
     all: jobs.length,
     active: jobs.filter((j) => j.status === "active" && getDaysLeft(j.deadline) > 0).length,
+    pending_approval: jobs.filter((j) => j.status === "pending_approval").length,
     closed: jobs.filter((j) => j.status === "closed" || getDaysLeft(j.deadline) <= 0).length,
     draft: jobs.filter((j) => j.status === "draft").length,
   }
@@ -352,16 +359,22 @@ function SchoolJobsContent() {
           </div>
 
           {/* Filter Tabs */}
-          <div className="bg-white rounded-xl border border-gray-200 p-1 flex gap-1">
-            {(["all", "active", "closed", "draft"] as const).map((filter) => (
+          <div className="bg-white rounded-xl border border-gray-200 p-1 flex gap-1 overflow-x-auto">
+            {([
+              { value: "all", label: "All" },
+              { value: "active", label: "Active" },
+              { value: "pending_approval", label: "Pending" },
+              { value: "closed", label: "Closed" },
+              { value: "draft", label: "Draft" },
+            ] as const).map(({ value: filter, label }) => (
               <button
                 key={filter}
                 onClick={() => setActiveFilter(filter)}
-                className={`px-3 py-2 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 capitalize flex-1 justify-center ${
+                className={`px-3 py-2 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 flex-1 justify-center whitespace-nowrap ${
                   activeFilter === filter ? "bg-ink-700 text-white" : "text-gray-500 hover:bg-gray-50"
                 }`}
               >
-                {filter}
+                {label}
                 <span className={`px-1.5 py-0.5 rounded-full text-xs ${activeFilter === filter ? "bg-ink-600" : "bg-gray-100 text-gray-600"}`}>
                   {counts[filter]}
                 </span>
