@@ -213,7 +213,7 @@ export default function HomePage() {
               <span className="italic text-ink-600">Start hiring teachers<br className="sm:hidden" /> who can actually teach.</span>
             </h1>
             <p className="text-lg text-gray-600 mb-8 leading-relaxed max-w-lg mx-auto lg:mx-0">
-              Every teacher takes a short subject quiz before applying, so instead of hundreds of CVs, you get a shortlist already ranked by who knows the subject best.
+              A quick subject quiz screens every applicant — you get a ranked shortlist, not a stack of CVs.
             </p>
             <div className="mx-auto lg:mx-0 w-fit">
               <HeroCTAs user={user} isLoading={isLoading} dashboardLink={dashboardLink} />
