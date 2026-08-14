@@ -29,12 +29,41 @@ export async function GET(
       )
     }
 
-    await supabase.rpc("increment_job_views", { job_id: jobId })
+    // A job that hasn't been approved yet (pending_approval, rejected, or
+    // still a draft) shouldn't be reachable by anyone except the school
+    // that owns it — previously this route returned any job by id
+    // regardless of status, so a pending job's direct URL worked for
+    // guests, other schools, and teachers alike, before an admin had
+    // ever approved it. "closed" is a normal post-approval lifecycle
+    // state (was live, now closed) and stays publicly viewable — the
+    // frontend already shows a graceful "This job has closed" state
+    // for it.
+    const UNAPPROVED_STATUSES = ["pending_approval", "rejected", "draft"]
+    if (UNAPPROVED_STATUSES.includes(job.status)) {
+      let isOwner = false
+      if (user) {
+        const { data: ownSchool } = await supabase
+          .from("school_profiles")
+          .select("id")
+          .eq("user_id", user.id)
+          .eq("id", job.school_id)
+          .single()
+        isOwner = !!ownSchool
+      }
+      if (!isOwner) {
+        return NextResponse.json(
+          { error: "Job not found" },
+          { status: 404 }
+        )
+      }
+    } else {
+      await supabase.rpc("increment_job_views", { job_id: jobId })
+    }
 
     let is_saved = false
     let has_applied = false
 
-    if (user) {
+    if (user && !UNAPPROVED_STATUSES.includes(job.status)) {
       const { data: teacherProfile } = await supabase
         .from("teacher_profiles")
         .select("id")

@@ -35,13 +35,18 @@ export async function POST(request: Request) {
 
     if (existing) return NextResponse.json({ error: "Already applied" }, { status: 409 })
 
-    // Fetch the job once, up front — used for authoritative scoring below
-    // and for notifications later.
+    // Fetch the job once, up front — used for the status gate below,
+    // authoritative scoring, and notifications later.
     const { data: job } = await supabase
       .from("jobs")
-      .select("title, quiz_mode, quiz_subjects, quiz_pass_mark, quiz_question_count, subject, school_profiles(user_id, school_name)")
+      .select("title, status, quiz_mode, quiz_subjects, quiz_pass_mark, quiz_question_count, subject, school_profiles(user_id, school_name)")
       .eq("id", job_id)
       .single()
+
+    if (!job) return NextResponse.json({ error: "Job not found" }, { status: 404 })
+    if ((job as unknown as { status: string }).status !== "active") {
+      return NextResponse.json({ error: "This job is not currently accepting applications" }, { status: 400 })
+    }
 
     const jobTitle = (job as unknown as { title: string })?.title
     const school = (Array.isArray((job as unknown as { school_profiles: unknown })?.school_profiles)
