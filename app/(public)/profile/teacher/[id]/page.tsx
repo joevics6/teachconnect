@@ -8,7 +8,6 @@ import {
   Briefcase,
   Star,
   CheckCircle2,
-  Home,
   Download,
   Send,
   Loader2,
@@ -224,7 +223,8 @@ export default function TeacherProfilePage() {
       setDownloadingCv(false)
     }
   }
-  const [inviteSuccess, setInviteSuccess] = useState(false)
+  const [invitedJobIds, setInvitedJobIds] = useState<string[]>([])
+  const [appliedJobIds, setAppliedJobIds] = useState<string[]>([])
   const [schoolJobs, setSchoolJobs] = useState<{ id: string; title: string }[]>([])
   const [selectedJobId, setSelectedJobId] = useState("")
   const [inviteError, setInviteError] = useState("")
@@ -248,6 +248,8 @@ export default function TeacherProfilePage() {
         setSpecializationResults(data.specialization_results || [])
         setViewerRole(data.viewer_role || "guest")
         setViewerHasContactAccess(data.viewer_has_contact_access || false)
+        setInvitedJobIds(data.invited_job_ids || [])
+        setAppliedJobIds(data.applied_job_ids || [])
 
         // Detect own profile — fetch logged-in teacher's ID and compare
         try {
@@ -268,7 +270,7 @@ export default function TeacherProfilePage() {
     if (profileId) fetchProfile()
   }, [profileId, isOwnProfile])
 
-  // Load school's active jobs for invite picker
+  // Load school's active jobs for invite picker (once, on load)
   useEffect(() => {
     if (viewerRole !== "school" || isOwnProfile) return
     fetch("/api/school/jobs")
@@ -277,10 +279,19 @@ export default function TeacherProfilePage() {
         const data = await res.json()
         const active = (data.jobs || []).filter((j: { status: string }) => j.status === "active")
         setSchoolJobs(active)
-        if (active.length > 0) setSelectedJobId(active[0].id)
+        if (active.length > 0 && !selectedJobId) {
+          const openJob = active.find(
+            (j: { id: string }) => !invitedJobIds.includes(j.id) && !appliedJobIds.includes(j.id)
+          )
+          setSelectedJobId((openJob || active[0]).id)
+        }
       })
       .catch(console.error)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [viewerRole, isOwnProfile])
+
+  const alreadyInvited = invitedJobIds.includes(selectedJobId)
+  const alreadyApplied = appliedJobIds.includes(selectedJobId)
 
   const handleInvite = async () => {
     if (!selectedJobId) { setInviteError("Please select a job first"); return }
@@ -294,7 +305,7 @@ export default function TeacherProfilePage() {
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || "Failed to send invite")
-      setInviteSuccess(true)
+      setInvitedJobIds((prev) => (prev.includes(selectedJobId) ? prev : [...prev, selectedJobId]))
     } catch (err: unknown) {
       setInviteError(err instanceof Error ? err.message : "Failed to send invite")
     } finally {
@@ -494,12 +505,6 @@ export default function TeacherProfilePage() {
                     {profile.willing_to_relocate && (
                       <span className="px-2.5 py-1 bg-ink-100 text-ink-700 text-xs rounded-full font-medium">
                         Open to Relocate
-                      </span>
-                    )}
-                    {profile.accommodation_needed && (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-orange-100 text-orange-700 text-xs rounded-full font-medium">
-                        <Home className="h-3 w-3" />
-                        Needs Accommodation
                       </span>
                     )}
                     <span
@@ -855,44 +860,52 @@ export default function TeacherProfilePage() {
                       </select>
                     )}
                   </div>
-                  {inviteSuccess ? (
-                    <div className="flex items-center justify-center gap-2 p-3 bg-ink-50 border border-ink-200 rounded-xl text-sm text-ink-700">
-                      <CheckCircle2 className="h-4 w-4" />
-                      Invite sent! Teacher has been notified.
-                    </div>
-                  ) : (
+                  {schoolJobs.length > 0 ? (
                     <div className="space-y-2">
-                      {schoolJobs.length > 0 ? (
-                        <select
-                          value={selectedJobId}
-                          onChange={(e) => setSelectedJobId(e.target.value)}
-                          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ink-400"
-                        >
-                          {schoolJobs.map((j) => (
-                            <option key={j.id} value={j.id}>{j.title}</option>
-                          ))}
-                        </select>
-                      ) : (
-                        <p className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-lg p-2">
-                          No active jobs. Post a job first to invite teachers.
-                        </p>
-                      )}
+                      <select
+                        value={selectedJobId}
+                        onChange={(e) => setSelectedJobId(e.target.value)}
+                        className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ink-400"
+                      >
+                        {schoolJobs.map((j) => (
+                          <option key={j.id} value={j.id}>
+                            {j.title}
+                            {appliedJobIds.includes(j.id) ? " (Already applied)" : invitedJobIds.includes(j.id) ? " (Invited)" : ""}
+                          </option>
+                        ))}
+                      </select>
                       {inviteError && (
                         <p className="text-xs text-red-500">{inviteError}</p>
                       )}
-                      <Button
-                        onClick={handleInvite}
-                        disabled={isInviting || schoolJobs.length === 0}
-                        className="w-full bg-ink-700 hover:bg-ink-800 text-white flex items-center gap-2"
-                      >
-                        {isInviting ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <Send className="h-4 w-4" />
-                        )}
-                        Invite to Apply
-                      </Button>
+                      {alreadyApplied ? (
+                        <div className="flex items-center justify-center gap-2 p-3 bg-ink-50 border border-ink-200 rounded-xl text-sm text-ink-700">
+                          <CheckCircle2 className="h-4 w-4" />
+                          Already applied for this job
+                        </div>
+                      ) : alreadyInvited ? (
+                        <div className="flex items-center justify-center gap-2 p-3 bg-ink-50 border border-ink-200 rounded-xl text-sm text-ink-700">
+                          <CheckCircle2 className="h-4 w-4" />
+                          Invited — teacher has been notified
+                        </div>
+                      ) : (
+                        <Button
+                          onClick={handleInvite}
+                          disabled={isInviting}
+                          className="w-full bg-ink-700 hover:bg-ink-800 text-white flex items-center gap-2"
+                        >
+                          {isInviting ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Send className="h-4 w-4" />
+                          )}
+                          Invite to Apply
+                        </Button>
+                      )}
                     </div>
+                  ) : (
+                    <p className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-lg p-2">
+                      No active jobs. Post a job first to invite teachers.
+                    </p>
                   )}
                   {profile.cv_url && (
                     <Button
@@ -1045,12 +1058,6 @@ export default function TeacherProfilePage() {
                   <div className="flex items-center gap-2 text-sm text-ink-600">
                     <ChevronRight className="h-4 w-4 flex-shrink-0" />
                     <span>Open to relocation</span>
-                  </div>
-                )}
-                {profile.accommodation_needed && (
-                  <div className="flex items-center gap-2 text-sm text-orange-600">
-                    <Home className="h-4 w-4 flex-shrink-0" />
-                    <span>Needs accommodation</span>
                   </div>
                 )}
                 <div className="flex items-center gap-2 text-sm text-gray-600">

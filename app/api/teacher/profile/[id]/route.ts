@@ -19,6 +19,11 @@ export async function GET(
     // Phone + Call/WhatsApp buttons: Monthly/Term only — this is the paid
     // "contact" tier, not just "posted a job once" (see hasTalentAccess).
     let viewerHasContactAccess = false
+    // Which of the viewing school's own jobs this teacher has already been
+    // invited to, or has already applied for — lets the "Invite to Apply"
+    // button reflect real state instead of always being clickable.
+    let invitedJobIds: string[] = []
+    let appliedJobIds: string[] = []
     const { data: { user } } = await supabase.auth.getUser()
     if (user) {
       const role = user.user_metadata?.role
@@ -38,6 +43,21 @@ export async function GET(
           const planType = ((subRows ?? [])[0]?.plan_type as PlanType) || "free"
           viewerIsPremiumSchool = isPremiumPlan(planType)
           viewerHasContactAccess = hasTalentAccess(planType)
+
+          const { data: ownJobs } = await supabase
+            .from("jobs").select("id").eq("school_id", school.id)
+          const jobIds = (ownJobs ?? []).map((j) => j.id)
+
+          if (jobIds.length > 0) {
+            const [{ data: invites }, { data: applications }] = await Promise.all([
+              supabase.from("school_invites").select("job_id")
+                .eq("school_id", school.id).eq("teacher_id", id).in("job_id", jobIds),
+              supabase.from("applications").select("job_id")
+                .eq("teacher_id", id).in("job_id", jobIds),
+            ])
+            invitedJobIds = (invites ?? []).map((i) => i.job_id)
+            appliedJobIds = (applications ?? []).map((a) => a.job_id)
+          }
         }
       }
     }
@@ -114,6 +134,9 @@ export async function GET(
       .eq("teacher_id", id)
       .order("created_at", { ascending: false })
 
+    // Invite/application status was already computed above, alongside
+    // viewer role resolution.
+
     return NextResponse.json({
       profile,
       quiz_results: quizResults,
@@ -121,6 +144,8 @@ export async function GET(
       viewer_role:  viewerRole,
       viewer_is_premium: viewerIsPremiumSchool,
       viewer_has_contact_access: viewerHasContactAccess,
+      invited_job_ids: invitedJobIds,
+      applied_job_ids: appliedJobIds,
     })
   } catch (err) {
     console.error("GET public teacher profile error:", err)

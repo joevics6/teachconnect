@@ -15,7 +15,6 @@ import {
   BookOpen,
   Users,
   CheckCircle2,
-  Home,
   Send,
   Loader2,
   SlidersHorizontal,
@@ -50,6 +49,8 @@ interface Teacher {
   availability: string
   match_score: number
   demo_video_url: string | null
+  invited_job_ids?: string[]
+  applied_job_ids?: string[]
 }
 
 interface Filters {
@@ -92,12 +93,17 @@ function TeacherCard({
   isLocked,
   onInvite,
   inviting,
+  jobContext,
 }: {
   teacher: Teacher
   isLocked: boolean
   onInvite: (teacherId: string) => void
   inviting: string | null
+  jobContext: string | null
 }) {
+  const alreadyApplied = !!jobContext && (teacher.applied_job_ids || []).includes(jobContext)
+  const alreadyInvited = !!jobContext && (teacher.invited_job_ids || []).includes(jobContext)
+
   if (isLocked) {
     return (
       <div className="bg-white border border-gray-100 rounded-xl p-5 relative overflow-hidden">
@@ -233,13 +239,6 @@ function TeacherCard({
         ))}
       </div>
 
-      {/* Bio */}
-      {teacher.bio && (
-        <p className="text-xs text-gray-500 line-clamp-2 mb-3 leading-relaxed">
-          {teacher.bio}
-        </p>
-      )}
-
       {/* Salary & Availability */}
       <div className="flex items-center justify-between mb-4">
         <div>
@@ -264,14 +263,6 @@ function TeacherCard({
         </div>
       </div>
 
-      {/* Accommodation */}
-      {teacher.accommodation_needed && (
-        <div className="flex items-center gap-1.5 text-xs text-orange-600 bg-orange-50 px-3 py-1.5 rounded-lg mb-4">
-          <Home className="h-3 w-3" />
-          Needs accommodation
-        </div>
-      )}
-
       {/* Actions */}
       <div className="flex gap-2">
         <Link href={`/profile/teacher/${teacher.id}`} className="flex-1">
@@ -284,19 +275,39 @@ function TeacherCard({
             View Profile
           </Button>
         </Link>
-        <Button
-          size="sm"
-          onClick={() => onInvite(teacher.id)}
-          disabled={inviting === teacher.id}
-          className="flex-1 bg-ink-700 hover:bg-ink-800 text-white text-xs flex items-center gap-1.5"
-        >
-          {inviting === teacher.id ? (
-            <Loader2 className="h-3.5 w-3.5 animate-spin" />
-          ) : (
-            <Send className="h-3.5 w-3.5" />
-          )}
-          Invite to Apply
-        </Button>
+        {alreadyApplied ? (
+          <Button
+            size="sm"
+            disabled
+            className="flex-1 bg-ink-50 text-ink-700 text-xs flex items-center gap-1.5 cursor-default"
+          >
+            <CheckCircle2 className="h-3.5 w-3.5" />
+            Already Applied
+          </Button>
+        ) : alreadyInvited ? (
+          <Button
+            size="sm"
+            disabled
+            className="flex-1 bg-ink-50 text-ink-700 text-xs flex items-center gap-1.5 cursor-default"
+          >
+            <CheckCircle2 className="h-3.5 w-3.5" />
+            Invited
+          </Button>
+        ) : (
+          <Button
+            size="sm"
+            onClick={() => onInvite(teacher.id)}
+            disabled={inviting === teacher.id}
+            className="flex-1 bg-ink-700 hover:bg-ink-800 text-white text-xs flex items-center gap-1.5"
+          >
+            {inviting === teacher.id ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <Send className="h-3.5 w-3.5" />
+            )}
+            Invite to Apply
+          </Button>
+        )}
       </div>
     </div>
   )
@@ -314,17 +325,24 @@ interface Job {
 function InviteModal({
   teacherId,
   jobs,
+  invitedJobIds,
+  appliedJobIds,
   onInvite,
   onClose,
   isLoading,
+  error,
 }: {
   teacherId: string
   jobs: Job[]
+  invitedJobIds: string[]
+  appliedJobIds: string[]
   onInvite: (teacherId: string, jobId: string) => Promise<void>
   onClose: () => void
   isLoading: boolean
+  error: string
 }) {
-  const [selectedJob, setSelectedJob] = useState("")
+  const openJobs = jobs.filter((j) => !invitedJobIds.includes(j.id) && !appliedJobIds.includes(j.id))
+  const [selectedJob, setSelectedJob] = useState(openJobs[0]?.id || "")
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
@@ -359,28 +377,42 @@ function InviteModal({
           </div>
         ) : (
           <div className="space-y-2 mb-5">
-            {jobs.map((job) => (
-              <button
-                key={job.id}
-                onClick={() => setSelectedJob(job.id)}
-                className={`w-full flex items-center justify-between p-3 rounded-xl border text-left transition-all ${
-                  selectedJob === job.id
-                    ? "bg-ink-50 border-ink-400"
-                    : "border-gray-200 hover:border-gray-300"
-                }`}
-              >
-                <div>
-                  <p className="text-sm font-medium text-gray-900">
-                    {job.title}
-                  </p>
-                  <p className="text-xs text-gray-500">{job.subject}</p>
-                </div>
-                {selectedJob === job.id && (
-                  <CheckCircle2 className="h-4 w-4 text-ink-600 flex-shrink-0" />
-                )}
-              </button>
-            ))}
+            {jobs.map((job) => {
+              const applied = appliedJobIds.includes(job.id)
+              const invited = !applied && invitedJobIds.includes(job.id)
+              const disabled = applied || invited
+              return (
+                <button
+                  key={job.id}
+                  onClick={() => !disabled && setSelectedJob(job.id)}
+                  disabled={disabled}
+                  className={`w-full flex items-center justify-between p-3 rounded-xl border text-left transition-all ${
+                    disabled
+                      ? "border-gray-100 bg-gray-50 cursor-not-allowed"
+                      : selectedJob === job.id
+                      ? "bg-ink-50 border-ink-400"
+                      : "border-gray-200 hover:border-gray-300"
+                  }`}
+                >
+                  <div>
+                    <p className={`text-sm font-medium ${disabled ? "text-gray-400" : "text-gray-900"}`}>
+                      {job.title}
+                    </p>
+                    <p className="text-xs text-gray-400">
+                      {applied ? "Already applied" : invited ? "Already invited" : job.subject}
+                    </p>
+                  </div>
+                  {!disabled && selectedJob === job.id && (
+                    <CheckCircle2 className="h-4 w-4 text-ink-600 flex-shrink-0" />
+                  )}
+                </button>
+              )
+            })}
           </div>
+        )}
+
+        {error && (
+          <p className="text-xs text-red-500 mb-3">{error}</p>
         )}
 
         {jobs.length > 0 && (
@@ -427,6 +459,7 @@ function TalentPageContent() {
   const [invitingTeacher, setInvitingTeacher] = useState<string | null>(null)
   const [inviteLoading, setInviteLoading] = useState(false)
   const [inviteSuccess, setInviteSuccess] = useState<string | null>(null)
+  const [inviteError, setInviteError] = useState<string>("")
 
   const [filters, setFilters] = useState<Filters>({
     keyword: "",
@@ -510,18 +543,30 @@ function TalentPageContent() {
 
   const handleInvite = async (teacherId: string, jobId: string) => {
     setInviteLoading(true)
+    setInviteError("")
     try {
       const response = await fetch("/api/school/invite", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ teacher_id: teacherId, job_id: jobId }),
       })
-      if (!response.ok) throw new Error("Invite failed")
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.error || "Failed to send invite")
+
+      // Reflect the new invite locally right away so the card shows
+      // "Invited" without waiting on a refetch.
+      setTeachers((prev) =>
+        prev.map((t) =>
+          t.id === teacherId
+            ? { ...t, invited_job_ids: [...(t.invited_job_ids || []), jobId] }
+            : t
+        )
+      )
       setInviteSuccess(teacherId)
       setInvitingTeacher(null)
       setTimeout(() => setInviteSuccess(null), 3000)
     } catch (err) {
-      console.error(err)
+      setInviteError(err instanceof Error ? err.message : "Failed to send invite")
     } finally {
       setInviteLoading(false)
     }
@@ -732,11 +777,17 @@ function TalentPageContent() {
 
       <div className="max-w-7xl mx-auto px-4 py-8">
 
-        {/* Invite Success Banner */}
+        {/* Invite Success / Error Banner */}
         {inviteSuccess && (
           <div className="mb-5 flex items-center gap-2 p-4 bg-ink-50 border border-ink-200 rounded-xl text-ink-700 text-sm">
             <CheckCircle2 className="h-5 w-5 flex-shrink-0" />
             Invite sent successfully. The teacher will be notified.
+          </div>
+        )}
+        {inviteError && !invitingTeacher && (
+          <div className="mb-5 flex items-center gap-2 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
+            <X className="h-5 w-5 flex-shrink-0" />
+            {inviteError}
           </div>
         )}
 
@@ -832,10 +883,12 @@ function TalentPageContent() {
                 teacher={teacher}
                 isLocked={!isPremium && index >= FREE_TIER_LIMIT}
                 onInvite={(teacherId) => {
+                  setInviteError("")
                   if (inviteJobId) handleInvite(teacherId, inviteJobId)
                   else setInvitingTeacher(teacherId)
                 }}
                 inviting={null}
+                jobContext={inviteJobId}
               />
             ))}
           </div>
@@ -869,9 +922,12 @@ function TalentPageContent() {
         <InviteModal
           teacherId={invitingTeacher}
           jobs={jobs}
+          invitedJobIds={teachers.find((t) => t.id === invitingTeacher)?.invited_job_ids || []}
+          appliedJobIds={teachers.find((t) => t.id === invitingTeacher)?.applied_job_ids || []}
           onInvite={handleInvite}
-          onClose={() => setInvitingTeacher(null)}
+          onClose={() => { setInvitingTeacher(null); setInviteError("") }}
           isLoading={inviteLoading}
+          error={inviteError}
         />
       )}
       </div>

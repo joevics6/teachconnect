@@ -129,7 +129,43 @@ export async function GET(request: Request) {
       match_score: calcMatchScore(t as Record<string, unknown>, { subject, level, state }),
     })).sort((a, b) => b.match_score - a.match_score)
 
-    return NextResponse.json({ teachers: scored, total: subject && level ? filtered.length : (count || 0), is_premium: isPremium, plan_type: planTypeForResponse })
+    // Invite/application status — which of THIS school's own jobs each
+    // returned teacher has already been invited to, or already applied
+    // for. Lets the talent grid show "Invited" / "Already Applied"
+    // instead of always offering "Invite to Apply" regardless of history.
+    let withInviteStatus = scored
+    if (school && scored.length > 0) {
+      const teacherIds = scored.map((t) => t.id)
+      const { data: ownJobs } = await supabase
+        .from("jobs").select("id").eq("school_id", school.id)
+      const jobIds = (ownJobs ?? []).map((j) => j.id)
+
+      if (jobIds.length > 0) {
+        const [{ data: invites }, { data: applications }] = await Promise.all([
+          supabase.from("school_invites").select("teacher_id, job_id")
+            .eq("school_id", school.id).in("teacher_id", teacherIds).in("job_id", jobIds),
+          supabase.from("applications").select("teacher_id, job_id")
+            .in("teacher_id", teacherIds).in("job_id", jobIds),
+        ])
+
+        const invitedByTeacher = new Map<string, string[]>()
+        for (const i of invites ?? []) {
+          invitedByTeacher.set(i.teacher_id, [...(invitedByTeacher.get(i.teacher_id) ?? []), i.job_id])
+        }
+        const appliedByTeacher = new Map<string, string[]>()
+        for (const a of applications ?? []) {
+          appliedByTeacher.set(a.teacher_id, [...(appliedByTeacher.get(a.teacher_id) ?? []), a.job_id])
+        }
+
+        withInviteStatus = scored.map((t) => ({
+          ...t,
+          invited_job_ids: invitedByTeacher.get(t.id) ?? [],
+          applied_job_ids: appliedByTeacher.get(t.id) ?? [],
+        }))
+      }
+    }
+
+    return NextResponse.json({ teachers: withInviteStatus, total: subject && level ? filtered.length : (count || 0), is_premium: isPremium, plan_type: planTypeForResponse })
   } catch (err) {
     console.error("GET /api/talent error:", err)
     return NextResponse.json({ error: "Failed to fetch teachers" }, { status: 500 })
