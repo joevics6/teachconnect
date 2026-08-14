@@ -69,8 +69,8 @@ export async function generateMetadata(
   const { resource } = data
   const title       = resource.seo_title || `${resource.title} — ClassHire`
   const description = resource.seo_description || resource.excerpt
-  const url         = `https://teach.jobmeter.app/resources/${resource.slug}`
-  const image       = resource.cover_image_url || "https://teach.jobmeter.app/og-default.png"
+  const url         = `https://classhire.jobmeter.app/resources/${resource.slug}`
+  const image       = resource.cover_image_url || "https://classhire.jobmeter.app/og-default.png"
 
   return {
     title,
@@ -131,17 +131,17 @@ function ArticleSchema({ resource }: { resource: Resource }) {
       name: "ClassHire Nigeria",
       logo: {
         "@type": "ImageObject",
-        url: "https://teach.jobmeter.app/logo.png",
+        url: "https://classhire.jobmeter.app/logo.png",
       },
     },
     datePublished: resource.published_at,
     dateModified:  resource.published_at,
-    image:         resource.cover_image_url || "https://teach.jobmeter.app/og-default.png",
-    url:           `https://teach.jobmeter.app/resources/${resource.slug}`,
+    image:         resource.cover_image_url || "https://classhire.jobmeter.app/og-default.png",
+    url:           `https://classhire.jobmeter.app/resources/${resource.slug}`,
     keywords:      resource.tags?.join(", "),
     mainEntityOfPage: {
       "@type": "WebPage",
-      "@id":   `https://teach.jobmeter.app/resources/${resource.slug}`,
+      "@id":   `https://classhire.jobmeter.app/resources/${resource.slug}`,
     },
   }
   return (
@@ -157,10 +157,10 @@ function BreadcrumbSchema({ resource }: { resource: Resource }) {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Home",      item: "https://teach.jobmeter.app" },
-      { "@type": "ListItem", position: 2, name: "Resources", item: "https://teach.jobmeter.app/resources" },
-      { "@type": "ListItem", position: 3, name: resource.category, item: `https://teach.jobmeter.app/resources?category=${encodeURIComponent(resource.category)}` },
-      { "@type": "ListItem", position: 4, name: resource.title, item: `https://teach.jobmeter.app/resources/${resource.slug}` },
+      { "@type": "ListItem", position: 1, name: "Home",      item: "https://classhire.jobmeter.app" },
+      { "@type": "ListItem", position: 2, name: "Resources", item: "https://classhire.jobmeter.app/resources" },
+      { "@type": "ListItem", position: 3, name: resource.category, item: `https://classhire.jobmeter.app/resources?category=${encodeURIComponent(resource.category)}` },
+      { "@type": "ListItem", position: 4, name: resource.title, item: `https://classhire.jobmeter.app/resources/${resource.slug}` },
     ],
   }
   return (

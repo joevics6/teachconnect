@@ -16,7 +16,7 @@ const STATIC_ROUTES = [
 ]
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://teach.jobmeter.app"
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://classhire.jobmeter.app"
   const supabase = await createClient()
 
   const staticEntries: MetadataRoute.Sitemap = STATIC_ROUTES.map((path) => ({

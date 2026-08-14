@@ -20,7 +20,7 @@ export default function PrivacyPage() {
 
           <section>
             <h2 className="text-lg font-bold text-gray-900 mb-3">1. Who We Are</h2>
-            <p>ClassHire is operated by JobMeter Nigeria. We run a teacher recruitment platform at <strong>teach.jobmeter.app</strong> that connects Nigerian schools with qualified teachers. Our contact email is <a href="mailto:hello@jobmeter.app" className="text-ink-600 hover:underline">hello@jobmeter.app</a>.</p>
+            <p>ClassHire is operated by JobMeter Nigeria. We run a teacher recruitment platform at <strong>classhire.jobmeter.app</strong> that connects Nigerian schools with qualified teachers. Our contact email is <a href="mailto:hello@jobmeter.app" className="text-ink-600 hover:underline">hello@jobmeter.app</a>.</p>
           </section>
 
           <section>

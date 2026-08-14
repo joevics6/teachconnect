@@ -13,7 +13,7 @@ const fraunces = Fraunces({
   style: ["normal", "italic"],
 })
 
-const siteUrl = process.env.NEXT_PUBLIC_APP_URL || "https://teach.jobmeter.app"
+const siteUrl = process.env.NEXT_PUBLIC_APP_URL || "https://classhire.jobmeter.app"
 const title = "ClassHire — Nigeria's Teacher Recruitment Platform"
 const description =
   "Find teaching jobs across Nigeria or hire pre-screened, qualified teachers for your school. Nigeria's only dedicated teacher recruitment platform."

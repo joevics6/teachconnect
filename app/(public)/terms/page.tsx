@@ -20,7 +20,7 @@ export default function TermsPage() {
 
           <section>
             <h2 className="text-lg font-bold text-gray-900 mb-3">1. Acceptance of Terms</h2>
-            <p>By creating an account or using ClassHire (operated by JobMeter Nigeria at teach.jobmeter.app), you agree to these Terms of Service. If you do not agree, do not use the platform.</p>
+            <p>By creating an account or using ClassHire (operated by JobMeter Nigeria at classhire.jobmeter.app), you agree to these Terms of Service. If you do not agree, do not use the platform.</p>
           </section>
 
           <section>
