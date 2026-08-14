@@ -18,6 +18,7 @@
 
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { requireAdmin } from "@/lib/admin"
 import { TEACHING_LEVELS, getSubjectsForLevel, getTopicsForSubject } from "@/lib/constants"
 import { generateWithGemini, parseGeminiJson } from "@/lib/gemini"
@@ -78,6 +79,7 @@ export async function POST(request: Request) {
   const supabase = await createClient()
   const admin = await requireAdmin(supabase)
   if (!admin) return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+  const adminDb = createAdminClient()
 
   const { subject, level, count = 20 } = await request.json()
   if (!subject || !level) {
@@ -91,7 +93,7 @@ export async function POST(request: Request) {
   }
   const targetCount = Math.min(Math.max(Number(count) || 20, 1), 40)
 
-  const { data: job, error: jobError } = await supabase
+  const { data: job, error: jobError } = await adminDb
     .from("quiz_generation_jobs")
     .insert({
       requested_by: admin.id,
@@ -110,7 +112,7 @@ export async function POST(request: Request) {
   }
 
   const log = async (level_: string, message: string, meta?: Record<string, unknown>) => {
-    await supabase.from("quiz_generation_logs").insert({
+    await adminDb.from("quiz_generation_logs").insert({
       job_id: job.id,
       level: level_,
       message,
@@ -155,7 +157,7 @@ export async function POST(request: Request) {
         .update(`${subject}|${level}|${q.question_text.trim().toLowerCase()}`)
         .digest("hex")
 
-      const { error: insertError } = await supabase.from("quiz_questions").insert({
+      const { error: insertError } = await adminDb.from("quiz_questions").insert({
         subject,
         education_level: level,
         difficulty_level: level, // legacy column, kept for backward compatibility
@@ -187,7 +189,7 @@ export async function POST(request: Request) {
       generated++
     }
 
-    await supabase
+    await adminDb
       .from("quiz_generation_jobs")
       .update({
         status: "completed",
@@ -203,7 +205,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true, generated, duplicates, failed })
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error"
-    await supabase
+    await adminDb
       .from("quiz_generation_jobs")
       .update({
         status: "failed",

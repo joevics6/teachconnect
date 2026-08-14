@@ -5,6 +5,7 @@
 
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { requireAdmin } from "@/lib/admin"
 
 export async function GET() {
@@ -12,8 +13,9 @@ export async function GET() {
     const supabase = await createClient()
     const admin = await requireAdmin(supabase)
     if (!admin) return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    const adminDb = createAdminClient()
 
-    const { data: submissions, error } = await supabase
+    const { data: submissions, error } = await adminDb
       .from("contact_submissions")
       .select("*")
       .order("created_at", { ascending: false })
@@ -33,11 +35,12 @@ export async function PATCH(request: Request) {
     const supabase = await createClient()
     const admin = await requireAdmin(supabase)
     if (!admin) return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    const adminDb = createAdminClient()
 
     const { id, is_read } = await request.json()
     if (!id) return NextResponse.json({ error: "id required" }, { status: 400 })
 
-    const { error } = await supabase
+    const { error } = await adminDb
       .from("contact_submissions")
       .update({ is_read: is_read ?? true })
       .eq("id", id)

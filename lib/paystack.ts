@@ -12,6 +12,7 @@
 // ============================================================
 
 import type { SupabaseClient } from "@supabase/supabase-js"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { getPlanDurationDays, getPlanPriceNaira, getPlanFeaturedCredits } from "@/lib/pricing"
 import { notifyUser } from "@/lib/notifications"
 
@@ -41,14 +42,19 @@ function planLabel(planId: string) {
 }
 
 export async function activateSubscriptionFromPayment(
+  // Kept for backward compatibility with both call sites (webhook has no
+  // session at all; /verify has one, but this is payment-critical and
+  // needs to work identically either way) — see adminDb below.
   supabase: SupabaseClient,
   txn: PaystackTransaction
 ): Promise<{ ok: boolean; already_processed?: boolean; error?: string; subscription?: unknown }> {
   const { school_id, plan_id } = txn.metadata
   if (!school_id || !plan_id) return { ok: false, error: "Missing school_id/plan_id in transaction metadata" }
 
+  const adminDb = createAdminClient()
+
   // Idempotency — safe to call this twice for the same reference (webhook + client verify race)
-  const { data: existing } = await supabase
+  const { data: existing } = await adminDb
     .from("subscriptions").select("id").eq("paystack_reference", txn.reference).single()
   if (existing) return { ok: true, already_processed: true }
 
@@ -56,7 +62,7 @@ export async function activateSubscriptionFromPayment(
   const priceNaira = getPlanPriceNaira(plan_id)
   if (!durationDays || !priceNaira) return { ok: false, error: `Unknown plan_id "${plan_id}"` }
 
-  await supabase
+  await adminDb
     .from("subscriptions")
     .update({ is_active: false })
     .eq("school_id", school_id)
@@ -66,7 +72,7 @@ export async function activateSubscriptionFromPayment(
   const expiresAt = new Date()
   expiresAt.setDate(expiresAt.getDate() + durationDays)
 
-  const { data: subscription, error } = await supabase
+  const { data: subscription, error } = await adminDb
     .from("subscriptions")
     .insert({
       school_id,
@@ -84,13 +90,13 @@ export async function activateSubscriptionFromPayment(
 
   if (error) return { ok: false, error: error.message }
 
-  const { data: school } = await supabase
+  const { data: school } = await adminDb
     .from("school_profiles").select("user_id").eq("id", school_id).single()
 
   if (school) {
     // Transactional (payment receipt) — always sends regardless of
     // notification preferences, hence no prefKey.
-    await notifyUser(supabase, {
+    await notifyUser(adminDb, {
       userId: school.user_id,
       role: "school",
       type: "subscription_activated",
@@ -104,6 +110,8 @@ export async function activateSubscriptionFromPayment(
 }
 
 export async function applyJobAddonFromPayment(
+  // Kept for backward compatibility — see adminDb below, same reasoning
+  // as activateSubscriptionFromPayment above.
   supabase: SupabaseClient,
   txn: PaystackTransaction
 ): Promise<{ ok: boolean; already_processed?: boolean; error?: string; addon_type?: string }> {
@@ -112,7 +120,9 @@ export async function applyJobAddonFromPayment(
     return { ok: false, error: "Missing job_id/school_id/addon_type in transaction metadata" }
   }
 
-  const { data: existingPurchase } = await supabase
+  const adminDb = createAdminClient()
+
+  const { data: existingPurchase } = await adminDb
     .from("job_addon_purchases")
     .select("id, status")
     .eq("paystack_reference", txn.reference)
@@ -121,14 +131,14 @@ export async function applyJobAddonFromPayment(
   if (existingPurchase?.status === "completed") return { ok: true, already_processed: true }
 
   if (addon_type === "featured") {
-    await supabase.from("jobs").update({ is_featured: true }).eq("id", job_id).eq("school_id", school_id)
+    await adminDb.from("jobs").update({ is_featured: true }).eq("id", job_id).eq("school_id", school_id)
   } else if (addon_type === "extended") {
-    const { data: job } = await supabase
+    const { data: job } = await adminDb
       .from("jobs").select("deadline").eq("id", job_id).eq("school_id", school_id).single()
     if (job?.deadline) {
       const newDeadline = new Date(job.deadline)
       newDeadline.setDate(newDeadline.getDate() + 15)
-      await supabase
+      await adminDb
         .from("jobs")
         .update({ deadline: newDeadline.toISOString().split("T")[0] })
         .eq("id", job_id)
@@ -138,7 +148,7 @@ export async function applyJobAddonFromPayment(
     return { ok: false, error: `Unknown add-on type "${addon_type}"` }
   }
 
-  await supabase
+  await adminDb
     .from("job_addon_purchases")
     .update({ status: "completed", completed_at: new Date().toISOString() })
     .eq("paystack_reference", txn.reference)

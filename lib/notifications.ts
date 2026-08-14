@@ -37,12 +37,27 @@ interface NotifyParams {
   skipEmail?: boolean
 }
 
-export async function notifyUser(supabase: SupabaseClient, params: NotifyParams) {
+export async function notifyUser(
+  // Kept for backward compatibility with every existing call site — no
+  // longer used internally (see adminDb below), but changing the
+  // signature would mean touching every caller for no behavior change.
+  supabase: SupabaseClient,
+  params: NotifyParams
+) {
   const { userId, role = "teacher", type, title, message, metadata, prefKey, skipEmail } = params
   const table = role === "school" ? "school_profiles" : "teacher_profiles"
 
+  // Service-role client for the actual writes/pref-check below — the
+  // caller's `supabase` may be a webhook context with no session at all
+  // (e.g. the Paystack webhook), and even with a session, this is
+  // fundamentally "the system notifying a DIFFERENT user" (a school's
+  // action notifying a teacher, etc.), so auth.uid() essentially never
+  // equals the recipient's user_id. notifications has no INSERT policy
+  // for exactly that reason — every notifyUser() call needs this.
+  const adminDb = createAdminClient()
+
   if (prefKey) {
-    const { data: rows } = await supabase
+    const { data: rows } = await adminDb
       .from(table)
       .select("notification_prefs")
       .eq("user_id", userId)
@@ -53,7 +68,7 @@ export async function notifyUser(supabase: SupabaseClient, params: NotifyParams)
     if (prefs && prefs[prefKey] === false) return { skipped: true }
   }
 
-  const { error } = await supabase.from("notifications").insert({
+  const { error } = await adminDb.from("notifications").insert({
     user_id: userId,
     type,
     title,
@@ -66,8 +81,7 @@ export async function notifyUser(supabase: SupabaseClient, params: NotifyParams)
     // Email failures should never break the calling request (a payment,
     // an application, etc.) — log and move on.
     try {
-      const admin = createAdminClient()
-      const { data: userData } = await admin.auth.admin.getUserById(userId)
+      const { data: userData } = await adminDb.auth.admin.getUserById(userId)
       const email = userData?.user?.email
       if (email) {
         const dashboardPath = role === "school" ? "/dashboard/school" : "/dashboard/teacher"

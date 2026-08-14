@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { requireAdmin } from "@/lib/admin"
 
 export async function GET() {
@@ -7,8 +8,9 @@ export async function GET() {
     const supabase = await createClient()
     const admin = await requireAdmin(supabase)
     if (!admin) return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    const adminDb = createAdminClient()
 
-    const { data: posts, error } = await supabase
+    const { data: posts, error } = await adminDb
       .from("blog_posts")
       .select("*")
       .order("created_at", { ascending: false })
@@ -32,6 +34,7 @@ export async function POST(request: Request) {
     const supabase = await createClient()
     const admin = await requireAdmin(supabase)
     if (!admin) return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    const adminDb = createAdminClient()
 
     const body = await request.json()
     if (!body.title || !body.slug || !body.excerpt) {
@@ -41,7 +44,7 @@ export async function POST(request: Request) {
     const insert: Record<string, unknown> = {}
     for (const f of ALLOWED_FIELDS) if (body[f] !== undefined) insert[f] = body[f]
 
-    const { data: post, error } = await supabase
+    const { data: post, error } = await adminDb
       .from("blog_posts")
       .insert(insert)
       .select("*")

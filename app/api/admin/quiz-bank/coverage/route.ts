@@ -11,6 +11,7 @@
 
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { requireAdmin } from "@/lib/admin"
 import { TEACHING_LEVELS, getSubjectsForLevel } from "@/lib/constants"
 import type { TeachingLevel } from "@/types"
@@ -22,8 +23,9 @@ export async function GET() {
     const supabase = await createClient()
     const admin = await requireAdmin(supabase)
     if (!admin) return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    const adminDb = createAdminClient()
 
-    const { data: rows, error } = await supabase
+    const { data: rows, error } = await adminDb
       .from("quiz_questions")
       .select("subject, education_level")
       .eq("is_active", true)

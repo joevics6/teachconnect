@@ -5,6 +5,7 @@
 
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { requireAdmin } from "@/lib/admin"
 
 export async function POST(request: Request) {
@@ -12,6 +13,7 @@ export async function POST(request: Request) {
     const supabase = await createClient()
     const admin = await requireAdmin(supabase)
     if (!admin) return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    const adminDb = createAdminClient()
 
     const formData = await request.formData()
     const file = formData.get("logo") as File | null
@@ -29,7 +31,7 @@ export async function POST(request: Request) {
 
     // Fixed filename (site-assets/logo.png) — new uploads overwrite the
     // old one, so nothing else in the app needs to change to pick it up.
-    const { error: uploadError } = await supabase.storage
+    const { error: uploadError } = await adminDb.storage
       .from("site-assets")
       .upload("logo.png", buffer, { contentType: file.type, upsert: true })
 
@@ -38,7 +40,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Upload failed" }, { status: 500 })
     }
 
-    const { data: urlData } = supabase.storage.from("site-assets").getPublicUrl("logo.png")
+    const { data: urlData } = adminDb.storage.from("site-assets").getPublicUrl("logo.png")
 
     return NextResponse.json({ logo_url: `${urlData.publicUrl}?v=${Date.now()}` })
   } catch (err) {
