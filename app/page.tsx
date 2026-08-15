@@ -71,7 +71,7 @@ function ProfileCard() {
       </div>
       <div className="mt-3 flex items-center gap-1.5 text-xs font-medium text-emerald-700 bg-emerald-50 rounded-lg px-2.5 py-1.5 w-fit">
         <CheckCircle2 className="h-3.5 w-3.5" />
-        TRCN Verified
+        92nd Percentile
       </div>
     </div>
   )
@@ -164,13 +164,13 @@ function BottomCTA({ user }: { user: AuthUser | null }) {
 }
 
 const TRUST_POINTS = [
-  { icon: Shield, label: "TRCN status verified" },
+  { icon: BookOpen, label: "Quiz-screened applicants" },
   { icon: MapPin, label: "Every state, LGA-level" },
   { icon: Users,  label: "Direct — no recruiters" },
 ]
 
 const TEACHER_STEPS = [
-  { icon: FileCheck, title: "Build your profile", desc: "Upload your CV, add your subjects, teaching levels, and TRCN status. Takes 5 minutes." },
+  { icon: FileCheck, title: "Build your profile", desc: "Upload your CV, add your subjects and teaching levels. Takes 5 minutes." },
   { icon: Search,    title: "Browse & apply",     desc: "Filter jobs by subject, level, location and salary. Apply in one click." },
   { icon: BookOpen,  title: "Pass the quiz",      desc: "Some schools include a subject quiz. Pass it and your application rises to the top." },
 ]
@@ -184,7 +184,7 @@ const SCHOOL_STEPS = [
 const FEATURES = [
   { icon: BookOpen,     title: "Subject Mastery Quiz", desc: "Teachers prove their knowledge. Schools get a percentile rank on every applicant." },
   { icon: FileCheck,    title: "CV Parsing",           desc: "Upload once. We extract your experience, subjects, and skills automatically." },
-  { icon: CheckCircle2, title: "TRCN Verification",    desc: "Teachers show their registration status. Schools can filter for registered teachers." },
+  { icon: CheckCircle2, title: "Direct Contact",        desc: "Call or WhatsApp teachers directly from their profile — no back-and-forth." },
   { icon: MapPin,       title: "Location Matching",    desc: "Filter by state and LGA. Find opportunities — or talent — right in your area." },
   { icon: Shield,       title: "Verified Profiles",    desc: "Every school and teacher profile is tied to a verified account." },
   { icon: Search,       title: "Direct Applications",  desc: "No recruiters or middlemen. Teachers and schools deal with each other directly." },

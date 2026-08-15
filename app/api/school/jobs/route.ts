@@ -187,14 +187,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "At least one teaching level is required" }, { status: 400 })
     }
     if (body.quiz_enabled) {
-      if (!body.quiz_subjects?.length) {
+      if (!body.quiz_subject_levels?.length) {
         return NextResponse.json({ error: "Select at least one quiz subject" }, { status: 400 })
       }
-      if (body.quiz_subjects.length > 3) {
+      if (body.quiz_subject_levels.length > 3) {
         return NextResponse.json({ error: "A quiz can test at most 3 subjects" }, { status: 400 })
-      }
-      if (!body.quiz_difficulty) {
-        return NextResponse.json({ error: "Select a grade level for the quiz" }, { status: 400 })
       }
     }
 
@@ -213,15 +210,19 @@ export async function POST(request: Request) {
       is_private:               body.is_private ?? false,
       is_featured:              body.is_featured ?? false,
       quiz_enabled:             body.quiz_enabled ?? false,
-      quiz_subjects:            body.quiz_enabled ? (body.quiz_subjects || []) : [],
-      quiz_difficulty:          body.quiz_enabled ? (body.quiz_difficulty || null) : null,
+      // quiz_subjects/quiz_difficulty are kept in sync (subject names /
+      // first selected level) purely for backward compatibility with
+      // anything still reading the old columns — quiz_subject_levels
+      // (subject+level pairs, can span more than one grade level) is
+      // what app/api/quiz/[jobid]/route.ts actually uses now.
+      quiz_subjects:            body.quiz_enabled ? (body.quiz_subject_levels || []).map((sl: { subject: string }) => sl.subject) : [],
+      quiz_difficulty:          body.quiz_enabled ? (body.quiz_subject_levels?.[0]?.level || null) : null,
+      quiz_subject_levels:      body.quiz_enabled ? (body.quiz_subject_levels || []) : null,
       quiz_pass_mark:           body.quiz_enabled ? (parseInt(body.quiz_pass_mark) || 70) : null,
-      quiz_mode:                body.quiz_enabled ? (body.quiz_mode || "standard") : null,
+      quiz_mode:                body.quiz_enabled ? (body.quiz_mode || "speed") : null,
       quiz_duration:            body.quiz_enabled ? (parseInt(body.quiz_duration) || 20) : null,
       quiz_question_count:      body.quiz_enabled ? (parseInt(body.quiz_question_count) || 20) : null,
-      custom_questions:         body.quiz_enabled
-                                  ? (body.custom_questions ?? []).filter((q: string) => q.trim() !== "")
-                                  : [],
+      custom_questions:         [],
       description:              body.description,
       required_qualifications:  body.required_qualifications,
       preferred_qualifications: body.preferred_qualifications || null,

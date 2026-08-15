@@ -7,7 +7,6 @@ import {
   ArrowLeft,
   Briefcase,
   CheckCircle2,
-  Info,
   Loader2,
   Menu,
   Sparkles,
@@ -94,6 +93,11 @@ const STANDARD_QUESTION_COUNTS = [
 
 type QuizMode = "standard" | "speed" | "written"
 
+interface QuizSubjectLevel {
+  subject: string
+  level: string
+}
+
 interface FormData {
   title: string
   subject: string
@@ -110,12 +114,11 @@ interface FormData {
   is_featured: boolean
   quiz_enabled: boolean
   quiz_mode: QuizMode
-  quiz_subjects: string[]
-  quiz_difficulty: string
+  quiz_levels: string[]
+  quiz_subject_levels: QuizSubjectLevel[]
   quiz_pass_mark: number
   quiz_duration: number
   quiz_question_count: number
-  custom_questions: string[]
   description: string
   required_qualifications: string
   preferred_qualifications: string
@@ -136,17 +139,18 @@ const EMPTY_FORM: FormData = {
   is_private: false,
   is_featured: false,
   quiz_enabled: false,
-  quiz_mode: "standard",
-  quiz_subjects: [],
-  quiz_difficulty: "",
+  quiz_mode: "speed",
+  quiz_levels: [],
+  quiz_subject_levels: [],
   quiz_pass_mark: 70,
   quiz_duration: 20,
   quiz_question_count: 20,
-  custom_questions: ["", "", ""],
   description: "",
   required_qualifications: "",
   preferred_qualifications: "",
 }
+
+const MAX_QUIZ_LEVELS = 2
 
 function Toggle({
   value,
@@ -317,12 +321,6 @@ function PostJobPageInner() {
     update("benefits", updated)
   }
 
-  const updateCustomQuestion = (index: number, value: string) => {
-    const updated = [...formData.custom_questions]
-    updated[index] = value
-    update("custom_questions", updated)
-  }
-
   const handleQuizModeChange = (mode: QuizMode) => {
     update("quiz_mode", mode)
     // Set sensible defaults per mode
@@ -415,10 +413,8 @@ function PostJobPageInner() {
       newErrors.description = "Job description is required"
     if (!formData.required_qualifications)
       newErrors.required_qualifications = "Required qualifications is required"
-    if (formData.quiz_enabled && formData.quiz_subjects.length === 0)
+    if (formData.quiz_enabled && formData.quiz_subject_levels.length === 0)
       newErrors.quiz_subjects = "Select at least one subject (max 3)"
-    if (formData.quiz_enabled && !formData.quiz_difficulty)
-      newErrors.quiz_difficulty = "Select a grade level"
     if (formData.accommodation_offered && !formData.accommodation_type)
       newErrors.accommodation_type = "Select accommodation type"
     setErrors(newErrors)
@@ -723,13 +719,22 @@ function PostJobPageInner() {
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">
                     Application Deadline
                   </label>
-                  <input
-                    type="date"
-                    value={formData.deadline}
-                    onChange={(e) => update("deadline", e.target.value)}
-                    min={new Date().toISOString().split("T")[0]}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ink-500"
-                  />
+                  <div className="relative">
+                    <input
+                      type="date"
+                      value={formData.deadline}
+                      onChange={(e) => update("deadline", e.target.value)}
+                      min={new Date().toISOString().split("T")[0]}
+                      className={`w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ink-500 ${
+                        !formData.deadline ? "text-transparent" : ""
+                      }`}
+                    />
+                    {!formData.deadline && (
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-gray-400 pointer-events-none">
+                        Select date
+                      </span>
+                    )}
+                  </div>
                   {errors.deadline && (
                     <p className="text-red-500 text-xs mt-1">{errors.deadline}</p>
                   )}
@@ -986,54 +991,30 @@ function PostJobPageInner() {
                 {/* Mode-specific settings */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
 
-                  {/* Quiz Grade Level — all modes */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                      Grade Level
-                    </label>
-                    <select
-                      value={formData.quiz_difficulty}
-                      onChange={(e) => update("quiz_difficulty", e.target.value)}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ink-500 bg-white"
-                    >
-                      <option value="">Select grade level</option>
-                      {TEACHING_LEVELS.map((l) => (
-                        <option key={l.value} value={l.value}>{l.label}</option>
-                      ))}
-                    </select>
-                    {errors.quiz_difficulty && (
-                      <p className="text-red-500 text-xs mt-1">
-                        {errors.quiz_difficulty}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Quiz Subjects — all modes, up to 3, same grade level */}
+                  {/* Quiz Grade Levels — all modes, up to 2 */}
                   <div className="sm:col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                      Quiz Subjects ({formData.quiz_subjects.length}/{MAX_QUIZ_SUBJECTS})
+                      Grade Level{formData.quiz_levels.length > 1 ? "s" : ""} ({formData.quiz_levels.length}/{MAX_QUIZ_LEVELS})
                     </label>
                     <p className="text-xs text-gray-500 mb-2">
-                      Pick up to {MAX_QUIZ_SUBJECTS} subjects, all tested at the grade level above in one
-                      combined quiz.
+                      Pick up to {MAX_QUIZ_LEVELS} grade levels — e.g. JSS and SSS — to combine into one quiz.
                     </p>
                     <div className="flex flex-wrap gap-2">
-                      {(formData.quiz_difficulty
-                        ? getSubjectsForLevel(formData.quiz_difficulty as TeachingLevel)
-                        : []
-                      ).map((s) => {
-                        const isSelected = formData.quiz_subjects.includes(s)
-                        const atLimit = formData.quiz_subjects.length >= MAX_QUIZ_SUBJECTS
+                      {TEACHING_LEVELS.map((l) => {
+                        const isSelected = formData.quiz_levels.includes(l.value)
+                        const atLimit = formData.quiz_levels.length >= MAX_QUIZ_LEVELS
                         return (
                           <button
-                            key={s}
+                            key={l.value}
                             type="button"
                             disabled={!isSelected && atLimit}
                             onClick={() => {
-                              const next = isSelected
-                                ? formData.quiz_subjects.filter((x) => x !== s)
-                                : [...formData.quiz_subjects, s]
-                              update("quiz_subjects", next)
+                              if (isSelected) {
+                                update("quiz_levels", formData.quiz_levels.filter((x) => x !== l.value))
+                                update("quiz_subject_levels", formData.quiz_subject_levels.filter((sl) => sl.level !== l.value))
+                              } else {
+                                update("quiz_levels", [...formData.quiz_levels, l.value])
+                              }
                             }}
                             className={`px-3 py-1.5 rounded-full text-xs font-medium border transition ${
                               isSelected
@@ -1043,17 +1024,67 @@ function PostJobPageInner() {
                                 : "bg-white border-gray-300 text-gray-700 hover:border-ink-400"
                             }`}
                           >
-                            {s}
+                            {l.label}
                           </button>
                         )
                       })}
                     </div>
-                    {errors.quiz_subjects && (
-                      <p className="text-red-500 text-xs mt-1">
-                        {errors.quiz_subjects}
-                      </p>
-                    )}
                   </div>
+
+                  {/* Quiz Subjects — grouped by grade level, up to 3 total combined */}
+                  {formData.quiz_levels.length > 0 && (
+                    <div className="sm:col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                        Quiz Subjects ({formData.quiz_subject_levels.length}/{MAX_QUIZ_SUBJECTS})
+                      </label>
+                      <p className="text-xs text-gray-500 mb-2">
+                        Pick up to {MAX_QUIZ_SUBJECTS} subjects total across your selected grade level{formData.quiz_levels.length > 1 ? "s" : ""} — the 30-question quiz splits evenly between them.
+                      </p>
+                      <div className="space-y-3">
+                        {formData.quiz_levels.map((level) => {
+                          const levelLabel = TEACHING_LEVELS.find((l) => l.value === level)?.label || level
+                          return (
+                            <div key={level}>
+                              <p className="text-xs font-semibold text-gray-500 mb-1.5">{levelLabel}</p>
+                              <div className="flex flex-wrap gap-2">
+                                {getSubjectsForLevel(level as TeachingLevel).map((s) => {
+                                  const isSelected = formData.quiz_subject_levels.some((sl) => sl.subject === s && sl.level === level)
+                                  const atLimit = formData.quiz_subject_levels.length >= MAX_QUIZ_SUBJECTS
+                                  return (
+                                    <button
+                                      key={s}
+                                      type="button"
+                                      disabled={!isSelected && atLimit}
+                                      onClick={() => {
+                                        const next = isSelected
+                                          ? formData.quiz_subject_levels.filter((sl) => !(sl.subject === s && sl.level === level))
+                                          : [...formData.quiz_subject_levels, { subject: s, level }]
+                                        update("quiz_subject_levels", next)
+                                      }}
+                                      className={`px-3 py-1.5 rounded-full text-xs font-medium border transition ${
+                                        isSelected
+                                          ? "bg-ink-600 border-ink-600 text-white"
+                                          : atLimit
+                                          ? "bg-gray-50 border-gray-200 text-gray-300 cursor-not-allowed"
+                                          : "bg-white border-gray-300 text-gray-700 hover:border-ink-400"
+                                      }`}
+                                    >
+                                      {s}
+                                    </button>
+                                  )
+                                })}
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                      {errors.quiz_subjects && (
+                        <p className="text-red-500 text-xs mt-1">
+                          {errors.quiz_subjects}
+                        </p>
+                      )}
+                    </div>
+                  )}
 
                   {/* Pass Mark — all modes */}
                   <div>
@@ -1187,37 +1218,6 @@ function PostJobPageInner() {
                         Standard CBT format. Score is based on all questions
                         including unanswered ones.
                       </p>
-                    </div>
-                  </div>
-                )}
-
-                {/* Custom Questions — MCQ modes only */}
-                {formData.quiz_mode !== "written" && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                      Custom Questions{" "}
-                      <span className="text-gray-400 font-normal">
-                        (optional, max 3)
-                      </span>
-                      <Info className="h-3.5 w-3.5 text-gray-400 inline ml-1" />
-                    </label>
-                    <p className="text-xs text-gray-400 mb-3">
-                      Add school-specific questions alongside the standard
-                      question bank.
-                    </p>
-                    <div className="space-y-3">
-                      {formData.custom_questions.map((q, i) => (
-                        <input
-                          key={i}
-                          type="text"
-                          value={q}
-                          onChange={(e) =>
-                            updateCustomQuestion(i, e.target.value)
-                          }
-                          placeholder={`Custom question ${i + 1}`}
-                          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ink-500"
-                        />
-                      ))}
                     </div>
                   </div>
                 )}

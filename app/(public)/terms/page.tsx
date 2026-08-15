@@ -27,7 +27,7 @@ export default function TermsPage() {
             <h2 className="text-lg font-bold text-gray-900 mb-3">2. Who Can Use ClassHire</h2>
             <p className="mb-3">ClassHire is available to:</p>
             <ul className="list-disc pl-5 space-y-2">
-              <li><strong>Teachers:</strong> Individuals qualified to teach in Nigerian schools, whether registered with TRCN or in the process of registering.</li>
+              <li><strong>Teachers:</strong> Individuals qualified to teach in Nigerian schools.</li>
               <li><strong>Schools:</strong> Registered Nigerian educational institutions looking to hire qualified teaching staff.</li>
             </ul>
             <p className="mt-3">You must be at least 18 years old to create an account. By registering, you confirm that the information you provide is accurate and complete.</p>

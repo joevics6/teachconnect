@@ -454,7 +454,6 @@ function TalentPageContent() {
   const [isLoading, setIsLoading] = useState(true)
   const [totalCount, setTotalCount] = useState(0)
   const [isPremium, setIsPremium] = useState(false)
-  const [schoolPlanType, setSchoolPlanType] = useState<string>("free")
   const [showFilters, setShowFilters] = useState(false)
   const [invitingTeacher, setInvitingTeacher] = useState<string | null>(null)
   const [inviteLoading, setInviteLoading] = useState(false)
@@ -527,7 +526,6 @@ function TalentPageContent() {
       setTeachers(teachersData.teachers || [])
       setTotalCount(teachersData.total || 0)
       setIsPremium(teachersData.is_premium || false)
-      setSchoolPlanType(teachersData.plan_type || "free")
       setJobs(jobsData.jobs || [])
     } catch (err) {
       console.error("Failed to fetch talent:", err)
@@ -599,22 +597,6 @@ function TalentPageContent() {
               </p>
               </div>
             </div>
-            {!isPremium && (
-              <div className="flex items-center gap-3 px-4 py-2.5 bg-yellow-50 border border-yellow-200 rounded-xl">
-                <Lock className="h-4 w-4 text-yellow-600 flex-shrink-0" />
-                <div>
-                  <p className="text-xs font-semibold text-yellow-800">
-                    {schoolPlanType === "free" ? "Free Plan" : "Your Plan"} — {FREE_TIER_LIMIT} profiles visible
-                  </p>
-                  <Link
-                    href="/dashboard/school/subscription"
-                    className="text-xs text-ink-600 hover:underline"
-                  >
-                    Upgrade to unlock all profiles →
-                  </Link>
-                </div>
-              </div>
-            )}
           </div>
 
           {/* Invite-for-job banner */}
@@ -802,13 +784,6 @@ function TalentPageContent() {
                   {totalCount}
                 </span>{" "}
                 teacher{totalCount !== 1 ? "s" : ""} available
-                {!isPremium && (
-                  <span className="text-gray-400">
-                    {" "}
-                    — showing {Math.min(FREE_TIER_LIMIT, teachers.length)} of{" "}
-                    {totalCount} (upgrade to see all)
-                  </span>
-                )}
               </>
             )}
           </p>
@@ -899,7 +874,7 @@ function TalentPageContent() {
           <div className="mt-8 bg-gradient-to-r from-ink-700 to-ink-800 rounded-2xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="text-white">
               <h3 className="font-bold text-lg mb-1">
-                Unlock {totalCount - FREE_TIER_LIMIT}+ more teacher profiles
+                Unlock more teacher profiles
               </h3>
               <p className="text-ink-200 text-sm">
                 Upgrade to browse all teachers, send unlimited invites, and

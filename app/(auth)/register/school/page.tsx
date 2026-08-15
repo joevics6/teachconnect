@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
 import {
   Loader2, ArrowLeft, ArrowRight,
@@ -11,6 +12,7 @@ import { TEACHING_LEVELS } from "@/lib/constants"
 import { Logo } from "@/components/ui/Logo"
 import { StateLgaSelect } from "@/components/ui/StateLgaSelect"
 import { createClient } from "@/lib/supabase/client"
+import { useAuth } from "@/lib/auth-context"
 
 const STEPS = [
   { number: 1, title: "School Details" },
@@ -46,12 +48,20 @@ interface FormData {
 }
 
 export default function SchoolRegisterPage() {
+  const router = useRouter()
+  const { user, isLoading: authLoading, dashboardLink } = useAuth()
   const [step, setStep]           = useState(1)
   const [isLoading, setIsLoading] = useState(false)
   const [errors, setErrors]       = useState<Record<string, string>>({})
   const [logoPreview, setLogoPreview] = useState("")
   const [showPassword, setShowPassword]         = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+
+  // Already logged in — send them to their dashboard instead of showing
+  // the registration form again.
+  useEffect(() => {
+    if (!authLoading && user) router.replace(dashboardLink)
+  }, [authLoading, user, dashboardLink, router])
 
   const [formData, setFormData] = useState<FormData>({
     school_name: "", school_type: "", school_levels: [],
@@ -184,6 +194,16 @@ export default function SchoolRegisterPage() {
   }
 
   const inputClass = "w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ink-500 focus:border-transparent"
+
+  // Avoid flashing the registration form while we check auth state, or
+  // for the moment before the redirect above kicks in.
+  if (authLoading || user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <Loader2 className="h-6 w-6 text-ink-600 animate-spin" />
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">

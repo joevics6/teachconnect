@@ -67,6 +67,7 @@ export async function GET(
         quiz_mode,
         quiz_subjects,
         quiz_difficulty,
+        quiz_subject_levels,
         quiz_pass_mark,
         quiz_duration,
         quiz_question_count,
@@ -88,29 +89,37 @@ export async function GET(
 
     // Fall back to the job's own subject for older jobs created before
     // multi-subject quizzes existed (quiz_subjects would be empty then).
-    const quizSubjects: string[] =
-      job.quiz_subjects?.length ? job.quiz_subjects : [job.subject]
+    // quiz_subject_levels (subject+level pairs, supports spanning more
+    // than one grade level, e.g. JSS + SSS in one quiz) takes priority
+    // when present; older jobs only have the single shared quiz_difficulty
+    // applied to every quiz_subject.
+    interface SubjectLevelPair { subject: string; level: string }
+    const subjectLevelPairs: SubjectLevelPair[] =
+      (job.quiz_subject_levels as SubjectLevelPair[] | null)?.length
+        ? (job.quiz_subject_levels as SubjectLevelPair[])
+        : (job.quiz_subjects?.length ? job.quiz_subjects : [job.subject]).map((s: string) => ({
+            subject: s,
+            level: job.quiz_difficulty || "sss",
+          }))
 
-    // Total question count scales with how many subjects are combined,
-    // capped to keep the quiz within a reasonable 30-50 question band.
-    // 1 subject -> mode's normal default. 2 subjects -> 50 total (25 each).
-    // 3 subjects -> 30 total (10 each).
+    // Total question count scales with how many subjects are combined.
+    // 1 subject -> mode's normal default. 2 or 3 subjects -> always 30
+    // total, split evenly (15 each for 2, 10 each for 3).
     let totalQuestions: number
-    if (quizSubjects.length <= 1) {
+    if (subjectLevelPairs.length <= 1) {
       totalQuestions =
         job.quiz_mode === "speed" ? 50 : job.quiz_question_count || 20
-    } else if (quizSubjects.length === 2) {
-      totalQuestions = 50
     } else {
       totalQuestions = 30
     }
 
     // Split as evenly as possible across subjects, any remainder going to
     // the first subjects in the list.
-    const base = Math.floor(totalQuestions / quizSubjects.length)
-    const remainder = totalQuestions % quizSubjects.length
-    const perSubjectCounts = quizSubjects.map((s, i) => ({
-      subject: s,
+    const base = Math.floor(totalQuestions / subjectLevelPairs.length)
+    const remainder = totalQuestions % subjectLevelPairs.length
+    const perSubjectCounts = subjectLevelPairs.map((sl, i) => ({
+      subject: sl.subject,
+      level: sl.level,
       count: base + (i < remainder ? 1 : 0),
     }))
 
@@ -120,12 +129,12 @@ export async function GET(
         : "id, subject, question_text, option_a, option_b, option_c, option_d, correct_option"
 
     const results = await Promise.all(
-      perSubjectCounts.map(({ subject, count }) =>
+      perSubjectCounts.map(({ subject, level, count }) =>
         supabase
           .from("quiz_questions")
           .select(selectColumns)
           .eq("subject", subject)
-          .eq("difficulty_level", job.quiz_difficulty || "sss")
+          .eq("difficulty_level", level || "sss")
           .eq("is_active", true)
           .limit(count * 3) // buffer, so we can randomly sample instead of always taking the same rows
       )
@@ -176,7 +185,7 @@ export async function GET(
       job_title: job.title,
       school_name: ((Array.isArray(job.school_profiles) ? job.school_profiles[0] : job.school_profiles) as unknown as { school_name: string })?.school_name,
       subject: job.subject,
-      subjects: quizSubjects,
+      subjects: subjectLevelPairs.map((sl) => sl.subject),
       mode: job.quiz_mode || "standard",
       duration_minutes: job.quiz_duration || 20,
       question_count: shuffled.length,

@@ -188,9 +188,11 @@ function FAQItem({ question, answer }: { question: string; answer: string }) {
 function PlanCard({
   plan,
   isCurrentPlan,
+  dashboardHref,
 }: {
   plan: Plan
   isCurrentPlan?: boolean
+  dashboardHref?: string | null
 }) {
   const Icon = plan.icon
   const isFree = plan.id === "free"
@@ -249,15 +251,15 @@ function PlanCard({
             Current Plan
           </div>
         ) : isFree ? (
-          <Link href="/register/school">
+          <Link href={dashboardHref || "/register/school"}>
             <Button
               className={`w-full text-white ${plan.buttonColor}`}
             >
-              Get Started Free
+              {dashboardHref ? "Go to Dashboard" : "Get Started Free"}
             </Button>
           </Link>
         ) : (
-          <Link href={`/dashboard/school/subscription?plan=${plan.id}`}>
+          <Link href={dashboardHref ? `/dashboard/school/subscription?plan=${plan.id}` : `/register/school?plan=${plan.id}`}>
             <Button
               className={`w-full text-white ${plan.buttonColor}`}
             >
@@ -321,6 +323,7 @@ function ComparisonCell({ value }: { value: boolean | string }) {
 export default function PricingPage() {
   const { user } = useAuth()
   const [currentPlan, setCurrentPlan] = useState<string | null>(null)
+  const dashboardHref = user?.role === "school" ? "/dashboard/school" : "/dashboard/teacher"
 
   useEffect(() => {
     if (user?.role !== "school") return
@@ -360,27 +363,29 @@ export default function PricingPage() {
         {/* Plan Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
           {PLANS.map((plan) => (
-            <PlanCard key={plan.id} plan={plan} isCurrentPlan={currentPlan === plan.id} />
+            <PlanCard key={plan.id} plan={plan} isCurrentPlan={currentPlan === plan.id} dashboardHref={user ? dashboardHref : null} />
           ))}
         </div>
 
-        {/* For Teachers Banner */}
-        <div className="bg-gradient-to-r from-ink-600 to-ink-700 rounded-2xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4 mb-16">
-          <div className="text-white">
-            <h3 className="font-bold text-xl mb-1">
-              Are you a teacher? It&apos;s completely free.
-            </h3>
-            <p className="text-ink-100 text-sm">
-              Create your profile, browse jobs, take quizzes and apply — all
-              at no cost, forever.
-            </p>
+        {/* For Teachers Banner — only relevant to visitors who aren't already a teacher */}
+        {user?.role !== "teacher" && (
+          <div className="bg-gradient-to-r from-ink-600 to-ink-700 rounded-2xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4 mb-16">
+            <div className="text-white">
+              <h3 className="font-bold text-xl mb-1">
+                Are you a teacher? It&apos;s completely free.
+              </h3>
+              <p className="text-ink-100 text-sm">
+                Create your profile, browse jobs, take quizzes and apply — all
+                at no cost, forever.
+              </p>
+            </div>
+            <Link href="/register/teacher" className="flex-shrink-0">
+              <Button className="bg-white text-ink-700 hover:bg-ink-50 px-6">
+                Create Free Profile
+              </Button>
+            </Link>
           </div>
-          <Link href="/register/teacher" className="flex-shrink-0">
-            <Button className="bg-white text-ink-700 hover:bg-ink-50 px-6">
-              Create Free Profile
-            </Button>
-          </Link>
-        </div>
+        )}
 
         {/* Comparison Table */}
         <div className="mb-16">
@@ -528,19 +533,21 @@ export default function PricingPage() {
             when you are ready to hire at scale.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/register/school">
+            <Link href={user ? dashboardHref : "/register/school"}>
               <Button className="bg-ink-600 hover:bg-ink-700 text-white px-8">
-                Start for Free
+                {user ? "Go to Dashboard" : "Start for Free"}
               </Button>
             </Link>
-            <Link href="/dashboard/school/subscription">
-              <Button
-                variant="outline"
-                className="border-gray-600 text-gray-300 hover:bg-gray-800 px-8"
-              >
-                View Subscription Options
-              </Button>
-            </Link>
+            {user?.role !== "teacher" && (
+              <Link href="/dashboard/school/subscription">
+                <Button
+                  variant="outline"
+                  className="border-gray-600 text-gray-300 hover:bg-gray-800 px-8"
+                >
+                  View Subscription Options
+                </Button>
+              </Link>
+            )}
           </div>
         </div>
 
