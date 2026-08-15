@@ -27,8 +27,21 @@ export async function verifyPaystackTransaction(reference: string): Promise<Pays
   const res = await fetch(`https://api.paystack.co/transaction/verify/${reference}`, {
     headers: { Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}` },
   })
-  const data = await res.json()
-  if (!data.status || data.data?.status !== "success") return null
+  const data = await res.json().catch(() => null)
+  if (!res.ok || !data?.status || data.data?.status !== "success") {
+    // Log the actual reason — a wrong/missing secret key, a test/live key
+    // mismatch, an unrecognized reference, or a genuinely pending/failed
+    // transaction all land here, and previously all looked identical
+    // (silent null) with zero way to tell them apart from the logs.
+    console.error("Paystack verify failed:", {
+      reference,
+      http_status: res.status,
+      paystack_status: data?.status,
+      paystack_message: data?.message,
+      transaction_status: data?.data?.status,
+    })
+    return null
+  }
   return {
     reference: data.data.reference,
     amount: data.data.amount,
