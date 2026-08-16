@@ -25,6 +25,8 @@ export async function POST(
     const { reference } = await request.json()
     if (!reference) return NextResponse.json({ error: "reference required" }, { status: 400 })
 
+    console.log("Verify job addon payment: starting", { reference, jobId, user_id: user.id })
+
     // Verify with Paystack — never trust a client-submitted "success" flag
     const txn = await verifyPaystackTransaction(reference)
     if (!txn) {
@@ -34,6 +36,7 @@ export async function POST(
     const { job_id, school_id } = txn.metadata
 
     if (job_id !== jobId) {
+      console.error("Verify job addon: job_id mismatch", { reference, jobId, txn_job_id: job_id })
       return NextResponse.json({ error: "Reference does not match this job" }, { status: 400 })
     }
 
@@ -47,11 +50,18 @@ export async function POST(
       .limit(1)
     const school = (schoolRows ?? [])[0] ?? null
     if (!school || school.id !== school_id) {
+      console.error("Verify job addon: reference does not belong to caller", {
+        reference,
+        caller_user_id: user.id,
+        caller_school_id: school?.id,
+        txn_school_id: school_id,
+      })
       return NextResponse.json({ error: "This payment does not belong to your account" }, { status: 403 })
     }
 
     const result = await applyJobAddonFromPayment(supabase, txn)
     if (!result.ok) {
+      console.error("Verify job addon: apply failed", { reference, error: result.error })
       return NextResponse.json({ error: result.error || "Failed to apply add-on" }, { status: 500 })
     }
 

@@ -16,11 +16,14 @@ export async function POST(request: Request) {
 
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
+      console.error("Verify payment: no authenticated user (session/cookie issue?)")
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
     const { reference } = await request.json()
     if (!reference) return NextResponse.json({ error: "reference required" }, { status: 400 })
+
+    console.log("Verify payment: starting", { reference, user_id: user.id })
 
     const txn = await verifyPaystackTransaction(reference)
     if (!txn) {
@@ -41,11 +44,18 @@ export async function POST(request: Request) {
       .single()
 
     if (!callerSchool || callerSchool.id !== school_id) {
+      console.error("Verify payment: reference does not belong to caller", {
+        reference,
+        caller_user_id: user.id,
+        caller_school_id: callerSchool?.id,
+        txn_school_id: school_id,
+      })
       return NextResponse.json({ error: "This payment does not belong to your account" }, { status: 403 })
     }
 
     const result = await activateSubscriptionFromPayment(supabase, txn)
     if (!result.ok) {
+      console.error("Verify payment: activation failed", { reference, error: result.error })
       return NextResponse.json({ error: result.error || "Failed to activate subscription" }, { status: 500 })
     }
     if (result.already_processed) {

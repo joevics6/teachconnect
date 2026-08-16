@@ -75,16 +75,18 @@ export async function activateSubscriptionFromPayment(
   const priceNaira = getPlanPriceNaira(plan_id)
   if (!durationDays || !priceNaira) return { ok: false, error: `Unknown plan_id "${plan_id}"` }
 
-  await adminDb
-    .from("subscriptions")
-    .update({ is_active: false })
-    .eq("school_id", school_id)
-    .eq("is_active", true)
-
   const startsAt = new Date()
   const expiresAt = new Date()
   expiresAt.setDate(expiresAt.getDate() + durationDays)
 
+  // Insert the new subscription FIRST, before deactivating the old one —
+  // if this fails (e.g. a bad plan_type, a constraint we forgot to
+  // update), the school keeps whatever active plan they already paid
+  // for instead of silently losing it. This exact bug happened once
+  // already: a failed 'monthly' insert (missing from a check
+  // constraint) still ran the old deactivation step first, leaving a
+  // school with an active Standard payment turned off and nothing to
+  // replace it.
   const { data: subscription, error } = await adminDb
     .from("subscriptions")
     .insert({
@@ -102,6 +104,13 @@ export async function activateSubscriptionFromPayment(
     .single()
 
   if (error) return { ok: false, error: error.message }
+
+  await adminDb
+    .from("subscriptions")
+    .update({ is_active: false })
+    .eq("school_id", school_id)
+    .eq("is_active", true)
+    .neq("id", (subscription as { id: string }).id)
 
   const { data: school } = await adminDb
     .from("school_profiles").select("user_id").eq("id", school_id).single()

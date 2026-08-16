@@ -325,7 +325,8 @@ function SubscriptionPageInner() {
         }
         clearCached("school:plan-type")
       } else {
-        setPaymentError("Payment verification failed. Contact support.")
+        const data = await response.json().catch(() => null)
+        setPaymentError(data?.error || "Payment verification failed. Contact support.")
       }
     } catch {
       setPaymentError("Could not verify payment. Contact support.")
