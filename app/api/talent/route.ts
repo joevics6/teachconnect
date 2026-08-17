@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
-import { hasTalentAccess } from "@/lib/school-plan"
+import { hasTalentAccess, getActivePlanType } from "@/lib/school-plan"
 import type { PlanType } from "@/lib/school-plan"
 
 // ── Match score calculator ────────────────────────────────────
@@ -64,12 +64,7 @@ export async function GET(request: Request) {
     let isPremium = false
     let planTypeForResponse: PlanType = "free"
     if (school) {
-      const { data: subRows } = await supabase
-        .from("subscriptions").select("id, plan_type")
-        .eq("school_id", school.id).eq("is_active", true)
-        .gte("expires_at", new Date().toISOString())
-        .order("created_at", { ascending: false }).limit(1)
-      planTypeForResponse = ((subRows ?? [])[0]?.plan_type as PlanType) || "free"
+      planTypeForResponse = await getActivePlanType(supabase, school.id)
       isPremium = hasTalentAccess(planTypeForResponse)
     }
 

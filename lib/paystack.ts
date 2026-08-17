@@ -75,42 +75,82 @@ export async function activateSubscriptionFromPayment(
   const priceNaira = getPlanPriceNaira(plan_id)
   if (!durationDays || !priceNaira) return { ok: false, error: `Unknown plan_id "${plan_id}"` }
 
-  const startsAt = new Date()
-  const expiresAt = new Date()
-  expiresAt.setDate(expiresAt.getDate() + durationDays)
-
-  // Insert the new subscription FIRST, before deactivating the old one —
-  // if this fails (e.g. a bad plan_type, a constraint we forgot to
-  // update), the school keeps whatever active plan they already paid
-  // for instead of silently losing it. This exact bug happened once
-  // already: a failed 'monthly' insert (missing from a check
-  // constraint) still ran the old deactivation step first, leaving a
-  // school with an active Standard payment turned off and nothing to
-  // replace it.
-  const { data: subscription, error } = await adminDb
+  // A school can hold multiple concurrently-valid plans at once — a
+  // Single Post credit alongside a Monthly subscription, or (mid-
+  // upgrade) both Monthly and Term until Monthly naturally expires.
+  // Nothing here deactivates a DIFFERENT plan type just because a new
+  // one was bought: each plan simply runs its own paid-for duration,
+  // so upgrading (or adding a Single Post on top) never costs the
+  // school time or benefits they already paid for.
+  //
+  // Renewing the SAME plan type while a currently-valid one already
+  // exists is different — that extends the existing row's expiry
+  // (and tops up its featured-listing credits) instead of creating a
+  // second concurrent row of the same type, which would just be
+  // confusing to show and reason about.
+  const { data: currentRows } = await adminDb
     .from("subscriptions")
-    .insert({
-      school_id,
-      plan_type: plan_id,
-      paystack_reference: txn.reference,
-      amount_paid: priceNaira,
-      starts_at: startsAt.toISOString(),
-      expires_at: expiresAt.toISOString(),
-      is_active: true,
-      featured_listings_included: getPlanFeaturedCredits(plan_id),
-      featured_listings_used: 0,
-    })
-    .select()
-    .single()
+    .select("id, expires_at, featured_listings_included")
+    .eq("school_id", school_id)
+    .eq("plan_type", plan_id)
+    .eq("is_active", true)
+    .or(`expires_at.is.null,expires_at.gte.${new Date().toISOString()}`)
+    .order("expires_at", { ascending: false })
+    .limit(1)
+  const currentSamePlan = (currentRows ?? [])[0] ?? null
+
+  let subscription: unknown
+  let error: { message: string } | null = null
+
+  if (currentSamePlan) {
+    const newExpiry = new Date(currentSamePlan.expires_at)
+    newExpiry.setDate(newExpiry.getDate() + durationDays)
+    const result = await adminDb
+      .from("subscriptions")
+      .update({
+        expires_at: newExpiry.toISOString(),
+        featured_listings_included: (currentSamePlan.featured_listings_included || 0) + getPlanFeaturedCredits(plan_id),
+        // Keep the reference of the renewal payment for this row's audit trail;
+        // amount_paid intentionally reflects only the latest payment, not a running total.
+        paystack_reference: txn.reference,
+        amount_paid: priceNaira,
+      })
+      .eq("id", currentSamePlan.id)
+      .select()
+      .single()
+    subscription = result.data
+    error = result.error
+  } else {
+    const startsAt = new Date()
+    const expiresAt = new Date()
+    expiresAt.setDate(expiresAt.getDate() + durationDays)
+
+    // Insert-first — if this fails (e.g. a bad plan_type, a constraint
+    // we forgot to update), the school keeps whatever plan(s) they
+    // already have instead of losing anything. This exact bug happened
+    // once already: a failed 'monthly' insert (missing from a check
+    // constraint) still deactivated an existing paid plan first, then
+    // failed to replace it.
+    const result = await adminDb
+      .from("subscriptions")
+      .insert({
+        school_id,
+        plan_type: plan_id,
+        paystack_reference: txn.reference,
+        amount_paid: priceNaira,
+        starts_at: startsAt.toISOString(),
+        expires_at: expiresAt.toISOString(),
+        is_active: true,
+        featured_listings_included: getPlanFeaturedCredits(plan_id),
+        featured_listings_used: 0,
+      })
+      .select()
+      .single()
+    subscription = result.data
+    error = result.error
+  }
 
   if (error) return { ok: false, error: error.message }
-
-  await adminDb
-    .from("subscriptions")
-    .update({ is_active: false })
-    .eq("school_id", school_id)
-    .eq("is_active", true)
-    .neq("id", (subscription as { id: string }).id)
 
   const { data: school } = await adminDb
     .from("school_profiles").select("user_id").eq("id", school_id).single()

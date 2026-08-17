@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { checkJobPostingLimit } from "@/lib/job-limits"
-import { getActivePlanType, isPremiumPlan } from "@/lib/school-plan"
+import { getActivePlanType, isPremiumPlan, findSubscriptionWithFeaturedCredit } from "@/lib/school-plan"
 import { getFeaturedAddonAmountKobo } from "@/lib/pricing"
 
 // Helper — get or auto-create school profile row
@@ -130,14 +130,7 @@ export async function POST(request: Request) {
     const featuredAmountKobo = getFeaturedAddonAmountKobo(isPaidPlan)
 
     if (body.is_featured) {
-      const { data: subRows } = await supabase
-        .from("subscriptions")
-        .select("id, featured_listings_included, featured_listings_used")
-        .eq("school_id", school.id)
-        .eq("is_active", true)
-        .order("created_at", { ascending: false })
-        .limit(1)
-      const sub = (subRows ?? [])[0] ?? null
+      const sub = await findSubscriptionWithFeaturedCredit(supabase, school.id)
       const remaining = sub ? sub.featured_listings_included - sub.featured_listings_used : 0
 
       if (remaining > 0) {
@@ -250,14 +243,7 @@ export async function POST(request: Request) {
     // exists — a failure earlier (validation, etc.) shouldn't burn a
     // bundled slot or leave a payment unaccounted for.
     if (usesBundledSlot) {
-      const { data: subRows } = await supabase
-        .from("subscriptions")
-        .select("id, featured_listings_used")
-        .eq("school_id", school.id)
-        .eq("is_active", true)
-        .order("created_at", { ascending: false })
-        .limit(1)
-      const sub = (subRows ?? [])[0]
+      const sub = await findSubscriptionWithFeaturedCredit(supabase, school.id)
       if (sub) {
         await supabase
           .from("subscriptions")

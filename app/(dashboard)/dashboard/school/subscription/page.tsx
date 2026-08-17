@@ -115,9 +115,11 @@ function getPlanLabel(planType: string) {
 
 function CurrentPlanCard({
   subscription,
+  activePlans,
   usage,
 }: {
   subscription: Subscription | null
+  activePlans: Subscription[]
   usage: UsageStat[]
 }) {
   const planType = subscription?.plan_type || "free"
@@ -210,6 +212,31 @@ function CurrentPlanCard({
           )}
         </div>
       )}
+
+      {/* Other currently-valid plans — a Single Post credit and a
+          Monthly/Term subscription can be active at the same time; each
+          contributes its own posting capacity (see the usage stats
+          above) for as long as it's valid, regardless of what else is
+          active. */}
+      {activePlans.filter((p) => p.id !== subscription?.id).length > 0 && (
+        <div className="mt-4 pt-4 border-t border-white/10">
+          <p className="text-xs text-white/70 mb-2">Also active:</p>
+          <div className="space-y-1.5">
+            {activePlans
+              .filter((p) => p.id !== subscription?.id)
+              .map((p) => (
+                <div key={p.id} className="flex items-center justify-between text-sm bg-white/10 rounded-lg px-3 py-2">
+                  <span className="font-medium">{getPlanLabel(p.plan_type)}</span>
+                  {p.expires_at && (
+                    <span className="text-white/70 text-xs">
+                      Expires {formatDate(p.expires_at)}
+                    </span>
+                  )}
+                </div>
+              ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -264,28 +291,30 @@ function PlanPurchaseCard({
         ))}
       </div>
 
-      {isCurrentPlan ? (
-        <div className="w-full py-2 rounded-xl border-2 border-gray-200 text-center text-sm font-semibold text-gray-400">
-          Current Plan
+      {isCurrentPlan && (
+        <div className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-ink-600">
+          <CheckCircle2 className="h-3.5 w-3.5" />
+          Currently active
         </div>
-      ) : (
-        <Button
-          onClick={() => onPurchase(plan.id)}
-          disabled={isPurchasing !== null}
-          className={`w-full text-white ${plan.button}`}
-        >
-          {isPurchasing === plan.id ? (
-            <>
-              <Loader2 className="h-4 w-4 animate-spin mr-2" />
-              Processing...
-            </>
-          ) : plan.id === "standard" ? (
-            "Buy Posting"
-          ) : (
-            "Subscribe Now"
-          )}
-        </Button>
       )}
+      <Button
+        onClick={() => onPurchase(plan.id)}
+        disabled={isPurchasing !== null}
+        className={`w-full text-white ${plan.button}`}
+      >
+        {isPurchasing === plan.id ? (
+          <>
+            <Loader2 className="h-4 w-4 animate-spin mr-2" />
+            Processing...
+          </>
+        ) : plan.id === "standard" ? (
+          isCurrentPlan ? "Buy Another Posting" : "Buy Posting"
+        ) : isCurrentPlan ? (
+          "Renew"
+        ) : (
+          "Subscribe Now"
+        )}
+      </Button>
     </div>
   )
 }
@@ -298,12 +327,22 @@ function SubscriptionPageInner() {
 
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [subscription, setSubscription] = useState<Subscription | null>(null)
+  const [activePlans, setActivePlans] = useState<Subscription[]>([])
   const [usage, setUsage] = useState<UsageStat[]>([])
   const [history, setHistory] = useState<Subscription[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isPurchasing, setIsPurchasing] = useState<string | null>(null)
   const [paymentSuccess, setPaymentSuccess] = useState(false)
   const [paymentError, setPaymentError] = useState("")
+
+  const refetchSubscription = async () => {
+    const res = await fetch("/api/school/subscription")
+    const data = await res.json()
+    setSubscription(data.subscription)
+    setActivePlans(data.active_plans || [])
+    setUsage(data.usage || [])
+    setHistory(data.history || [])
+  }
 
   const verifyPayment = async (reference: string) => {
     try {
@@ -314,15 +353,10 @@ function SubscriptionPageInner() {
       })
       if (response.ok) {
         setPaymentSuccess(true)
-        const data = await response.json()
-        if (data.subscription) {
-          setSubscription(data.subscription)
-        } else if (data.already_processed) {
-          // Webhook already applied this payment before we got here — just refetch current state.
-          const refreshed = await fetch("/api/school/subscription")
-          const refreshedData = await refreshed.json()
-          setSubscription(refreshedData.subscription)
-        }
+        // Re-fetch full state rather than trusting the verify response alone —
+        // a school can now hold multiple concurrent plans, so "the new
+        // subscription" isn't the whole picture anymore.
+        await refetchSubscription()
         clearCached("school:plan-type")
       } else {
         const data = await response.json().catch(() => null)
@@ -339,6 +373,7 @@ function SubscriptionPageInner() {
         const response = await fetch("/api/school/subscription")
         const data = await response.json()
         setSubscription(data.subscription)
+        setActivePlans(data.active_plans || [])
         setUsage(data.usage || [])
         setHistory(data.history || [])
       } catch (err) {
@@ -433,7 +468,7 @@ function SubscriptionPageInner() {
           ) : (
             <>
               {/* Current Plan */}
-              <CurrentPlanCard subscription={subscription} usage={usage} />
+              <CurrentPlanCard subscription={subscription} activePlans={activePlans} usage={usage} />
 
               {/* Upgrade Plans */}
               <div className="mb-8">
@@ -455,10 +490,7 @@ function SubscriptionPageInner() {
                     <PlanPurchaseCard
                       key={plan.id}
                       plan={plan}
-                      isCurrentPlan={
-                        currentPlanType === plan.id &&
-                        subscription?.is_active === true
-                      }
+                      isCurrentPlan={activePlans.some((p) => p.plan_type === plan.id)}
                       onPurchase={handlePurchase}
                       isPurchasing={isPurchasing}
                     />
