@@ -114,16 +114,12 @@ function HeroCTAs({ user, isLoading, dashboardLink }: { user: AuthUser | null; i
     <div className="grid grid-cols-2 gap-3 max-w-md">
       <Link href="/register/teacher">
         <Button size="lg" className="w-full bg-ink-800 hover:bg-ink-900 text-white px-4 py-6 text-sm sm:text-base rounded-xl">
-          <Search className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2 flex-shrink-0" />
-          <span className="hidden sm:inline">Find Teaching Jobs</span>
-          <span className="sm:hidden">Find Jobs</span>
+          Find Teaching Jobs
         </Button>
       </Link>
       <Link href="/register/school">
         <Button size="lg" variant="outline" className="w-full px-4 py-6 text-sm sm:text-base rounded-xl border-ink-200">
-          <Building2 className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2 flex-shrink-0" />
-          <span className="hidden sm:inline">Hire Qualified Teachers</span>
-          <span className="sm:hidden">Hire Teachers</span>
+          Find Teachers
         </Button>
       </Link>
     </div>
@@ -210,10 +206,10 @@ export default function HomePage() {
           <div className="text-center lg:text-left">
             <h1 className="font-display text-[2.25rem] sm:text-5xl lg:text-[3.4rem] text-ink-950 leading-[1.2] sm:leading-[1.08] mb-5">
               Stop drowning in CVs.<br />
-              Hire smarter. Get hired faster.
+              Start hiring teachers who can actually teach.
             </h1>
             <p className="text-lg text-gray-600 mb-8 leading-relaxed max-w-lg mx-auto lg:mx-0">
-              A subject quiz screens every applicant — schools get a ranked shortlist, teachers get noticed for what they actually know.
+              A quick subject quiz screens every applicant — you get a ranked shortlist, not a stack of CVs.
             </p>
             <div className="mx-auto lg:mx-0 w-fit">
               <HeroCTAs user={user} isLoading={isLoading} dashboardLink={dashboardLink} />
