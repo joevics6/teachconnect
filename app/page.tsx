@@ -112,14 +112,14 @@ function HeroCTAs({ user, isLoading, dashboardLink }: { user: AuthUser | null; i
   )
   return (
     <div className="grid grid-cols-2 gap-3 max-w-md">
-      <Link href="/register/teacher">
+      <Link href="/register/school">
         <Button size="lg" className="w-full bg-ink-800 hover:bg-ink-900 text-white px-4 py-6 text-sm sm:text-base rounded-xl">
-          Find Teaching Jobs
+          Hire a Teacher
         </Button>
       </Link>
-      <Link href="/register/school">
+      <Link href="/register/teacher">
         <Button size="lg" variant="outline" className="w-full px-4 py-6 text-sm sm:text-base rounded-xl border-ink-200">
-          Find Teachers
+          Find a Teaching Job
         </Button>
       </Link>
     </div>
@@ -205,11 +205,11 @@ export default function HomePage() {
               product visual. */}
           <div className="text-center lg:text-left">
             <h1 className="font-display text-[2.25rem] sm:text-5xl lg:text-[3.4rem] text-ink-950 leading-[1.2] sm:leading-[1.08] mb-5">
-              Stop drowning in CVs.<br />
-              Start hiring teachers who can actually teach.
+              Hire teachers.<br />
+              No agency. No middlemen.
             </h1>
             <p className="text-lg text-gray-600 mb-8 leading-relaxed max-w-lg mx-auto lg:mx-0">
-              A quick subject quiz screens every applicant — you get a ranked shortlist, not a stack of CVs.
+              Direct hiring, done right — verified profiles, real contact, zero recruiter fees.
             </p>
             <div className="mx-auto lg:mx-0 w-fit">
               <HeroCTAs user={user} isLoading={isLoading} dashboardLink={dashboardLink} />
