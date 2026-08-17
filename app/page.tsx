@@ -210,10 +210,10 @@ export default function HomePage() {
           <div className="text-center lg:text-left">
             <h1 className="font-display text-[2.25rem] sm:text-5xl lg:text-[3.4rem] text-ink-950 leading-[1.2] sm:leading-[1.08] mb-5">
               Stop drowning in CVs.<br />
-              <span className="italic text-ink-600">Start hiring teachers<br className="sm:hidden" /> who can actually teach.</span>
+              Hire smarter. Get hired faster.
             </h1>
             <p className="text-lg text-gray-600 mb-8 leading-relaxed max-w-lg mx-auto lg:mx-0">
-              A quick subject quiz screens every applicant — you get a ranked shortlist, not a stack of CVs.
+              A subject quiz screens every applicant — schools get a ranked shortlist, teachers get noticed for what they actually know.
             </p>
             <div className="mx-auto lg:mx-0 w-fit">
               <HeroCTAs user={user} isLoading={isLoading} dashboardLink={dashboardLink} />
@@ -227,23 +227,20 @@ export default function HomePage() {
                 </div>
               ))}
             </div>
-            <p className="text-sm text-gray-500 mt-4 max-w-lg mx-auto lg:mx-0">
-              Teachers build a profile once and get matched to schools hiring for their subject and level.
-            </p>
           </div>
 
           <div className="relative flex justify-center lg:justify-end">
             <div className="absolute -inset-x-8 -inset-y-12 -z-10 bg-gradient-to-br from-brass-50 via-ink-50/60 to-transparent rounded-[3rem] blur-2xl" />
 
             <div className="relative w-full max-w-sm">
-              <div className="hidden sm:block absolute -top-8 -left-4 rotate-[-4deg] z-0">
+              <div className="hidden sm:block absolute -top-10 -left-6 rotate-[-2deg] z-0">
                 <ProfileCard />
               </div>
-              <div className="relative z-10 sm:mt-16">
+              <div className="relative z-10 sm:mt-24">
                 <RankingCard />
               </div>
               {/* Contrast callout — the "before" this replaces */}
-              <div className="absolute -bottom-5 -right-3 hidden sm:flex items-center gap-2 bg-white rounded-xl border border-gray-200 shadow-lg px-4 py-3 z-20">
+              <div className="absolute -bottom-6 -right-2 hidden sm:flex items-center gap-2 bg-white rounded-xl border border-gray-200 shadow-lg px-4 py-3 z-20">
                 <div className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
                   <X className="h-3.5 w-3.5 text-gray-400" />
                 </div>
