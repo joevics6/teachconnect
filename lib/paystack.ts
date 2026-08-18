@@ -15,6 +15,7 @@ import type { SupabaseClient } from "@supabase/supabase-js"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { getPlanDurationDays, getPlanPriceNaira, getPlanFeaturedCredits } from "@/lib/pricing"
 import { notifyUser } from "@/lib/notifications"
+import { revalidateTag } from "next/cache"
 
 export interface PaystackTransaction {
   reference: string
@@ -214,6 +215,13 @@ export async function applyJobAddonFromPayment(
     .from("job_addon_purchases")
     .update({ status: "completed", completed_at: new Date().toISOString() })
     .eq("paystack_reference", txn.reference)
+
+  // Both add-on types change what's shown in public job search/detail
+  // (featured placement, or the deadline used for "still accepting
+  // applications" filtering) — burst the shared cache from here so
+  // both the client-verify route AND the webhook path get this for
+  // free, rather than duplicating the call in each caller.
+  revalidateTag("jobs", "max")
 
   return { ok: true, addon_type }
 }

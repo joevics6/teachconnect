@@ -5,6 +5,7 @@
 
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
+import { getJobById, getRelatedJobs } from "@/lib/cache/jobs"
 
 export async function GET(
   request: NextRequest,
@@ -16,13 +17,9 @@ export async function GET(
 
     const { data: { user } } = await supabase.auth.getUser()
 
-    const { data: job, error } = await supabase
-      .from("jobs_with_school")
-      .select("*")
-      .eq("id", jobId)
-      .single()
+    const job = await getJobById(jobId)
 
-    if (error || !job) {
+    if (!job) {
       return NextResponse.json(
         { error: "Job not found" },
         { status: 404 }
@@ -91,20 +88,11 @@ export async function GET(
       }
     }
 
-    const { data: related } = await supabase
-      .from("jobs_with_school")
-      .select("id, title, school_name, school_state, salary_min, salary_max, employment_type")
-      .eq("subject", job.subject)
-      .eq("status", "active")
-      .eq("is_private", false)
-      .neq("id", jobId)
-      .gte("deadline", new Date().toISOString().split("T")[0])
-      .order("created_at", { ascending: false })
-      .limit(4)
+    const related = await getRelatedJobs(job.subject, jobId)
 
     return NextResponse.json({
       job,
-      related: related || [],
+      related,
       is_saved,
       has_applied,
     })

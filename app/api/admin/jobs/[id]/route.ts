@@ -8,6 +8,7 @@ import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { requireAdmin } from "@/lib/admin"
+import { revalidateTag } from "next/cache"
 
 export async function PATCH(
   request: Request,
@@ -33,6 +34,12 @@ export async function PATCH(
       .update({ status: action === "approve" ? "active" : "rejected" })
       .eq("id", id)
     if (error) throw error
+
+    // This is the moment a job actually becomes (or stops being)
+    // publicly visible — burst both caches immediately rather than
+    // waiting on their TTL.
+    revalidateTag("jobs", "max")
+    revalidateTag("schools", "max")
 
     return NextResponse.json({ ok: true })
   } catch (err) {

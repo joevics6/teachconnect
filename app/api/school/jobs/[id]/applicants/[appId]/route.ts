@@ -6,6 +6,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { notifyUser } from "@/lib/notifications"
+import { revalidateTag } from "next/cache"
 
 export async function PATCH(
   request: NextRequest,
@@ -65,6 +66,11 @@ export async function PATCH(
       .single()
 
     if (error) throw error
+
+    if (updates.pipeline_stage === "hired") {
+      // The public school profile shows a total_hired count.
+      revalidateTag("schools", "max")
+    }
 
     if (updates.pipeline_stage === "hired") {
       const { data: application } = await supabase

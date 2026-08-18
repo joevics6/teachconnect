@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
+import { revalidateTag } from "next/cache"
 
 export async function GET() {
   try {
@@ -86,6 +87,11 @@ export async function PATCH(request: Request) {
     const { data, error } = await supabase
       .from("school_profiles").update(updates).eq("user_id", user.id).select()
     if (error) throw error
+
+    // Every field in allowedFields is shown on the school's public
+    // profile (/schools/[id] and /school/[id]) — burst that cache.
+    revalidateTag("schools", "max")
+
     return NextResponse.json({ school: (data ?? [])[0] ?? null })
   } catch (err) {
     console.error("PATCH school profile error:", err)

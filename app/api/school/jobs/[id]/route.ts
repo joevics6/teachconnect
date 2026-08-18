@@ -7,6 +7,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { checkJobPostingLimit } from "@/lib/job-limits"
 import { getActivePlanType, isPremiumPlan } from "@/lib/school-plan"
+import { revalidateTag } from "next/cache"
 
 export async function PATCH(
   request: NextRequest,
@@ -85,6 +86,15 @@ export async function PATCH(
       .single()
 
     if (error) throw error
+
+    // Every field in `allowed` above can change what's shown on the
+    // public job search, job detail page, or the school's public
+    // profile — burst both caches rather than waiting on their TTL.
+    // (Status changes, e.g. closing a job, also affect the school's
+    // active-job count, hence "schools" too.)
+    revalidateTag("jobs", "max")
+    if (updates.status !== undefined) revalidateTag("schools", "max")
+
     return NextResponse.json({ job: data })
   } catch (err) {
     console.error("PATCH job error:", err)
