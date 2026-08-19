@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import Image from "next/image"
 import {
   Search, FileCheck, Building2, MapPin,
   CheckCircle2, BookOpen, Shield, ArrowRight, X,
@@ -229,6 +230,22 @@ export default function HomePage() {
             <div className="absolute -inset-x-8 -inset-y-12 -z-10 bg-gradient-to-br from-brass-50 via-ink-50/60 to-transparent rounded-[3rem] blur-2xl" />
 
             <div className="relative w-full max-w-sm">
+              {/* Hero photo — transparent-cutout group shot, placed as a
+                  foreground element behind/below the two product-mockup
+                  cards. object-contain (not cover) since this is a
+                  cutout, not a full-bleed background photo. Purely
+                  decorative in the right-hand visual column, so it
+                  never overlaps the headline/copy on the left. */}
+              <div className="hidden sm:block absolute -bottom-8 -right-10 -left-16 h-[22rem] -z-[5]">
+                <Image
+                  src="/hero-teacher.png"
+                  alt="Teachers and school staff on ClassHire"
+                  fill
+                  className="object-contain object-bottom"
+                  priority
+                />
+              </div>
+
               <div className="hidden sm:block absolute -top-10 -left-6 rotate-[-2deg] z-0">
                 <ProfileCard />
               </div>
