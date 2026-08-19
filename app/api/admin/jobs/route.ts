@@ -27,9 +27,9 @@ export async function GET(request: Request) {
       .from("jobs")
       .select(`
         id, title, subject, employment_type, salary_min, salary_max,
-        state, status, is_private, is_featured, quiz_enabled, deadline,
+        status, is_private, is_featured, quiz_enabled, deadline,
         created_at, school_id,
-        school_profiles ( school_name, is_verified, logo_url )
+        school_profiles ( school_name, is_verified, logo_url, state )
       `)
       .order("created_at", { ascending: false })
       .limit(300)
@@ -39,7 +39,14 @@ export async function GET(request: Request) {
     const { data: jobs, error } = await query
     if (error) throw error
 
-    return NextResponse.json({ jobs: jobs || [] })
+    // Flatten school_profiles.state onto each job for the admin UI, which
+    // reads job.state directly (jobs itself has no state column).
+    const flattened = (jobs || []).map((job) => {
+      const school = Array.isArray(job.school_profiles) ? job.school_profiles[0] : job.school_profiles
+      return { ...job, state: school?.state ?? null }
+    })
+
+    return NextResponse.json({ jobs: flattened })
   } catch (err) {
     console.error("GET admin jobs error:", err)
     return NextResponse.json({ error: "Failed to fetch jobs" }, { status: 500 })

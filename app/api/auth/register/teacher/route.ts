@@ -32,7 +32,7 @@ export async function POST(request: Request) {
     const willing_to_relocate = formData.get("willing_to_relocate") === "true"
     const accommodation_needed = formData.get("accommodation_needed") === "true"
     const availability = formData.get("availability") as string
-    const salary_min = parseInt(formData.get("salary_min") as string || "0") || null
+    const salary_min = parseInt(formData.get("salary_min") as string || "0") || 0
     const bio = formData.get("bio") as string || null
     const phone_calls_enabled = formData.get("phone_calls_enabled") === "true"
     const whatsapp_enabled = formData.get("whatsapp_enabled") === "true"
@@ -92,7 +92,14 @@ export async function POST(request: Request) {
     }
  
     const userId = authData.user.id
- 
+
+    // Uploads use the admin client rather than the just-created session:
+    // the auth cookie from signUp() above isn't always propagated in time
+    // for storage's RLS check on this same request, which was intermittently
+    // rejecting valid uploads. userId is server-trusted (from authData, not
+    // user input) so this doesn't weaken the path-ownership guarantee.
+    const adminStorageClient = createAdminClient()
+
     // ── Upload photo ────────────────────────────────────────
     let photo_url: string | null = null
     if (photo_file && photo_file.size > 0) {
@@ -100,7 +107,7 @@ export async function POST(request: Request) {
       const photoPath = `${userId}/avatar.${photoExt}`
       const photoBuffer = await photo_file.arrayBuffer()
  
-      const { error: photoError } = await supabase.storage
+      const { error: photoError } = await adminStorageClient.storage
         .from("avatars")
         .upload(photoPath, photoBuffer, {
           contentType: photo_file.type,
@@ -108,10 +115,12 @@ export async function POST(request: Request) {
         })
  
       if (!photoError) {
-        const { data: publicUrl } = supabase.storage
+        const { data: publicUrl } = adminStorageClient.storage
           .from("avatars")
           .getPublicUrl(photoPath)
         photo_url = publicUrl.publicUrl
+      } else {
+        console.error("Photo upload error:", photoError)
       }
     }
  
@@ -121,7 +130,7 @@ export async function POST(request: Request) {
       const cvPath = cvStoragePath(userId, cv_file.type)
       const cvBuffer = await cv_file.arrayBuffer()
 
-      const { error: cvError } = await supabase.storage
+      const { error: cvError } = await adminStorageClient.storage
         .from("cvs")
         .upload(cvPath, cvBuffer, {
           contentType: cv_file.type,
@@ -131,7 +140,8 @@ export async function POST(request: Request) {
       // 'cvs' is a private bucket -- this is just a "has a CV" marker,
       // not a usable link. Real downloads go through
       // /api/teacher/cv-signed-url (see lib/cv-storage.ts).
-      if (!cvError) cv_url = cvPath
+      if (cvError) console.error("CV upload error:", cvError)
+      else cv_url = cvPath
     }
  
     // ── Create teacher profile ──────────────────────────────
@@ -153,7 +163,7 @@ export async function POST(request: Request) {
         willing_to_relocate,
         accommodation_needed,
         availability,
-        salary_min: salary_min ?? null,
+        salary_min,
         bio,
         phone_calls_enabled,
         whatsapp_enabled,
