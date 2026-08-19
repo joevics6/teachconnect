@@ -229,14 +229,15 @@ export default function HomePage() {
           <div className="relative flex justify-center lg:justify-end">
             <div className="absolute -inset-x-8 -inset-y-12 -z-10 bg-gradient-to-br from-brass-50 via-ink-50/60 to-transparent rounded-[3rem] blur-2xl" />
 
-            <div className="relative w-full max-w-sm">
+            <div className="relative w-full max-w-sm z-0">
               {/* Hero photo — transparent-cutout group shot, placed as a
-                  foreground element behind/below the two product-mockup
-                  cards. object-contain (not cover) since this is a
-                  cutout, not a full-bleed background photo. Purely
-                  decorative in the right-hand visual column, so it
-                  never overlaps the headline/copy on the left. */}
-              <div className="hidden sm:block absolute -bottom-8 -right-10 -left-16 h-[22rem] -z-[5]">
+                  foreground element behind/below the product-mockup
+                  cards. Uses z-0 (not a negative z-index) so it stays
+                  within this box's own stacking context instead of
+                  risking getting swallowed behind an ancestor's
+                  background. Shown at all breakpoints now (was
+                  sm-and-up only), sized down on mobile. */}
+              <div className="block absolute -bottom-4 -right-4 -left-6 h-64 sm:-bottom-8 sm:-right-10 sm:-left-16 sm:h-[22rem] z-0">
                 <Image
                   src="/hero-teacher.png"
                   alt="Teachers and school staff on ClassHire"
