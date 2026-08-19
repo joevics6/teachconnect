@@ -237,7 +237,7 @@ export default function HomePage() {
                   risking getting swallowed behind an ancestor's
                   background. Shown at all breakpoints now (was
                   sm-and-up only), sized down on mobile. */}
-              <div className="block absolute -bottom-4 -right-4 -left-6 h-64 sm:-bottom-8 sm:-right-10 sm:-left-16 sm:h-[22rem] z-0">
+              <div className="hidden absolute -bottom-4 -right-4 -left-6 h-64 sm:-bottom-8 sm:-right-10 sm:-left-16 sm:h-[22rem] z-0">
                 <Image
                   src="/hero-teacher.png"
                   alt="Teachers and school staff on ClassHire"
