@@ -113,15 +113,17 @@ export default function JobDetailPage() {
 
   const handleApply = () => {
     if (!job) return
+    // Quiz always wins when both are enabled — it's the gate in front
+    // of the external contact info, not an alternative to it.
+    if (job.quiz_enabled) {
+      router.push(`/quiz/${job.id}`)
+      return
+    }
     if (job.external_apply_enabled && job.external_apply_value) {
       window.open(getExternalApplyHref(job.external_apply_value), "_blank", "noopener,noreferrer")
       return
     }
-    if (job.quiz_enabled) {
-      router.push(`/quiz/${job.id}`)
-    } else {
-      router.push(`/apply/${job.id}`)
-    }
+    router.push(`/apply/${job.id}`)
   }
 
   // eslint-disable-next-line react-hooks/purity -- display-only "days left" countdown; doesn't need certified determinism across renders
@@ -278,7 +280,7 @@ export default function JobDetailPage() {
                     {level.toUpperCase()}
                   </span>
                 ))}
-                {job.quiz_enabled && (
+                {job.quiz_enabled && !(job.external_apply_enabled && job.external_apply_value) && (
                   <span className="px-3 py-1 bg-purple-100 text-purple-700 text-xs rounded-full font-medium flex items-center gap-1">
                     <BookOpen className="h-3 w-3" />
                     Quiz Required
@@ -287,7 +289,9 @@ export default function JobDetailPage() {
                 {job.external_apply_enabled && job.external_apply_value && (
                   <span className="px-3 py-1 bg-orange-100 text-orange-700 text-xs rounded-full font-medium flex items-center gap-1">
                     <ExternalLink className="h-3 w-3" />
-                    {getExternalApplyLabel(job.external_apply_value)}
+                    {job.quiz_enabled
+                      ? "Quiz Unlocks Contact Info"
+                      : getExternalApplyLabel(job.external_apply_value)}
                   </span>
                 )}
               </div>
@@ -501,15 +505,17 @@ export default function JobDetailPage() {
                   onClick={handleApply}
                   className="w-full bg-ink-600 hover:bg-ink-700 text-white mb-3 py-3 text-base"
                 >
-                  {job.external_apply_enabled && job.external_apply_value ? (
+                  {job.quiz_enabled ? (
+                    <>
+                      <BookOpen className="h-5 w-5 mr-2" />
+                      {job.external_apply_enabled && job.external_apply_value
+                        ? "Take Quiz to Unlock Contact Info"
+                        : "Take Quiz & Apply"}
+                    </>
+                  ) : job.external_apply_enabled && job.external_apply_value ? (
                     <>
                       <ExternalLink className="h-5 w-5 mr-2" />
                       {getExternalApplyLabel(job.external_apply_value)}
-                    </>
-                  ) : job.quiz_enabled ? (
-                    <>
-                      <BookOpen className="h-5 w-5 mr-2" />
-                      Take Quiz & Apply
                     </>
                   ) : (
                     "Apply Now"

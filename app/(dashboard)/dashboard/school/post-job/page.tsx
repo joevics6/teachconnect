@@ -931,8 +931,11 @@ function PostJobPageInner() {
               />
             </div>
             <p className="text-gray-500 text-xs mb-4">
-              Skip TeachConnect&apos;s built-in application flow and send applicants
-              straight to your email, WhatsApp, or website instead.
+              Send applicants straight to your email, WhatsApp, or website
+              instead of TeachConnect&apos;s built-in application form.
+              {formData.quiz_enabled
+                ? " Since Quiz Screening is on, teachers will need to pass the quiz below before this contact info is revealed."
+                : ""}
             </p>
 
             {formData.external_apply_enabled && (

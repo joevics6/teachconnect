@@ -71,6 +71,8 @@ export async function GET(
         quiz_pass_mark,
         quiz_duration,
         quiz_question_count,
+        external_apply_enabled,
+        external_apply_value,
         school_id,
         school_profiles!inner(school_name)
       `
@@ -192,6 +194,8 @@ export async function GET(
       pass_mark: job.quiz_pass_mark || 70,
       questions: safeQuestions,
       started_at: startedAt,
+      external_apply_enabled: job.external_apply_enabled ?? false,
+      external_apply_value: job.external_apply_enabled ? job.external_apply_value : null,
       ...(shortages.length ? { subject_shortages: shortages } : {}),
     })
   } catch (err) {
