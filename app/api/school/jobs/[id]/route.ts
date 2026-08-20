@@ -6,7 +6,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { checkJobPostingLimit } from "@/lib/job-limits"
-import { getActivePlanType, isPremiumPlan } from "@/lib/school-plan"
+import { getActivePlanType, isPremiumPlan, hasExternalApplyAccess } from "@/lib/school-plan"
 import { revalidateTag } from "next/cache"
 
 export async function PATCH(
@@ -48,6 +48,16 @@ export async function PATCH(
         }
         return NextResponse.json(
           { error: "Featured listings aren't available on the Free plan yet.", upgrade_required: true },
+          { status: 402 }
+        )
+      }
+    }
+
+    if (updates.external_apply_enabled === true) {
+      const planType = await getActivePlanType(supabase, school.id)
+      if (!hasExternalApplyAccess(planType)) {
+        return NextResponse.json(
+          { error: "External Application requires a Monthly or Term plan.", upgrade_required: true },
           { status: 402 }
         )
       }

@@ -68,3 +68,8 @@ export function isPremiumPlan(planType: PlanType): boolean {
 export function hasTalentAccess(planType: PlanType): boolean {
   return planType === "monthly" || planType === "term"
 }
+
+/** External Application (email/WhatsApp/website in place of the built-in apply flow) — Monthly/Term only, same tier as Talent access. */
+export function hasExternalApplyAccess(planType: PlanType): boolean {
+  return planType === "monthly" || planType === "term"
+}

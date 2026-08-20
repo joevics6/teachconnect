@@ -161,11 +161,13 @@ function Toggle({
   onChange,
   color = "blue",
   locked = false,
+  lockedTitle = "Requires a paid plan",
 }: {
   value: boolean
   onChange: (v: boolean) => void
   color?: "blue" | "green" | "yellow" | "purple"
   locked?: boolean
+  lockedTitle?: string
 }) {
   const colors = {
     blue: "bg-ink-600",
@@ -178,7 +180,7 @@ function Toggle({
       type="button"
       onClick={() => !locked && onChange(!value)}
       disabled={locked}
-      title={locked ? "Requires a paid plan" : undefined}
+      title={locked ? lockedTitle : undefined}
       className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0 ${
         locked ? "bg-gray-100 cursor-not-allowed" : value ? colors[color] : "bg-gray-200"
       }`}
@@ -224,6 +226,11 @@ function PostJobPageInner() {
   // differently (see getFeaturedAddonPrice), so neither checks this flag
   // to lock itself.
   const [isPaidPlan, setIsPaidPlan] = useState<boolean | null>(null)
+  // External Application (email/WhatsApp/website in place of the
+  // built-in apply flow) is Monthly/Term only — same tier as Talent
+  // access, NOT unlocked by Single Post. null while loading so the
+  // toggle stays locked until we actually know the plan.
+  const [hasExternalApplyPlan, setHasExternalApplyPlan] = useState<boolean | null>(null)
   const [featuredPaymentReference, setFeaturedPaymentReference] = useState<string | null>(null)
   const [payingForFeatured, setPayingForFeatured] = useState(false)
   const [restoringAfterPayment, setRestoringAfterPayment] = useState(false)
@@ -237,6 +244,7 @@ function PostJobPageInner() {
         const data = await res.json()
         const sub = data.subscription
         setIsPaidPlan(!!sub)
+        setHasExternalApplyPlan(sub?.plan_type === "monthly" || sub?.plan_type === "term")
         if (sub) {
           setFeaturedRemaining(
             Math.max(0, (sub.featured_listings_included ?? 0) - (sub.featured_listings_used ?? 0))
@@ -928,17 +936,25 @@ function PostJobPageInner() {
                 value={formData.external_apply_enabled}
                 onChange={(v) => update("external_apply_enabled", v)}
                 color="blue"
+                locked={hasExternalApplyPlan !== true}
+                lockedTitle="Requires a Monthly or Term plan"
               />
             </div>
             <p className="text-gray-500 text-xs mb-4">
-              Send applicants straight to your email, WhatsApp, or website
-              instead of TeachConnect&apos;s built-in application form.
-              {formData.quiz_enabled
-                ? " Since Quiz Screening is on, teachers will need to pass the quiz below before this contact info is revealed."
-                : ""}
+              {hasExternalApplyPlan === false ? (
+                <>Requires a Monthly or Term plan — <Link href="/dashboard/school/subscription" className="text-ink-600 underline font-medium">Upgrade</Link></>
+              ) : (
+                <>
+                  Send applicants straight to your email, WhatsApp, or website
+                  instead of TeachConnect&apos;s built-in application form.
+                  {formData.quiz_enabled
+                    ? " Since Quiz Screening is on, teachers will need to pass the quiz below before this contact info is revealed."
+                    : ""}
+                </>
+              )}
             </p>
 
-            {formData.external_apply_enabled && (
+            {formData.external_apply_enabled && hasExternalApplyPlan && (
               <div className="pt-4 border-t border-gray-100">
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">
                   Email, phone number, or website URL

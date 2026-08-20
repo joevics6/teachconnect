@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { checkJobPostingLimit } from "@/lib/job-limits"
-import { getActivePlanType, isPremiumPlan, findSubscriptionWithFeaturedCredit } from "@/lib/school-plan"
+import { getActivePlanType, isPremiumPlan, hasExternalApplyAccess, findSubscriptionWithFeaturedCredit } from "@/lib/school-plan"
 import { getFeaturedAddonAmountKobo } from "@/lib/pricing"
 
 // Helper — get or auto-create school profile row
@@ -114,6 +114,12 @@ export async function POST(request: Request) {
           { status: 402 }
         )
       }
+    }
+    if (body.external_apply_enabled && !hasExternalApplyAccess(planType)) {
+      return NextResponse.json(
+        { error: "External Application requires a Monthly or Term plan.", upgrade_required: true },
+        { status: 402 }
+      )
     }
 
     // Featured Listing: available on EVERY plan, including Free — Free
