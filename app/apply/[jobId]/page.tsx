@@ -22,6 +22,7 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { formatCurrency, formatDate } from "@/lib/utils"
+import { getExternalApplyHref } from "@/lib/external-apply"
 
 interface JobDetails {
   id: string
@@ -33,6 +34,8 @@ interface JobDetails {
   salary_max: number
   deadline: string
   quiz_enabled: boolean
+  external_apply_enabled: boolean
+  external_apply_value: string | null
   school_name: string
   school_logo_url: string | null
   school_state: string
@@ -88,6 +91,14 @@ export default function ApplyPage() {
 
         if (!jobRes.ok) {
           setError("Job not found")
+          return
+        }
+
+        // External-apply jobs skip the built-in flow entirely — send
+        // people straight to the school's email/WhatsApp/website
+        // rather than showing our cover-letter form.
+        if (jobData.job?.external_apply_enabled && jobData.job?.external_apply_value) {
+          window.location.href = getExternalApplyHref(jobData.job.external_apply_value)
           return
         }
 

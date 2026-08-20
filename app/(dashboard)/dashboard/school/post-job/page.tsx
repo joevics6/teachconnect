@@ -112,6 +112,8 @@ interface FormData {
   benefits: string[]
   is_private: boolean
   is_featured: boolean
+  external_apply_enabled: boolean
+  external_apply_value: string
   quiz_enabled: boolean
   quiz_mode: QuizMode
   quiz_levels: string[]
@@ -138,6 +140,8 @@ const EMPTY_FORM: FormData = {
   benefits: [],
   is_private: false,
   is_featured: false,
+  external_apply_enabled: false,
+  external_apply_value: "",
   quiz_enabled: false,
   quiz_mode: "speed",
   quiz_levels: [],
@@ -417,6 +421,8 @@ function PostJobPageInner() {
       newErrors.quiz_subjects = "Select at least one subject (max 3)"
     if (formData.accommodation_offered && !formData.accommodation_type)
       newErrors.accommodation_type = "Select accommodation type"
+    if (formData.external_apply_enabled && !formData.external_apply_value.trim())
+      newErrors.external_apply_value = "Enter an email, phone number, or URL"
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -912,6 +918,46 @@ function PostJobPageInner() {
                 />
               </div>
             </div>
+          </div>
+
+          {/* ── External Application ── */}
+          <div className="bg-white rounded-xl border border-gray-200 p-6">
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="font-bold text-gray-900">External Application</h2>
+              <Toggle
+                value={formData.external_apply_enabled}
+                onChange={(v) => update("external_apply_enabled", v)}
+                color="blue"
+              />
+            </div>
+            <p className="text-gray-500 text-xs mb-4">
+              Skip TeachConnect&apos;s built-in application flow and send applicants
+              straight to your email, WhatsApp, or website instead.
+            </p>
+
+            {formData.external_apply_enabled && (
+              <div className="pt-4 border-t border-gray-100">
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                  Email, phone number, or website URL
+                </label>
+                <input
+                  type="text"
+                  value={formData.external_apply_value}
+                  onChange={(e) => update("external_apply_value", e.target.value)}
+                  placeholder="e.g. jobs@myschool.com, +2348012345678, or myschool.com/careers"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ink-500"
+                />
+                <p className="text-xs text-gray-400 mt-1.5">
+                  We&apos;ll automatically detect whether this opens an email, a
+                  WhatsApp chat, or the website — no need to say which.
+                </p>
+                {errors.external_apply_value && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {errors.external_apply_value}
+                  </p>
+                )}
+              </div>
+            )}
           </div>
 
           {/* ── Quiz Screening ── */}

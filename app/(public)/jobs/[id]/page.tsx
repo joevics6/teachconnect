@@ -20,9 +20,11 @@ import {
   ArrowLeft,
   Loader2,
   AlertCircle,
+  ExternalLink,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { formatCurrency, formatDate } from "@/lib/utils"
+import { getExternalApplyHref, getExternalApplyLabel } from "@/lib/external-apply"
 import type { Job } from "@/types"
 
 interface JobWithSchool extends Job {
@@ -111,6 +113,10 @@ export default function JobDetailPage() {
 
   const handleApply = () => {
     if (!job) return
+    if (job.external_apply_enabled && job.external_apply_value) {
+      window.open(getExternalApplyHref(job.external_apply_value), "_blank", "noopener,noreferrer")
+      return
+    }
     if (job.quiz_enabled) {
       router.push(`/quiz/${job.id}`)
     } else {
@@ -276,6 +282,12 @@ export default function JobDetailPage() {
                   <span className="px-3 py-1 bg-purple-100 text-purple-700 text-xs rounded-full font-medium flex items-center gap-1">
                     <BookOpen className="h-3 w-3" />
                     Quiz Required
+                  </span>
+                )}
+                {job.external_apply_enabled && job.external_apply_value && (
+                  <span className="px-3 py-1 bg-orange-100 text-orange-700 text-xs rounded-full font-medium flex items-center gap-1">
+                    <ExternalLink className="h-3 w-3" />
+                    {getExternalApplyLabel(job.external_apply_value)}
                   </span>
                 )}
               </div>
@@ -489,7 +501,12 @@ export default function JobDetailPage() {
                   onClick={handleApply}
                   className="w-full bg-ink-600 hover:bg-ink-700 text-white mb-3 py-3 text-base"
                 >
-                  {job.quiz_enabled ? (
+                  {job.external_apply_enabled && job.external_apply_value ? (
+                    <>
+                      <ExternalLink className="h-5 w-5 mr-2" />
+                      {getExternalApplyLabel(job.external_apply_value)}
+                    </>
+                  ) : job.quiz_enabled ? (
                     <>
                       <BookOpen className="h-5 w-5 mr-2" />
                       Take Quiz & Apply
