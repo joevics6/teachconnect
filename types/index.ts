@@ -118,6 +118,8 @@ export interface Job {
   quiz_subjects?: string[]
   quiz_difficulty?: string
   quiz_pass_mark?: number
+  external_apply_enabled: boolean
+  external_apply_value?: string | null
   description: string
   required_qualifications: string
   preferred_qualifications?: string

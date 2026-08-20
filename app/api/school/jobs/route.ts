@@ -187,6 +187,12 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "A quiz can test at most 3 subjects" }, { status: 400 })
       }
     }
+    if (body.external_apply_enabled && !String(body.external_apply_value || "").trim()) {
+      return NextResponse.json(
+        { error: "Enter an email, phone number, or URL for external applications" },
+        { status: 400 }
+      )
+    }
 
     const jobPayload = {
       school_id:                school.id,
@@ -202,6 +208,8 @@ export async function POST(request: Request) {
       benefits:                 body.benefits ?? [],
       is_private:               body.is_private ?? false,
       is_featured:              body.is_featured ?? false,
+      external_apply_enabled:   body.external_apply_enabled ?? false,
+      external_apply_value:     body.external_apply_enabled ? String(body.external_apply_value || "").trim() : null,
       quiz_enabled:             body.quiz_enabled ?? false,
       // quiz_subjects/quiz_difficulty are kept in sync (subject names /
       // first selected level) purely for backward compatibility with

@@ -29,7 +29,8 @@ export async function PATCH(
 
     const body = await request.json()
     const allowed = ["status", "title", "description", "deadline",
-      "salary_min", "salary_max", "is_featured", "is_private"]
+      "salary_min", "salary_max", "is_featured", "is_private",
+      "external_apply_enabled", "external_apply_value"]
     const updates: Record<string, unknown> = {}
     allowed.forEach((f) => { if (body[f] !== undefined) updates[f] = body[f] })
 
