@@ -15,9 +15,11 @@ import {
   PenLine,
   Send,
   RotateCcw,
+  ExternalLink,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
+import { getExternalApplyHref, getExternalApplyLabel } from "@/lib/external-apply"
 
 // ─── Types ───────────────────────────────────────────────────
 
@@ -46,6 +48,8 @@ interface QuizMeta {
   pass_mark: number
   questions: QuizQuestion[]
   started_at: string
+  external_apply_enabled?: boolean
+  external_apply_value?: string | null
 }
 
 interface WrittenFeedback {
@@ -176,6 +180,16 @@ function PreQuizScreen({
           <div className={`p-4 rounded-xl border text-sm mb-6 ${modeColor}`}>
             {modeDescriptions[meta.mode]}
           </div>
+
+          {meta.external_apply_enabled && meta.external_apply_value && (
+            <div className="flex items-start gap-2 p-3 bg-orange-50 border border-orange-200 rounded-lg mb-6">
+              <ExternalLink className="h-4 w-4 text-orange-600 flex-shrink-0 mt-0.5" />
+              <p className="text-xs text-orange-700">
+                Pass this quiz to unlock {meta.school_name}&apos;s direct contact
+                details — {getExternalApplyLabel(meta.external_apply_value)} to apply.
+              </p>
+            </div>
+          )}
 
           {/* Warning */}
           <div className="flex items-start gap-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg mb-6">
@@ -736,6 +750,7 @@ function ResultsScreen({
   meta: QuizMeta
 }) {
   const passed = result.passed
+  const hasExternalContact = !!(meta.external_apply_enabled && meta.external_apply_value)
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-12">
@@ -767,7 +782,9 @@ function ResultsScreen({
           </p>
           <p className="text-gray-500 text-sm">
             {passed
-              ? "Your application has been submitted to the school. You will be notified of the next steps."
+              ? hasExternalContact
+                ? "You've unlocked this school's contact details below."
+                : "Your application has been submitted to the school. You will be notified of the next steps."
               : `You needed ${meta.pass_mark}% to pass. You can apply for other jobs and try again.`}
           </p>
 
@@ -788,6 +805,28 @@ function ResultsScreen({
             </div>
           </div>
         </div>
+
+        {/* Unlocked Contact Info */}
+        {passed && hasExternalContact && meta.external_apply_value && (
+          <div className="bg-orange-50 border border-orange-200 rounded-2xl p-6 text-center">
+            <h2 className="font-bold text-gray-900 mb-1">
+              Contact {meta.school_name}
+            </h2>
+            <p className="text-sm text-gray-600 mb-4">
+              {getExternalApplyLabel(meta.external_apply_value)} to complete
+              your application directly with the school.
+            </p>
+            <a
+              href={getExternalApplyHref(meta.external_apply_value)}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Button className="w-full bg-orange-600 hover:bg-orange-700 text-white">
+                {getExternalApplyLabel(meta.external_apply_value)}
+              </Button>
+            </a>
+          </div>
+        )}
 
         {/* Written Feedback */}
         {result.written_feedback && result.written_feedback.length > 0 && (

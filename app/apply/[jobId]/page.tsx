@@ -94,17 +94,20 @@ export default function ApplyPage() {
           return
         }
 
-        // External-apply jobs skip the built-in flow entirely — send
-        // people straight to the school's email/WhatsApp/website
-        // rather than showing our cover-letter form.
-        if (jobData.job?.external_apply_enabled && jobData.job?.external_apply_value) {
-          window.location.href = getExternalApplyHref(jobData.job.external_apply_value)
+        // If job requires quiz, redirect to quiz page — this also covers
+        // external-apply jobs that gate their contact info behind a
+        // quiz (quiz page reveals it after a pass), so quiz always wins
+        // when both are enabled.
+        if (jobData.job?.quiz_enabled) {
+          router.replace(`/quiz/${jobId}`)
           return
         }
 
-        // If job requires quiz, redirect to quiz page
-        if (jobData.job?.quiz_enabled) {
-          router.replace(`/quiz/${jobId}`)
+        // External-apply jobs with no quiz gate skip the built-in flow
+        // entirely — send people straight to the school's
+        // email/WhatsApp/website rather than showing our cover-letter form.
+        if (jobData.job?.external_apply_enabled && jobData.job?.external_apply_value) {
+          window.location.href = getExternalApplyHref(jobData.job.external_apply_value)
           return
         }
 
