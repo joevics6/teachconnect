@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense, useCallback } from "react"
 import Link from "next/link"
-import { useSearchParams } from "next/navigation"
+import { useSearchParams, useRouter } from "next/navigation"
 import {
   Briefcase,
   CheckCircle2,
@@ -164,6 +164,7 @@ function JobActionsMenu({
 
 function SchoolJobsContent() {
   const searchParams = useSearchParams()
+  const router = useRouter()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [jobs, setJobs] = useState<Job[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -227,6 +228,12 @@ function SchoolJobsContent() {
         fetchJobs()
       })
       .catch(() => setAddonError("Could not verify payment. Contact support."))
+      .finally(() => {
+        // Strip reference/addon_job_id from the URL once handled —
+        // otherwise a refresh re-verifies the same (already used/failed)
+        // reference and the error never actually clears.
+        router.replace("/dashboard/school/jobs")
+      })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 

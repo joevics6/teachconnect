@@ -90,11 +90,20 @@ export async function GET(
 
     const related = await getRelatedJobs(job.subject, jobId)
 
+    // External contact info (email/phone/website) is only for signed-in
+    // users — strip it from the payload entirely for guests rather than
+    // just hiding it client-side, since anyone can read the raw network
+    // response regardless of what the UI shows.
+    const jobForResponse = user
+      ? job
+      : { ...job, external_apply_value: null }
+
     return NextResponse.json({
-      job,
+      job: jobForResponse,
       related,
       is_saved,
       has_applied,
+      requires_auth_for_external_apply: !user && !!job.external_apply_enabled && !!job.external_apply_value,
     })
   } catch (err) {
     console.error("GET /api/jobs/[id] error:", err)

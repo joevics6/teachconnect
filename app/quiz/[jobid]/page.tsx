@@ -893,6 +893,7 @@ function ResultsScreen({
 
 export default function QuizPage() {
   const params = useParams()
+  const router = useRouter()
   const jobId = params.jobId as string
 
   const [meta, setMeta] = useState<QuizMeta | null>(null)
@@ -905,6 +906,10 @@ export default function QuizPage() {
     const fetchMeta = async () => {
       try {
         const response = await fetch(`/api/quiz/${jobId}`)
+        if (response.status === 401) {
+          router.push(`/login?next=/quiz/${jobId}`)
+          return
+        }
         if (!response.ok) throw new Error("Quiz not found")
         const data = await response.json()
         setMeta(data)
@@ -915,7 +920,7 @@ export default function QuizPage() {
       }
     }
     if (jobId) fetchMeta()
-  }, [jobId])
+  }, [jobId, router])
 
   const handleComplete = (quizResult: QuizResult) => {
     setResult(quizResult)

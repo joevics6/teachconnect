@@ -57,6 +57,7 @@ export default function JobDetailPage() {
   const [isSaved, setIsSaved] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [hasApplied, setHasApplied] = useState(false)
+  const [requiresAuthForExternalApply, setRequiresAuthForExternalApply] = useState(false)
   const [error, setError] = useState("")
   const [copied, setCopied] = useState(false)
 
@@ -71,6 +72,7 @@ export default function JobDetailPage() {
         setRelatedJobs(data.related || [])
         setIsSaved(data.is_saved || false)
         setHasApplied(data.has_applied || false)
+        setRequiresAuthForExternalApply(!!data.requires_auth_for_external_apply)
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load job")
       } finally {
@@ -117,6 +119,10 @@ export default function JobDetailPage() {
     // of the external contact info, not an alternative to it.
     if (job.quiz_enabled) {
       router.push(`/quiz/${job.id}`)
+      return
+    }
+    if (requiresAuthForExternalApply) {
+      router.push(`/login?next=/jobs/${job.id}`)
       return
     }
     if (job.external_apply_enabled && job.external_apply_value) {
@@ -280,7 +286,7 @@ export default function JobDetailPage() {
                     {level.toUpperCase()}
                   </span>
                 ))}
-                {job.quiz_enabled && !(job.external_apply_enabled && job.external_apply_value) && (
+                {job.quiz_enabled && !(job.external_apply_enabled && (job.external_apply_value || requiresAuthForExternalApply)) && (
                   <span className="px-3 py-1 bg-purple-100 text-purple-700 text-xs rounded-full font-medium flex items-center gap-1">
                     <BookOpen className="h-3 w-3" />
                     Quiz Required
@@ -292,6 +298,12 @@ export default function JobDetailPage() {
                     {job.quiz_enabled
                       ? "Quiz Unlocks Contact Info"
                       : getExternalApplyLabel(job.external_apply_value)}
+                  </span>
+                )}
+                {job.external_apply_enabled && !job.external_apply_value && requiresAuthForExternalApply && !job.quiz_enabled && (
+                  <span className="px-3 py-1 bg-orange-100 text-orange-700 text-xs rounded-full font-medium flex items-center gap-1">
+                    <ExternalLink className="h-3 w-3" />
+                    Sign In to View Contact Info
                   </span>
                 )}
               </div>
@@ -508,7 +520,7 @@ export default function JobDetailPage() {
                   {job.quiz_enabled ? (
                     <>
                       <BookOpen className="h-5 w-5 mr-2" />
-                      {job.external_apply_enabled && job.external_apply_value
+                      {job.external_apply_enabled && (job.external_apply_value || requiresAuthForExternalApply)
                         ? "Take Quiz to Unlock Contact Info"
                         : "Take Quiz & Apply"}
                     </>
@@ -516,6 +528,11 @@ export default function JobDetailPage() {
                     <>
                       <ExternalLink className="h-5 w-5 mr-2" />
                       {getExternalApplyLabel(job.external_apply_value)}
+                    </>
+                  ) : job.external_apply_enabled && requiresAuthForExternalApply ? (
+                    <>
+                      <ExternalLink className="h-5 w-5 mr-2" />
+                      Sign In to View Contact Info
                     </>
                   ) : (
                     "Apply Now"

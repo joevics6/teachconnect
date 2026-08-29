@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense } from "react"
 import Link from "next/link"
-import { useSearchParams } from "next/navigation"
+import { useSearchParams, useRouter, usePathname } from "next/navigation"
 import {
   ArrowLeft,
   CheckCircle2,
@@ -323,6 +323,8 @@ function PlanPurchaseCard({
 
 function SubscriptionPageInner() {
   const searchParams = useSearchParams()
+  const router = useRouter()
+  const pathname = usePathname()
   const preselectedPlan = searchParams.get("plan")
 
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -364,6 +366,16 @@ function SubscriptionPageInner() {
       }
     } catch {
       setPaymentError("Could not verify payment. Contact support.")
+    } finally {
+      // Strip ?reference= from the URL once we're done with it. Otherwise
+      // a page refresh re-runs this effect against the same (already
+      // used/failed) reference and re-shows the same error forever —
+      // the user should land on a clean URL so a refresh actually gives
+      // them a fresh slate to try again.
+      const params = new URLSearchParams(searchParams.toString())
+      params.delete("reference")
+      const query = params.toString()
+      router.replace(query ? `${pathname}?${query}` : pathname)
     }
   }
 
