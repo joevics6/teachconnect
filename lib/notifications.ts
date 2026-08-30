@@ -18,10 +18,14 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import { sendEmail, renderNotificationEmail } from "@/lib/email"
 
 // Teacher prefs: application_updates, new_jobs, invites, newsletter
-// School prefs: new_applicant, quiz_passed, sub_expiry, platform_news
+// School prefs: new_applicant, sub_expiry, platform_news
+// (quiz_passed was removed — a passed quiz always results in an
+// application being created, which already fires new_applicant. A
+// separate quiz_passed alert would just be a second email for the
+// same event.)
 export type NotificationPrefKey =
   | "application_updates" | "new_jobs" | "invites" | "newsletter"
-  | "new_applicant" | "quiz_passed" | "sub_expiry" | "platform_news"
+  | "new_applicant" | "sub_expiry" | "platform_news"
 
 interface NotifyParams {
   userId: string
@@ -98,4 +102,60 @@ export async function notifyUser(
   }
 
   return { skipped: false }
+}
+
+// ------------------------------------------------------------
+// notifyMatchingTeachersOfNewJob — NOT CALLED ANYWHERE YET.
+//
+// Fully implemented and ready to wire in, but intentionally dormant:
+// fanning this out through Resend at teacher-list scale (every
+// matching teacher, every approved job) will burn through Resend's
+// per-day send limits/pricing fast. Enable this once sending moves
+// to Amazon SES (or Resend's higher-volume tier), by uncommenting
+// the call site in app/api/admin/jobs/[id]/route.ts (right after a
+// job is approved — see the comment there).
+//
+// Matches on subject + teaching level overlap; state/lga can be
+// added the same way once school_profiles.state is joined in below.
+// ------------------------------------------------------------
+export async function notifyMatchingTeachersOfNewJob(params: {
+  jobId: string
+  title: string
+  subject: string
+  teachingLevels: string[]
+}) {
+  const adminDb = createAdminClient()
+
+  const { data: teachers, error } = await adminDb
+    .from("teacher_profiles")
+    .select("user_id, subjects, teaching_levels")
+    .contains("subjects", [params.subject])
+
+  if (error) {
+    console.error("notifyMatchingTeachersOfNewJob query error:", error)
+    return { notified: 0 }
+  }
+
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || ""
+  let notified = 0
+
+  for (const teacher of teachers ?? []) {
+    const levelsOverlap = (teacher.teaching_levels ?? []).some((l: string) =>
+      params.teachingLevels.includes(l)
+    )
+    if (!levelsOverlap) continue
+
+    const result = await notifyUser(adminDb, {
+      userId: teacher.user_id,
+      role: "teacher",
+      type: "new_jobs",
+      title: `New ${params.subject} job posted`,
+      message: `A new job matching your subjects is open: "${params.title}". Check it out on ${appUrl}/jobs/${params.jobId}.`,
+      metadata: { job_id: params.jobId },
+      prefKey: "new_jobs",
+    })
+    if (!result.skipped) notified++
+  }
+
+  return { notified }
 }

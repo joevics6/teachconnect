@@ -159,13 +159,19 @@ export async function activateSubscriptionFromPayment(
   if (school) {
     // Transactional (payment receipt) — always sends regardless of
     // notification preferences, hence no prefKey.
+    //
+    // Note: Paystack itself already emails the payer its own generic
+    // transaction receipt the moment a card payment succeeds — this is
+    // a separate, ClassHire-branded confirmation with the plan-specific
+    // details (what it unlocks, when it expires), not a duplicate of
+    // Paystack's receipt.
     await notifyUser(adminDb, {
       userId: school.user_id,
       role: "school",
       type: "subscription_activated",
       title: "Subscription Activated",
-      message: `Your ${planLabel(plan_id)} subscription is now active.`,
-      metadata: { subscription_id: (subscription as { id: string }).id },
+      message: `Your ${planLabel(plan_id)} subscription is now active. Amount paid: ₦${priceNaira.toLocaleString()}. Reference: ${txn.reference}.`,
+      metadata: { subscription_id: (subscription as { id: string }).id, amount_paid: priceNaira, reference: txn.reference },
     })
   }
 
@@ -215,6 +221,30 @@ export async function applyJobAddonFromPayment(
     .from("job_addon_purchases")
     .update({ status: "completed", completed_at: new Date().toISOString() })
     .eq("paystack_reference", txn.reference)
+
+  const { data: jobRow } = await adminDb
+    .from("jobs").select("title, school_id").eq("id", job_id).single()
+
+  if (jobRow) {
+    const { data: schoolRow } = await adminDb
+      .from("school_profiles").select("user_id").eq("id", jobRow.school_id).single()
+
+    if (schoolRow) {
+      const addonLabel = addon_type === "featured" ? "Featured Listing" : "15-Day Extension"
+      // Transactional (payment receipt) — always sends, no prefKey.
+      // Same reasoning as the subscription receipt above: this is a
+      // ClassHire-branded confirmation of what the payment unlocked,
+      // not a substitute for Paystack's own generic transaction receipt.
+      await notifyUser(adminDb, {
+        userId: schoolRow.user_id,
+        role: "school",
+        type: "addon_payment_confirmed",
+        title: `${addonLabel} Confirmed`,
+        message: `Your ${addonLabel} add-on for "${jobRow.title}" is now active. Amount paid: ₦${(txn.amount / 100).toLocaleString()}. Reference: ${txn.reference}.`,
+        metadata: { job_id, addon_type, amount_paid: txn.amount / 100, reference: txn.reference },
+      })
+    }
+  }
 
   // Both add-on types change what's shown in public job search/detail
   // (featured placement, or the deadline used for "still accepting

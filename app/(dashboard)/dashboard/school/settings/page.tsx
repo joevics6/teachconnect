@@ -79,7 +79,6 @@ export default function SchoolSettingsPage() {
 
   // Notifications
   const [notifNewApplicant,  setNotifNewApplicant]  = useState(true)
-  const [notifQuizPassed,    setNotifQuizPassed]    = useState(true)
   const [notifSubExpiry,     setNotifSubExpiry]     = useState(true)
   const [notifPlatformNews,  setNotifPlatformNews]  = useState(false)
   const [notifSaving,        setNotifSaving]        = useState(false)
@@ -101,7 +100,6 @@ export default function SchoolSettingsPage() {
         const prefs = data.school?.notification_prefs
         if (!prefs) return
         setNotifNewApplicant(prefs.new_applicant ?? true)
-        setNotifQuizPassed(prefs.quiz_passed ?? true)
         setNotifSubExpiry(prefs.sub_expiry ?? true)
         setNotifPlatformNews(prefs.platform_news ?? false)
       })
@@ -156,7 +154,6 @@ export default function SchoolSettingsPage() {
         body: JSON.stringify({
           notification_prefs: {
             new_applicant: notifNewApplicant,
-            quiz_passed:   notifQuizPassed,
             sub_expiry:    notifSubExpiry,
             platform_news: notifPlatformNews,
           },
@@ -297,11 +294,6 @@ export default function SchoolSettingsPage() {
                   label: "New applicants",
                   description: "When a teacher applies to one of your job postings",
                   value: notifNewApplicant, setter: setNotifNewApplicant,
-                },
-                {
-                  label: "Quiz passed",
-                  description: "When an applicant passes your quiz screening",
-                  value: notifQuizPassed, setter: setNotifQuizPassed,
                 },
                 {
                   label: "Subscription expiry reminders",

@@ -35,6 +35,25 @@ export async function PATCH(
       .eq("id", id)
     if (error) throw error
 
+    // DORMANT — see notifyMatchingTeachersOfNewJob in lib/notifications.ts
+    // for why (Resend cost/limits at fan-out scale). Enable once on SES:
+    //
+    // if (action === "approve") {
+    //   const { data: fullJob } = await adminDb
+    //     .from("jobs")
+    //     .select("title, subject, teaching_levels")
+    //     .eq("id", id)
+    //     .single()
+    //   if (fullJob) {
+    //     await notifyMatchingTeachersOfNewJob({
+    //       jobId: id,
+    //       title: fullJob.title,
+    //       subject: fullJob.subject,
+    //       teachingLevels: fullJob.teaching_levels ?? [],
+    //     })
+    //   }
+    // }
+
     // This is the moment a job actually becomes (or stops being)
     // publicly visible — burst both caches immediately rather than
     // waiting on their TTL.
