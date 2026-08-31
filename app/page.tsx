@@ -113,12 +113,12 @@ function HeroCTAs({ user, isLoading, dashboardLink }: { user: AuthUser | null; i
   )
   return (
     <div className="grid grid-cols-2 gap-3 max-w-md">
-      <Link href="/register/school">
+      <Link href="/talent">
         <Button size="lg" className="w-full bg-ink-800 hover:bg-ink-900 text-white px-4 py-6 text-sm sm:text-base rounded-xl">
           Hire a Teacher
         </Button>
       </Link>
-      <Link href="/register/teacher">
+      <Link href="/jobs">
         <Button size="lg" variant="outline" className="w-full px-4 py-6 text-sm sm:text-base rounded-xl border-ink-200">
           Find a Teaching Job
         </Button>
