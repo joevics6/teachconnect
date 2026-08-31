@@ -278,7 +278,7 @@ export async function POST(request: Request) {
 
     if (insertError) {
       console.error("Job insert error:", insertError)
-      return NextResponse.json({ error: insertError.message || "Failed to create job" }, { status: 500 })
+      return NextResponse.json({ error: "Something went wrong posting your job. Please try again." }, { status: 500 })
     }
 
     const job = (newJob ?? [])[0]
@@ -318,6 +318,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true, job: { id: job?.id, title: job?.title } })
   } catch (err) {
     console.error("POST /api/school/jobs error:", err)
-    return NextResponse.json({ error: err instanceof Error ? err.message : "Failed to post job" }, { status: 500 })
+    return NextResponse.json({ error: "Something went wrong posting your job. Please try again." }, { status: 500 })
   }
 }
