@@ -45,6 +45,7 @@ export async function middleware(request: NextRequest) {
   // that double as employer-branding pages linked from job listings).
   const publicPrefixes = [
     "/jobs",
+    "/talent", // guest preview (first 5 unlocked) — api/talent + the page itself already gate the rest
     "/resources",
     "/blog",
     "/pricing",
@@ -67,7 +68,6 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith("/dashboard") ||
     pathname.startsWith("/apply") ||
     pathname.startsWith("/quiz") ||
-    pathname.startsWith("/talent") ||
     pathname.startsWith("/profile/teacher") || // exposes phone + CV links, must be signed in
     exactProtectedPaths.includes(pathname)
 
