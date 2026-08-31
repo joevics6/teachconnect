@@ -48,17 +48,27 @@ export async function GET(request: Request) {
     const supabase = await createClient()
     const { searchParams } = new URL(request.url)
 
-    // Auth — use metadata role (avoids users table)
+    // Auth — use metadata role (avoids users table).
+    // Guests (no session) are allowed through deliberately: showing a
+    // preview of real teachers is meant to convert schools into signing
+    // up, not gate them out before they've seen any value. A guest is
+    // treated exactly like a free-plan school below (first
+    // FREE_PLAN_TALENT_LIMIT unlocked, rest locked) — only a LOGGED IN
+    // non-school user (e.g. a teacher browsing other teachers) is
+    // actually blocked.
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    if (user.user_metadata?.role !== "school") {
+    if (user && user.user_metadata?.role !== "school") {
       return NextResponse.json({ error: "Only schools can browse talent" }, { status: 403 })
     }
 
-    // Check subscription
-    const { data: schoolRows } = await supabase
-      .from("school_profiles").select("id").eq("user_id", user.id)
-      .order("created_at", { ascending: false }).limit(1)
+    // Check subscription — skipped entirely for a guest (no user), who
+    // falls through with school = null, isPremium = false, exactly like
+    // a school with no active subscription.
+    const { data: schoolRows } = user
+      ? await supabase
+          .from("school_profiles").select("id").eq("user_id", user.id)
+          .order("created_at", { ascending: false }).limit(1)
+      : { data: null }
     const school = (schoolRows ?? [])[0] ?? null
 
     let isPremium = false

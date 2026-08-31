@@ -91,12 +91,14 @@ function getAvailabilityLabel(availability: string) {
 function TeacherCard({
   teacher,
   isLocked,
+  isGuest,
   onInvite,
   inviting,
   jobContext,
 }: {
   teacher: Teacher
   isLocked: boolean
+  isGuest: boolean
   onInvite: (teacherId: string) => void
   inviting: string | null
   jobContext: string | null
@@ -130,17 +132,19 @@ function TeacherCard({
             <Lock className="h-5 w-5 text-gray-400" />
           </div>
           <p className="text-sm font-semibold text-gray-700 mb-1">
-            Upgrade to view
+            {isGuest ? "Sign up to view" : "Upgrade to view"}
           </p>
           <p className="text-xs text-gray-400 text-center mb-3 px-4">
-            Subscribe to access full teacher profiles
+            {isGuest
+              ? "Create a free school account to see every teacher"
+              : "Subscribe to access full teacher profiles"}
           </p>
-          <Link href="/dashboard/school/subscription">
+          <Link href={isGuest ? "/register/school" : "/dashboard/school/subscription"}>
             <Button
               size="sm"
               className="bg-ink-700 hover:bg-ink-800 text-white text-xs"
             >
-              Upgrade Plan
+              {isGuest ? "Sign Up Free" : "Upgrade Plan"}
             </Button>
           </Link>
         </div>
@@ -275,7 +279,7 @@ function TeacherCard({
             View Profile
           </Button>
         </Link>
-        {alreadyApplied ? (
+        {isGuest ? null : alreadyApplied ? (
           <Button
             size="sm"
             disabled
@@ -857,6 +861,7 @@ function TalentPageContent() {
                 key={teacher.id}
                 teacher={teacher}
                 isLocked={!isPremium && index >= FREE_TIER_LIMIT}
+                isGuest={!user}
                 onInvite={(teacherId) => {
                   setInviteError("")
                   if (inviteJobId) handleInvite(teacherId, inviteJobId)
@@ -874,17 +879,18 @@ function TalentPageContent() {
           <div className="mt-8 bg-gradient-to-r from-ink-700 to-ink-800 rounded-2xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="text-white">
               <h3 className="font-bold text-lg mb-1">
-                Unlock more teacher profiles
+                {user ? "Unlock more teacher profiles" : "Sign up to see every teacher"}
               </h3>
               <p className="text-ink-200 text-sm">
-                Upgrade to browse all teachers, send unlimited invites, and
-                access full contact details.
+                {user
+                  ? "Upgrade to browse all teachers, send unlimited invites, and access full contact details."
+                  : "Create a free school account to browse every teacher, invite them to apply, and post your own jobs."}
               </p>
             </div>
-            <Link href="/dashboard/school/subscription" className="flex-shrink-0">
+            <Link href={user ? "/dashboard/school/subscription" : "/register/school"} className="flex-shrink-0">
               <Button className="bg-white text-ink-700 hover:bg-ink-50 px-6 flex items-center gap-2">
                 <Star className="h-4 w-4" />
-                Upgrade Plan
+                {user ? "Upgrade Plan" : "Sign Up Free"}
                 <ChevronRight className="h-4 w-4" />
               </Button>
             </Link>

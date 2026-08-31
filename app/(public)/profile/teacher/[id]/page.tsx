@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { useParams } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 import {
   MapPin,
   Briefcase,
@@ -189,6 +189,7 @@ function ProfileCompletionBar({
 
 export default function TeacherProfilePage() {
   const params = useParams()
+  const router = useRouter()
   const profileId = params.id as string
 
   const [profile,      setProfile]      = useState<TeacherProfile | null>(null)
@@ -241,6 +242,10 @@ export default function TeacherProfilePage() {
           ? "/api/teacher/profile"
           : `/api/teacher/profile/${profileId}`
         const response = await fetch(url)
+        if (response.status === 401) {
+          router.push(`/login?next=/profile/teacher/${profileId}`)
+          return
+        }
         if (!response.ok) throw new Error("Profile not found")
         const data = await response.json()
         setProfile(data.profile)
@@ -268,7 +273,7 @@ export default function TeacherProfilePage() {
       }
     }
     if (profileId) fetchProfile()
-  }, [profileId, isOwnProfile])
+  }, [profileId, isOwnProfile, router])
 
   // Load school's active jobs for invite picker (once, on load)
   useEffect(() => {

@@ -24,6 +24,13 @@ export async function GET(
     let invitedJobIds: string[] = []
     let appliedJobIds: string[] = []
     const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      // Individual profiles require sign-in — unlike the talent list
+      // (which now shows a preview to guests), a specific teacher's
+      // profile is exactly the "who is this person" detail a school
+      // should sign up to see, not browse anonymously.
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
     if (user) {
       const role = user.user_metadata?.role
       if (role === "school" || role === "teacher") viewerRole = role
