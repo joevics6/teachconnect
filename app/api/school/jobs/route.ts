@@ -178,13 +178,43 @@ export async function POST(request: Request) {
       }
     }
 
-    const required = ["title", "subject", "employment_type", "deadline", "description", "required_qualifications"]
+    const required = ["title", "subject", "employment_type", "description", "required_qualifications"]
     for (const field of required) {
       if (!body[field]) return NextResponse.json({ error: `${field} is required` }, { status: 400 })
     }
     if (!body.teaching_levels?.length) {
       return NextResponse.json({ error: "At least one teaching level is required" }, { status: 400 })
     }
+
+    // Deadline: default to 30 days from now when not provided, same
+    // convention already used by the job-duplicate route.
+    let deadline = body.deadline
+    if (!deadline) {
+      const d = new Date()
+      d.setDate(d.getDate() + 30)
+      deadline = d.toISOString().split("T")[0]
+    }
+
+    // Salary: either bound is enough on its own — only reject when BOTH
+    // are missing. If they're equal, min is redundant noise; keep max
+    // and drop min instead of erroring.
+    let salaryMin = body.salary_min ? parseInt(body.salary_min) : 0
+    let salaryMax = body.salary_max ? parseInt(body.salary_max) : 0
+    if (!salaryMin && !salaryMax) {
+      return NextResponse.json({ error: "Enter a minimum or maximum salary" }, { status: 400 })
+    }
+    if (salaryMin && salaryMax && salaryMin === salaryMax) {
+      // Same value in both boxes is really just one number — keep it
+      // as the max (matches how a single figure reads to applicants)
+      // and drop the redundant min instead of erroring.
+      salaryMin = 0
+    } else if (salaryMin && salaryMax && salaryMax < salaryMin) {
+      // Both given but reversed — swap rather than error, the smaller
+      // number is obviously the intended minimum.
+      ;[salaryMin, salaryMax] = [salaryMax, salaryMin]
+    }
+    // salary_min-only or salary_max-only: pass through unchanged, an
+    // open-ended "from X" or "up to X" is a valid range on its own.
     if (body.quiz_enabled) {
       if (!body.quiz_subject_levels?.length) {
         return NextResponse.json({ error: "Select at least one quiz subject" }, { status: 400 })
@@ -207,8 +237,8 @@ export async function POST(request: Request) {
       teaching_levels:          body.teaching_levels,
       employment_type:          body.employment_type,
       positions:                parseInt(body.positions) || 1,
-      salary_min:               parseInt(body.salary_min) || 0,
-      salary_max:               parseInt(body.salary_max) || 0,
+      salary_min:               salaryMin,
+      salary_max:               salaryMax,
       accommodation_offered:    body.accommodation_offered ?? false,
       accommodation_type:       body.accommodation_offered ? (body.accommodation_type || null) : null,
       benefits:                 body.benefits ?? [],
@@ -233,7 +263,7 @@ export async function POST(request: Request) {
       description:              body.description,
       required_qualifications:  body.required_qualifications,
       preferred_qualifications: body.preferred_qualifications || null,
-      deadline:                 body.deadline,
+      deadline:                 deadline,
       // Every new job now needs admin approval before it's publicly
       // visible — see /admin/jobs. The existing "status = 'active'"
       // read policies are the actual gate; nothing else needed to

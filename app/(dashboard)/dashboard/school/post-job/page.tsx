@@ -130,7 +130,7 @@ const EMPTY_FORM: FormData = {
   title: "",
   subject: "",
   teaching_levels: [],
-  employment_type: "",
+  employment_type: "full-time",
   positions: "1",
   deadline: "",
   salary_min: "",
@@ -404,17 +404,13 @@ function PostJobPageInner() {
       newErrors.teaching_levels = "Select at least one level"
     if (!formData.employment_type)
       newErrors.employment_type = "Employment type is required"
-    if (!formData.deadline) newErrors.deadline = "Deadline is required"
-    if (!formData.salary_min)
-      newErrors.salary_min = "Minimum salary is required"
-    if (!formData.salary_max)
-      newErrors.salary_max = "Maximum salary is required"
-    if (
-      formData.salary_min &&
-      formData.salary_max &&
-      Number(formData.salary_max) <= Number(formData.salary_min)
-    )
-      newErrors.salary_max = "Maximum must be greater than minimum"
+    // Deadline: left blank defaults to 30 days out (set server-side) —
+    // no client error needed.
+    // Salary: either bound is enough; only flag it when both are empty.
+    // Equal min/max, or max < min, are both handled server-side instead
+    // of erroring here.
+    if (!formData.salary_min && !formData.salary_max)
+      newErrors.salary_max = "Enter a minimum or maximum salary"
     if (!formData.description)
       newErrors.description = "Job description is required"
     if (!formData.required_qualifications)
@@ -725,7 +721,10 @@ function PostJobPageInner() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                    Application Deadline
+                    Application Deadline{" "}
+                    <span className="text-gray-400 font-normal">
+                      (optional — defaults to 30 days)
+                    </span>
                   </label>
                   <div className="relative">
                     <input
