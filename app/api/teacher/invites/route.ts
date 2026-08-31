@@ -21,7 +21,7 @@ export async function GET() {
       .from("school_invites")
       .select(`
         id, status, created_at,
-        jobs ( id, title, subject, deadline, quiz_enabled ),
+        jobs ( id, title, subject, deadline, quiz_enabled, external_apply_enabled ),
         school_profiles!school_id ( id, school_name, logo_url, state )
       `)
       .eq("teacher_id", teacher.id)
@@ -30,7 +30,7 @@ export async function GET() {
     if (error) throw error
 
     const shaped = (invites ?? []).map((inv) => {
-      const job    = (Array.isArray(inv.jobs)            ? inv.jobs[0]            : inv.jobs)            as { id: string; title: string; subject: string; deadline: string; quiz_enabled: boolean } | null
+      const job    = (Array.isArray(inv.jobs)            ? inv.jobs[0]            : inv.jobs)            as { id: string; title: string; subject: string; deadline: string; quiz_enabled: boolean; external_apply_enabled: boolean } | null
       const school = (Array.isArray(inv.school_profiles) ? inv.school_profiles[0] : inv.school_profiles) as { id: string; school_name: string; logo_url: string | null; state: string } | null
       return {
         id:          inv.id,
@@ -41,6 +41,7 @@ export async function GET() {
         job_subject: job?.subject,
         deadline:    job?.deadline,
         job_quiz_enabled: job?.quiz_enabled ?? false,
+        job_external_apply_enabled: job?.external_apply_enabled ?? false,
         school_id:   school?.id,
         school_name: school?.school_name,
         school_logo: school?.logo_url,

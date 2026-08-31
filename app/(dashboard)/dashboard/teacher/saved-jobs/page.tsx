@@ -34,6 +34,7 @@ interface SavedJob {
   salary_max: number
   accommodation_offered: boolean
   quiz_enabled: boolean
+  external_apply_enabled: boolean
   deadline: string
   saved_at: string
   has_applied: boolean
@@ -178,7 +179,15 @@ export default function SavedJobsPage() {
                               </Button>
                             </Link>
                             {!isClosed && !saved.has_applied && (
-                              <Link href={saved.quiz_enabled ? `/quiz/${saved.job_id}` : `/apply/${saved.job_id}`}>
+                              <Link
+                                href={
+                                  saved.quiz_enabled
+                                    ? `/quiz/${saved.job_id}`
+                                    : saved.external_apply_enabled
+                                    ? `/jobs/${saved.job_id}`
+                                    : `/apply/${saved.job_id}`
+                                }
+                              >
                                 <Button size="sm" className="text-xs h-7 bg-ink-600 hover:bg-ink-700 text-white">Apply</Button>
                               </Link>
                             )}

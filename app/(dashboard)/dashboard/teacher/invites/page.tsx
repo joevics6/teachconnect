@@ -20,6 +20,7 @@ interface Invite {
   job_subject: string
   deadline: string
   job_quiz_enabled: boolean
+  job_external_apply_enabled: boolean
   school_id: string
   school_name: string
   school_logo: string | null
@@ -75,11 +76,20 @@ export default function TeacherInvitesPage() {
       )
 
       // Accepting an invite means applying — send the teacher into the same
-      // apply flow used everywhere else on the site (quiz-gated or direct).
+      // apply flow used everywhere else on the site. Quiz-gated jobs go to
+      // the quiz; external-apply jobs (no quiz) go to the job detail page,
+      // which is where the contact-info panel / login-gate actually lives —
+      // NOT straight to the internal cover-letter form, which has nothing
+      // to do with an external apply job.
       if (status === "accepted") {
         const invite = invites.find((inv) => inv.id === inviteId)
         if (invite?.job_id) {
-          router.push(invite.job_quiz_enabled ? `/quiz/${invite.job_id}` : `/apply/${invite.job_id}`)
+          const destination = invite.job_quiz_enabled
+            ? `/quiz/${invite.job_id}`
+            : invite.job_external_apply_enabled
+            ? `/jobs/${invite.job_id}`
+            : `/apply/${invite.job_id}`
+          router.push(destination)
           return
         }
       }

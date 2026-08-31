@@ -35,7 +35,7 @@ export async function GET() {
         jobs (
           id, title, subject, teaching_levels, employment_type,
           salary_min, salary_max, accommodation_offered,
-          quiz_enabled, deadline,
+          quiz_enabled, external_apply_enabled, deadline,
           school_profiles (
             school_name, logo_url, state
           )
@@ -67,6 +67,7 @@ export async function GET() {
         salary_max: number
         accommodation_offered: boolean
         quiz_enabled: boolean
+        external_apply_enabled: boolean
         deadline: string
         school_profiles: { school_name: string; logo_url: string | null; state: string }
       }
@@ -84,6 +85,7 @@ export async function GET() {
         salary_max: job.salary_max,
         accommodation_offered: job.accommodation_offered,
         quiz_enabled: job.quiz_enabled,
+        external_apply_enabled: job.external_apply_enabled,
         deadline: job.deadline,
         saved_at: s.created_at,
         has_applied: appliedSet.has(job.id),
