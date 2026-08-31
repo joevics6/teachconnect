@@ -24,7 +24,8 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { formatCurrency, formatDate } from "@/lib/utils"
-import { getExternalApplyHref, getExternalApplyLabel } from "@/lib/external-apply"
+import { getExternalApplyLabel } from "@/lib/external-apply"
+import { ExternalApplyPanel } from "@/components/jobs/ExternalApplyPanel"
 import type { Job } from "@/types"
 
 interface JobWithSchool extends Job {
@@ -125,10 +126,9 @@ export default function JobDetailPage() {
       router.push(`/login?next=/jobs/${job.id}`)
       return
     }
-    if (job.external_apply_enabled && job.external_apply_value) {
-      window.open(getExternalApplyHref(job.external_apply_value), "_blank", "noopener,noreferrer")
-      return
-    }
+    // Note: the external_apply_enabled + value-revealed, no-quiz case
+    // never reaches this handler — it renders ExternalApplyPanel
+    // directly instead of a clickable "Apply" button.
     router.push(`/apply/${job.id}`)
   }
 
@@ -512,6 +512,12 @@ export default function JobDetailPage() {
                     This job has closed
                   </p>
                 </div>
+              ) : job.external_apply_enabled && job.external_apply_value && !job.quiz_enabled ? (
+                // Contact info is fully revealed (signed in, no quiz gate) —
+                // show it directly instead of hiding it behind a button.
+                <div className="mb-3">
+                  <ExternalApplyPanel value={job.external_apply_value} schoolName={job.school_name} />
+                </div>
               ) : (
                 <Button
                   onClick={handleApply}
@@ -523,11 +529,6 @@ export default function JobDetailPage() {
                       {job.external_apply_enabled && (job.external_apply_value || requiresAuthForExternalApply)
                         ? "Take Quiz to Unlock Contact Info"
                         : "Take Quiz & Apply"}
-                    </>
-                  ) : job.external_apply_enabled && job.external_apply_value ? (
-                    <>
-                      <ExternalLink className="h-5 w-5 mr-2" />
-                      {getExternalApplyLabel(job.external_apply_value)}
                     </>
                   ) : job.external_apply_enabled && requiresAuthForExternalApply ? (
                     <>

@@ -19,7 +19,8 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-import { getExternalApplyHref, getExternalApplyLabel } from "@/lib/external-apply"
+import { getExternalApplyLabel } from "@/lib/external-apply"
+import { ExternalApplyPanel } from "@/components/jobs/ExternalApplyPanel"
 
 // ─── Types ───────────────────────────────────────────────────
 
@@ -808,24 +809,7 @@ function ResultsScreen({
 
         {/* Unlocked Contact Info */}
         {passed && hasExternalContact && meta.external_apply_value && (
-          <div className="bg-orange-50 border border-orange-200 rounded-2xl p-6 text-center">
-            <h2 className="font-bold text-gray-900 mb-1">
-              Contact {meta.school_name}
-            </h2>
-            <p className="text-sm text-gray-600 mb-4">
-              {getExternalApplyLabel(meta.external_apply_value)} to complete
-              your application directly with the school.
-            </p>
-            <a
-              href={getExternalApplyHref(meta.external_apply_value)}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <Button className="w-full bg-orange-600 hover:bg-orange-700 text-white">
-                {getExternalApplyLabel(meta.external_apply_value)}
-              </Button>
-            </a>
-          </div>
+          <ExternalApplyPanel value={meta.external_apply_value} schoolName={meta.school_name} />
         )}
 
         {/* Written Feedback */}
