@@ -23,6 +23,7 @@ import { getFeaturedAddonPrice } from "@/lib/pricing"
 import { SchoolSidebar } from "@/components/dashboard/SchoolSidebar"
 import type { TeachingLevel } from "@/types"
 import { clearCached } from "@/lib/client-cache"
+import { getFetchErrorMessage } from "@/lib/network-error"
 
 const ACCOMMODATION_TYPES = [
   { value: "fully-furnished", label: "Fully Furnished" },
@@ -300,9 +301,10 @@ function PostJobPageInner() {
       if (!res.ok || !data.authorization_url) throw new Error(data.error || "Could not start payment")
       window.location.href = data.authorization_url
     } catch (err) {
-      setErrors((prev) => ({ ...prev, submit: err instanceof Error ? err.message : "Could not start payment" }))
+      setErrors((prev) => ({ ...prev, submit: getFetchErrorMessage(err, err instanceof Error ? err.message : "Could not start payment") }))
       setPayingForFeatured(false)
       sessionStorage.removeItem(FEATURED_FORM_STORAGE_KEY)
+      scrollToTop()
     }
   }
 
@@ -390,10 +392,31 @@ function PostJobPageInner() {
 
       setAiSuccess(true)
     } catch (err: unknown) {
-      setAiError(err instanceof Error ? err.message : "Parsing failed")
+      setAiError(getFetchErrorMessage(err, err instanceof Error ? err.message : "Parsing failed"))
     } finally {
       setAiParsing(false)
     }
+  }
+
+  // Order matches the form's actual top-to-bottom layout (NOT the order
+  // these checks happen to run in below) so "scroll to the first error"
+  // always means the first one the user will actually see, not whichever
+  // validation check happened to run first.
+  const FIELD_ORDER = [
+    "title", "subject", "employment_type", "teaching_levels",
+    "salary_max", "accommodation_type", "external_apply_value",
+    "quiz_subjects", "description", "required_qualifications",
+  ]
+
+  const scrollToField = (fieldKey: string) => {
+    const el = document.getElementById(`field-${fieldKey}`)
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "center" })
+    }
+  }
+
+  const scrollToTop = () => {
+    document.getElementById("post-job-top")?.scrollIntoView({ behavior: "smooth", block: "start" })
   }
 
   const validate = () => {
@@ -422,7 +445,17 @@ function PostJobPageInner() {
     if (formData.external_apply_enabled && !formData.external_apply_value.trim())
       newErrors.external_apply_value = "Enter an email, phone number, or URL"
     setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
+
+    if (Object.keys(newErrors).length > 0) {
+      const firstFieldWithError = FIELD_ORDER.find((key) => newErrors[key])
+      if (firstFieldWithError) {
+        // Let the error message actually paint before scrolling, so
+        // there's something at the destination to scroll to.
+        requestAnimationFrame(() => scrollToField(firstFieldWithError))
+      }
+      return false
+    }
+    return true
   }
 
   const handleSubmit = async (overrideReference?: string) => {
@@ -466,8 +499,9 @@ function PostJobPageInner() {
       setSubmitted(true)
     } catch (err: unknown) {
       setErrors({
-        submit: err instanceof Error ? err.message : "Failed to post job",
+        submit: getFetchErrorMessage(err, err instanceof Error ? err.message : "Failed to post job"),
       })
+      scrollToTop()
     } finally {
       setIsLoading(false)
     }
@@ -527,7 +561,7 @@ function PostJobPageInner() {
           <h1 className="text-lg font-bold text-gray-900">Post a Job</h1>
         </header>
 
-        <div className="p-6 max-w-4xl mx-auto space-y-6">
+        <div id="post-job-top" className="p-6 max-w-4xl mx-auto space-y-6">
 
           {errors.submit && (
             <div className="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-lg flex items-center justify-between gap-3 flex-wrap">
@@ -613,7 +647,7 @@ function PostJobPageInner() {
             </h2>
             <div className="space-y-5">
 
-              <div>
+              <div id="field-title">
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">
                   Job Title
                 </label>
@@ -630,7 +664,7 @@ function PostJobPageInner() {
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <div>
+                <div id="field-subject">
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">
                     Subject
                   </label>
@@ -651,7 +685,7 @@ function PostJobPageInner() {
                     <p className="text-red-500 text-xs mt-1">{errors.subject}</p>
                   )}
                 </div>
-                <div>
+                <div id="field-employment_type">
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">
                     Employment Type
                   </label>
@@ -679,7 +713,7 @@ function PostJobPageInner() {
                 </div>
               </div>
 
-              <div>
+              <div id="field-teaching_levels">
                 <label className="block text-sm font-medium text-gray-700 mb-3">
                   Teaching Level(s)
                 </label>
@@ -757,7 +791,7 @@ function PostJobPageInner() {
             </h2>
             <div className="space-y-5">
 
-              <div>
+              <div id="field-salary_max">
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">
                   Monthly Salary Range (₦)
                 </label>
@@ -810,7 +844,7 @@ function PostJobPageInner() {
               </div>
 
               {formData.accommodation_offered && (
-                <div>
+                <div id="field-accommodation_type">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Accommodation Type
                   </label>
@@ -943,7 +977,7 @@ function PostJobPageInner() {
             </p>
 
             {formData.external_apply_enabled && (
-              <div className="pt-4 border-t border-gray-100">
+              <div id="field-external_apply_value" className="pt-4 border-t border-gray-100">
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">
                   Email, phone number, and/or website URL
                 </label>
@@ -1087,7 +1121,7 @@ function PostJobPageInner() {
 
                   {/* Quiz Subjects — grouped by grade level, up to 3 total combined */}
                   {formData.quiz_levels.length > 0 && (
-                    <div className="sm:col-span-2">
+                    <div id="field-quiz_subjects" className="sm:col-span-2">
                       <label className="block text-sm font-medium text-gray-700 mb-1.5">
                         Quiz Subjects ({formData.quiz_subject_levels.length}/{MAX_QUIZ_SUBJECTS})
                       </label>
@@ -1284,7 +1318,7 @@ function PostJobPageInner() {
             <h2 className="font-bold text-gray-900 mb-5">Job Description</h2>
             <div className="space-y-5">
 
-              <div>
+              <div id="field-description">
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">
                   Full Job Description
                 </label>
@@ -1302,7 +1336,7 @@ function PostJobPageInner() {
                 )}
               </div>
 
-              <div>
+              <div id="field-required_qualifications">
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">
                   Required Qualifications
                 </label>
