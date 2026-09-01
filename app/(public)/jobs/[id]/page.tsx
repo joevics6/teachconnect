@@ -25,6 +25,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { formatCurrency, formatDate } from "@/lib/utils"
 import { getExternalApplyLabel } from "@/lib/external-apply"
+import { getFetchErrorMessage } from "@/lib/network-error"
 import { ExternalApplyPanel } from "@/components/jobs/ExternalApplyPanel"
 import type { Job } from "@/types"
 
@@ -75,7 +76,7 @@ export default function JobDetailPage() {
         setHasApplied(data.has_applied || false)
         setRequiresAuthForExternalApply(!!data.requires_auth_for_external_apply)
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load job")
+        setError(getFetchErrorMessage(err, err instanceof Error ? err.message : "Failed to load job"))
       } finally {
         setIsLoading(false)
       }

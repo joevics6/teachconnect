@@ -15,12 +15,15 @@ import {
   Star,
   SlidersHorizontal,
   BookOpen,
+  Wifi,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ALL_SUBJECTS, TEACHING_LEVELS, NIGERIAN_STATES, getSubjectsForLevel } from "@/lib/constants"
 import type { TeachingLevel } from "@/types"
 import { formatCurrency } from "@/lib/utils"
 import type { Job } from "@/types"
+import { useAuth } from "@/hooks/useAuth"
+import { getFetchErrorMessage } from "@/lib/network-error"
 
 const EMPLOYMENT_TYPES = [
   { value: "full-time", label: "Full Time" },
@@ -62,26 +65,27 @@ function JobCard({ job }: { job: JobWithSchool }) {
   const daysLeft = Math.ceil(
     (new Date(job.deadline).getTime() - nowMs) / (1000 * 60 * 60 * 24)
   )
+  const isClosed = daysLeft <= 0
 
   return (
-    <Link href={`/jobs/${job.id}`}>
-      <div className="bg-white border border-gray-100 rounded-xl p-5 hover:border-ink-200 hover:shadow-sm transition-all group">
-        <div className="flex items-start justify-between gap-4 mb-3">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-11 h-11 rounded-xl bg-gray-100 flex items-center justify-center flex-shrink-0 overflow-hidden">
+    <Link href={`/jobs/${job.id}`} className="block">
+      <div className="bg-white border border-gray-200 rounded-2xl p-6 hover:border-ink-300 hover:shadow-lg transition-all group cursor-pointer">
+        <div className="flex items-start justify-between gap-4 mb-4">
+          <div className="flex items-center gap-4 min-w-0">
+            <div className="w-14 h-14 rounded-2xl bg-gray-100 flex items-center justify-center flex-shrink-0 overflow-hidden">
               {job.school_logo_url ? (
                 <img
                   src={job.school_logo_url}
                   alt={job.school_name}
-                  className="w-full h-full object-contain p-1"
+                  className="w-full h-full object-contain p-1.5"
                 />
               ) : (
-                <Briefcase className="h-5 w-5 text-gray-400" />
+                <Briefcase className="h-6 w-6 text-gray-400" />
               )}
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-1.5 flex-wrap">
-                <p className="font-semibold text-gray-900 text-sm truncate group-hover:text-ink-600 transition-colors">
+                <p className="font-bold text-gray-900 text-base truncate group-hover:text-ink-600 transition-colors">
                   {job.title}
                 </p>
                 {job.school_is_verified && (
@@ -91,17 +95,17 @@ function JobCard({ job }: { job: JobWithSchool }) {
                   </span>
                 )}
               </div>
-              <p className="text-xs text-gray-500 truncate">{job.school_name}</p>
+              <p className="text-sm text-gray-500 truncate">{job.school_name}</p>
             </div>
           </div>
           <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
             {job.is_featured && (
-              <span className="px-2 py-0.5 bg-yellow-100 text-yellow-700 text-xs rounded-full font-medium">
+              <span className="px-2.5 py-1 bg-yellow-100 text-yellow-700 text-xs rounded-full font-semibold">
                 Featured
               </span>
             )}
             <span
-              className={`px-2 py-0.5 text-xs rounded-full font-medium ${
+              className={`px-2.5 py-1 text-xs rounded-full font-medium ${
                 job.employment_type === "full-time"
                   ? "bg-ink-50 text-ink-700"
                   : job.employment_type === "part-time"
@@ -114,52 +118,62 @@ function JobCard({ job }: { job: JobWithSchool }) {
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-1.5 mb-3">
-          <span className="px-2.5 py-1 bg-gray-100 text-gray-600 text-xs rounded-lg">
+        <div className="flex flex-wrap gap-2 mb-4">
+          <span className="px-3 py-1.5 bg-gray-100 text-gray-700 text-xs font-medium rounded-lg">
             {job.subject}
           </span>
           {job.teaching_levels.map((level) => (
             <span
               key={level}
-              className="px-2.5 py-1 bg-ink-50 text-ink-600 text-xs rounded-lg capitalize"
+              className="px-3 py-1.5 bg-ink-50 text-ink-600 text-xs font-medium rounded-lg capitalize"
             >
               {level.toUpperCase()}
             </span>
           ))}
           {job.quiz_enabled && (
-            <span className="px-2.5 py-1 bg-purple-50 text-purple-600 text-xs rounded-lg flex items-center gap-1">
+            <span className="px-3 py-1.5 bg-purple-50 text-purple-600 text-xs font-medium rounded-lg flex items-center gap-1">
               <BookOpen className="h-3 w-3" />
               Quiz Required
             </span>
           )}
         </div>
 
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3 text-xs text-gray-500">
-            <span className="flex items-center gap-1">
-              <MapPin className="h-3 w-3" />
-              {job.school_state}
+        <div className="flex items-center gap-4 text-sm text-gray-500 mb-5 flex-wrap">
+          <span className="flex items-center gap-1.5">
+            <MapPin className="h-4 w-4" />
+            {job.school_state}
+          </span>
+          {job.accommodation_offered && (
+            <span className="flex items-center gap-1.5 text-ink-600">
+              <Home className="h-4 w-4" />
+              Accommodation
             </span>
-            {job.accommodation_offered && (
-              <span className="flex items-center gap-1 text-ink-600">
-                <Home className="h-3 w-3" />
-                Accommodation
-              </span>
-            )}
-            <span className="flex items-center gap-1">
-              <Clock className="h-3 w-3" />
-              {daysLeft <= 0
-                ? "Closed"
-                : daysLeft === 1
-                ? "Closes tomorrow"
-                : `${daysLeft} days left`}
-            </span>
-          </div>
-          <p className="text-sm font-bold text-gray-900">
+          )}
+          <span className="flex items-center gap-1.5">
+            <Clock className="h-4 w-4" />
+            {isClosed
+              ? "Closed"
+              : daysLeft === 1
+              ? "Closes tomorrow"
+              : `${daysLeft} days left`}
+          </span>
+        </div>
+
+        <div className="flex items-center justify-between gap-4 pt-4 border-t border-gray-100">
+          <p className="text-lg font-bold text-gray-900">
             {formatCurrency(job.salary_min)} –{" "}
             {formatCurrency(job.salary_max)}
-            <span className="text-xs font-normal text-gray-400">/mo</span>
+            <span className="text-sm font-normal text-gray-400">/mo</span>
           </p>
+          <span
+            className={`inline-flex items-center justify-center rounded-md px-5 h-10 text-sm font-medium transition-colors ${
+              isClosed
+                ? "bg-gray-100 text-gray-400"
+                : "bg-ink-600 text-white group-hover:bg-ink-700"
+            }`}
+          >
+            {isClosed ? "Closed" : "Apply Now"}
+          </span>
         </div>
       </div>
     </Link>
@@ -167,11 +181,13 @@ function JobCard({ job }: { job: JobWithSchool }) {
 }
 
 export default function JobsPage() {
+  const { user, isLoading: authLoading } = useAuth()
   const [jobs, setJobs] = useState<JobWithSchool[]>([])
   const [featuredJobs, setFeaturedJobs] = useState<JobWithSchool[]>([])
   const [totalCount, setTotalCount] = useState(0)
   const [currentPage, setCurrentPage] = useState(1)
   const [isLoading, setIsLoading] = useState(true)
+  const [fetchError, setFetchError] = useState("")
   const [showFilters, setShowFilters] = useState(false)
 
   const [filters, setFilters] = useState<Filters>({
@@ -218,6 +234,7 @@ export default function JobsPage() {
 
   const fetchJobs = useCallback(async () => {
     setIsLoading(true)
+    setFetchError("")
     try {
       const params = new URLSearchParams()
       if (filters.keyword) params.set("keyword", filters.keyword)
@@ -234,6 +251,7 @@ export default function JobsPage() {
       params.set("limit", String(JOBS_PER_PAGE))
 
       const response = await fetch(`/api/jobs?${params.toString()}`)
+      if (!response.ok) throw new Error("Failed to load jobs. Please try again.")
       const data = await response.json()
 
       if (currentPage === 1) {
@@ -243,6 +261,9 @@ export default function JobsPage() {
       setTotalCount(data.total || 0)
     } catch (err) {
       console.error("Failed to fetch jobs:", err)
+      setJobs([])
+      setTotalCount(0)
+      setFetchError(getFetchErrorMessage(err, "Failed to load jobs. Please try again."))
     } finally {
       setIsLoading(false)
     }
@@ -444,7 +465,7 @@ export default function JobsPage() {
               <Star className="h-4 w-4 text-yellow-500" />
               <h2 className="font-bold text-gray-900">Featured Jobs</h2>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {featuredJobs.map((job) => (
                 <JobCard key={job.id} job={job} />
               ))}
@@ -453,7 +474,7 @@ export default function JobsPage() {
         )}
 
         {/* Results Header */}
-        <div className="flex items-center justify-between mb-5">
+        <div className="flex items-center justify-between mb-5 gap-3">
           <p className="text-sm text-gray-500">
             {isLoading ? (
               "Loading..."
@@ -469,39 +490,60 @@ export default function JobsPage() {
               </>
             )}
           </p>
-          {filters.accommodation && (
-            <span className="flex items-center gap-1 px-3 py-1 bg-ink-100 text-ink-700 text-xs rounded-full font-medium">
-              <Home className="h-3 w-3" />
-              Showing jobs with accommodation
-            </span>
-          )}
+          <div className="flex items-center gap-3 flex-shrink-0">
+            {filters.accommodation && (
+              <span className="flex items-center gap-1 px-3 py-1 bg-ink-100 text-ink-700 text-xs rounded-full font-medium">
+                <Home className="h-3 w-3" />
+                Showing jobs with accommodation
+              </span>
+            )}
+            {!authLoading && !user && (
+              <Link href="/login">
+                <Button size="sm" variant="outline" className="text-xs border-ink-300 text-ink-700">
+                  Sign In
+                </Button>
+              </Link>
+            )}
+          </div>
         </div>
 
         {/* Job List */}
         {isLoading ? (
-          <div className="space-y-4">
+          <div className="space-y-6">
             {[...Array(6)].map((_, i) => (
               <div
                 key={i}
-                className="bg-white border border-gray-100 rounded-xl p-5 animate-pulse"
+                className="bg-white border border-gray-200 rounded-2xl p-6 animate-pulse"
               >
-                <div className="flex gap-3 mb-3">
-                  <div className="w-11 h-11 bg-gray-200 rounded-xl flex-shrink-0" />
+                <div className="flex gap-4 mb-4">
+                  <div className="w-14 h-14 bg-gray-200 rounded-2xl flex-shrink-0" />
                   <div className="flex-1 space-y-2">
                     <div className="h-4 bg-gray-200 rounded w-1/3" />
                     <div className="h-3 bg-gray-100 rounded w-1/4" />
                   </div>
                 </div>
-                <div className="flex gap-2 mb-3">
-                  <div className="h-6 bg-gray-100 rounded-lg w-20" />
-                  <div className="h-6 bg-gray-100 rounded-lg w-16" />
+                <div className="flex gap-2 mb-5">
+                  <div className="h-7 bg-gray-100 rounded-lg w-20" />
+                  <div className="h-7 bg-gray-100 rounded-lg w-16" />
                 </div>
-                <div className="flex justify-between">
-                  <div className="h-3 bg-gray-100 rounded w-32" />
-                  <div className="h-4 bg-gray-200 rounded w-28" />
+                <div className="flex justify-between pt-4 border-t border-gray-100">
+                  <div className="h-5 bg-gray-200 rounded w-32" />
+                  <div className="h-10 bg-gray-100 rounded-md w-28" />
                 </div>
               </div>
             ))}
+          </div>
+        ) : fetchError ? (
+          <div className="text-center py-20 bg-white rounded-xl border border-gray-100">
+            <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Wifi className="h-7 w-7 text-red-400" />
+            </div>
+            <h3 className="text-lg font-bold text-gray-900 mb-2">
+              {fetchError}
+            </h3>
+            <Button variant="outline" onClick={fetchJobs}>
+              Try Again
+            </Button>
           </div>
         ) : jobs.length === 0 ? (
           <div className="text-center py-20 bg-white rounded-xl border border-gray-100">
@@ -519,7 +561,7 @@ export default function JobsPage() {
             </Button>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-6">
             {jobs.map((job) => (
               <JobCard key={job.id} job={job} />
             ))}

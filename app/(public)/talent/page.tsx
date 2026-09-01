@@ -19,6 +19,7 @@ import {
   Loader2,
   SlidersHorizontal,
   Menu,
+  Wifi,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ALL_SUBJECTS, TEACHING_LEVELS, NIGERIAN_STATES, getSubjectsForLevel } from "@/lib/constants"
@@ -27,6 +28,7 @@ import type { TeachingLevel } from "@/types"
 import { useAuth } from "@/lib/auth-context"
 import { SchoolSidebar } from "@/components/dashboard/SchoolSidebar"
 import { getInitials } from "@/lib/utils"
+import { getFetchErrorMessage } from "@/lib/network-error"
 
 // ─── Types ───────────────────────────────────────────────────
 
@@ -456,6 +458,7 @@ function TalentPageContent() {
   const [teachers, setTeachers] = useState<Teacher[]>([])
   const [jobs, setJobs] = useState<Job[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [fetchError, setFetchError] = useState("")
   const [totalCount, setTotalCount] = useState(0)
   const [isPremium, setIsPremium] = useState(false)
   const [showFilters, setShowFilters] = useState(false)
@@ -507,6 +510,7 @@ function TalentPageContent() {
 
   const fetchTeachers = useCallback(async () => {
     setIsLoading(true)
+    setFetchError("")
     try {
       const params = new URLSearchParams()
       if (filters.keyword) params.set("keyword", filters.keyword)
@@ -533,6 +537,9 @@ function TalentPageContent() {
       setJobs(jobsData.jobs || [])
     } catch (err) {
       console.error("Failed to fetch talent:", err)
+      setTeachers([])
+      setTotalCount(0)
+      setFetchError(getFetchErrorMessage(err, "Failed to load teachers. Please try again."))
     } finally {
       setIsLoading(false)
     }
@@ -838,6 +845,18 @@ function TalentPageContent() {
                 </div>
               </div>
             ))}
+          </div>
+        ) : fetchError ? (
+          <div className="text-center py-20 bg-white rounded-xl border border-gray-100">
+            <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Wifi className="h-7 w-7 text-red-400" />
+            </div>
+            <h3 className="text-lg font-bold text-gray-900 mb-2">
+              {fetchError}
+            </h3>
+            <Button variant="outline" onClick={fetchTeachers}>
+              Try Again
+            </Button>
           </div>
         ) : teachers.length === 0 ? (
           <div className="text-center py-20 bg-white rounded-xl border border-gray-100">
