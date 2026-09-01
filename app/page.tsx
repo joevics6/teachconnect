@@ -78,39 +78,7 @@ function ProfileCard() {
   )
 }
 
-function HeroCTAs({ user, isLoading, dashboardLink }: { user: AuthUser | null; isLoading: boolean; dashboardLink: string }) {
-  if (isLoading) return <div className="h-12 w-64 bg-ink-100 rounded-xl animate-pulse" />
-  if (user?.role === "teacher") return (
-    <div className="grid grid-cols-2 gap-3 max-w-md">
-      <Link href="/jobs">
-        <Button size="lg" className="w-full bg-ink-800 hover:bg-ink-900 text-white px-4 py-6 text-sm sm:text-base rounded-xl">
-          <Search className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2 flex-shrink-0" />
-          <span className="hidden sm:inline">Browse Teaching Jobs</span>
-          <span className="sm:hidden">Browse Jobs</span>
-        </Button>
-      </Link>
-      <Link href={dashboardLink}>
-        <Button size="lg" variant="outline" className="w-full px-4 py-6 text-sm sm:text-base rounded-xl border-ink-200">
-          <span className="hidden sm:inline">Go to Dashboard</span>
-          <span className="sm:hidden">Dashboard</span>
-        </Button>
-      </Link>
-    </div>
-  )
-  if (user?.role === "school") return (
-    <div className="grid grid-cols-2 gap-3 max-w-md">
-      <Link href="/dashboard/school/post-job">
-        <Button size="lg" className="w-full bg-ink-800 hover:bg-ink-900 text-white px-4 py-6 text-sm sm:text-base rounded-xl">
-          <Building2 className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2 flex-shrink-0" />Post a Job
-        </Button>
-      </Link>
-      <Link href="/talent">
-        <Button size="lg" variant="outline" className="w-full px-4 py-6 text-sm sm:text-base rounded-xl border-ink-200">
-          Browse Teachers
-        </Button>
-      </Link>
-    </div>
-  )
+function HeroCTAs() {
   return (
     <div className="grid grid-cols-2 gap-3 max-w-md">
       <Link href="/talent">
@@ -188,7 +156,7 @@ const FEATURES = [
 ]
 
 export default function HomePage() {
-  const { user, isLoading, dashboardLink } = useAuth()
+  const { user } = useAuth()
 
   return (
     <div className="flex flex-col">
@@ -213,7 +181,7 @@ export default function HomePage() {
               Direct hiring, done right — verified profiles, real contact, zero recruiter fees.
             </p>
             <div className="mx-auto lg:mx-0 w-fit">
-              <HeroCTAs user={user} isLoading={isLoading} dashboardLink={dashboardLink} />
+              <HeroCTAs />
             </div>
 
             <div className="flex flex-wrap justify-center lg:justify-start gap-x-6 gap-y-2 mt-8 pt-6 border-t border-gray-100">
