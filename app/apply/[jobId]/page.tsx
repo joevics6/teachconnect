@@ -22,7 +22,6 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { formatCurrency, formatDate } from "@/lib/utils"
-import { getExternalApplyHref } from "@/lib/external-apply"
 
 interface JobDetails {
   id: string
@@ -104,10 +103,13 @@ export default function ApplyPage() {
         }
 
         // External-apply jobs with no quiz gate skip the built-in flow
-        // entirely — send people straight to the school's
-        // email/WhatsApp/website rather than showing our cover-letter form.
+        // entirely — send people to the job detail page, which is
+        // where ExternalApplyPanel actually lives and can show every
+        // contact a school listed (a school can list more than one:
+        // email, WhatsApp, website), rather than guessing a single
+        // destination from the whole raw field here.
         if (jobData.job?.external_apply_enabled && jobData.job?.external_apply_value) {
-          window.location.href = getExternalApplyHref(jobData.job.external_apply_value)
+          router.replace(`/jobs/${jobId}`)
           return
         }
 

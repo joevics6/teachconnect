@@ -933,7 +933,9 @@ function PostJobPageInner() {
             </div>
             <p className="text-gray-500 text-xs mb-4">
               Send applicants straight to your email, WhatsApp, or website
-              instead of TeachConnect&apos;s built-in application form.
+              instead of TeachConnect&apos;s built-in application form. Add
+              more than one if you want — applicants will see all of them
+              and can pick whichever works for them.
               {formData.quiz_enabled
                 ? " Since Quiz Screening is on, teachers will need to pass the quiz below before this contact info is revealed."
                 : ""}
@@ -943,18 +945,19 @@ function PostJobPageInner() {
             {formData.external_apply_enabled && (
               <div className="pt-4 border-t border-gray-100">
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                  Email, phone number, or website URL
+                  Email, phone number, and/or website URL
                 </label>
                 <input
                   type="text"
                   value={formData.external_apply_value}
                   onChange={(e) => update("external_apply_value", e.target.value)}
-                  placeholder="e.g. jobs@myschool.com, +2348012345678, or myschool.com/careers"
+                  placeholder="e.g. jobs@myschool.com, +2348012345678, myschool.com/careers"
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ink-500"
                 />
                 <p className="text-xs text-gray-400 mt-1.5">
-                  We&apos;ll automatically detect whether this opens an email, a
-                  WhatsApp chat, or the website — no need to say which.
+                  Separate multiple ways to apply with commas — we&apos;ll
+                  detect each one automatically and show applicants a
+                  separate button for email, WhatsApp, and website.
                 </p>
                 {errors.external_apply_value && (
                   <p className="text-red-500 text-xs mt-1">

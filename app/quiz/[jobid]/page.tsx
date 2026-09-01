@@ -19,7 +19,7 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-import { getExternalApplyLabel } from "@/lib/external-apply"
+import { getExternalApplySummaryLabel } from "@/lib/external-apply"
 import { ExternalApplyPanel } from "@/components/jobs/ExternalApplyPanel"
 
 // ─── Types ───────────────────────────────────────────────────
@@ -187,7 +187,7 @@ function PreQuizScreen({
               <ExternalLink className="h-4 w-4 text-orange-600 flex-shrink-0 mt-0.5" />
               <p className="text-xs text-orange-700">
                 Pass this quiz to unlock {meta.school_name}&apos;s direct contact
-                details — {getExternalApplyLabel(meta.external_apply_value)} to apply.
+                details — {getExternalApplySummaryLabel(meta.external_apply_value)} to apply.
               </p>
             </div>
           )}

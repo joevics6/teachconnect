@@ -24,7 +24,7 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { formatCurrency, formatDate } from "@/lib/utils"
-import { getExternalApplyLabel } from "@/lib/external-apply"
+import { getExternalApplySummaryLabel } from "@/lib/external-apply"
 import { getFetchErrorMessage } from "@/lib/network-error"
 import { ExternalApplyPanel } from "@/components/jobs/ExternalApplyPanel"
 import type { Job } from "@/types"
@@ -298,7 +298,7 @@ export default function JobDetailPage() {
                     <ExternalLink className="h-3 w-3" />
                     {job.quiz_enabled
                       ? "Quiz Unlocks Contact Info"
-                      : getExternalApplyLabel(job.external_apply_value)}
+                      : getExternalApplySummaryLabel(job.external_apply_value)}
                   </span>
                 )}
                 {job.external_apply_enabled && !job.external_apply_value && requiresAuthForExternalApply && !job.quiz_enabled && (
