@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Loader2, CheckCircle, XCircle, ShieldCheck, ShieldOff } from "lucide-react"
+import { Loader2, CheckCircle, XCircle, ShieldCheck, ShieldOff, Copy, Check, RefreshCw, Megaphone } from "lucide-react"
 import { formatDate, formatCurrency } from "@/lib/utils"
 import { AdminShell } from "@/components/admin/AdminShell"
 
@@ -20,6 +20,7 @@ interface AdminJob {
   deadline: string
   created_at: string
   school_id: string
+  social: string | null
   school_profiles: { school_name: string; is_verified: boolean; logo_url: string | null } | null
 }
 
@@ -36,6 +37,8 @@ export default function AdminJobsPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [statusFilter, setStatusFilter] = useState<typeof STATUS_TABS[number]["value"]>("pending_approval")
   const [busyId, setBusyId] = useState<string | null>(null)
+  const [socialBusyId, setSocialBusyId] = useState<string | null>(null)
+  const [copiedId, setCopiedId] = useState<string | null>(null)
 
   const load = () => {
     setIsLoading(true)
@@ -72,6 +75,34 @@ export default function AdminJobsPage() {
       console.error("Action failed:", err)
     } finally {
       setBusyId(null)
+    }
+  }
+
+  const handleGenerateSocial = async (job: AdminJob) => {
+    setSocialBusyId(job.id)
+    try {
+      const res = await fetch(`/api/admin/jobs/${job.id}/social`, { method: "POST" })
+      const data = await res.json()
+      if (res.ok) {
+        setJobs((prev) => prev.map((j) => (j.id === job.id ? { ...j, social: data.social } : j)))
+      } else {
+        console.error("Generate social post failed:", data.error)
+      }
+    } catch (err) {
+      console.error("Generate social post failed:", err)
+    } finally {
+      setSocialBusyId(null)
+    }
+  }
+
+  const handleCopySocial = async (job: AdminJob) => {
+    if (!job.social) return
+    try {
+      await navigator.clipboard.writeText(job.social)
+      setCopiedId(job.id)
+      setTimeout(() => setCopiedId((prev) => (prev === job.id ? null : prev)), 2000)
+    } catch (err) {
+      console.error("Copy failed:", err)
     }
   }
 
@@ -157,6 +188,54 @@ export default function AdminJobsPage() {
                       {busyId === job.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CheckCircle className="h-3.5 w-3.5" />}
                       Approve
                     </button>
+                  </div>
+                )}
+
+                {/* Social post — only relevant once a job has (or could have) gone live */}
+                {job.status !== "pending_approval" && job.status !== "rejected" && (
+                  <div className="w-full mt-1 pt-3 border-t border-gray-100">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="flex items-center gap-1.5 text-xs font-medium text-gray-500">
+                        <Megaphone className="h-3.5 w-3.5" /> Social Post
+                      </span>
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          onClick={() => handleGenerateSocial(job)}
+                          disabled={socialBusyId === job.id}
+                          className="px-2 py-1 rounded-md text-xs font-medium border border-gray-200 text-gray-600 hover:bg-gray-50 flex items-center gap-1 disabled:opacity-50"
+                        >
+                          {socialBusyId === job.id ? (
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                          ) : (
+                            <RefreshCw className="h-3 w-3" />
+                          )}
+                          {job.social ? "Regenerate" : "Generate"}
+                        </button>
+                        {job.social && (
+                          <button
+                            onClick={() => handleCopySocial(job)}
+                            className="px-2 py-1 rounded-md text-xs font-medium bg-gray-900 text-white hover:bg-gray-800 flex items-center gap-1"
+                          >
+                            {copiedId === job.id ? (
+                              <>
+                                <Check className="h-3 w-3" /> Copied
+                              </>
+                            ) : (
+                              <>
+                                <Copy className="h-3 w-3" /> Copy
+                              </>
+                            )}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                    {job.social ? (
+                      <pre className="whitespace-pre-wrap font-sans text-xs text-gray-700 bg-gray-50 border border-gray-200 rounded-lg p-3">
+                        {job.social}
+                      </pre>
+                    ) : (
+                      <p className="text-xs text-gray-400 italic">No social post yet.</p>
+                    )}
                   </div>
                 )}
               </div>
