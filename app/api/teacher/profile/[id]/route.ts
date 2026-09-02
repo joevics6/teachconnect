@@ -35,6 +35,25 @@ export async function GET(
       const role = user.user_metadata?.role
       if (role === "school" || role === "teacher") viewerRole = role
 
+      if (viewerRole === "teacher") {
+        // A teacher can view their OWN profile through this route (the
+        // frontend calls this before it knows whether the id is theirs —
+        // see the isOwnProfile detection in the page component), but
+        // browsing another teacher's profile is a school-only feature.
+        // Without this check, the request falls through to a query RLS
+        // silently filters to zero rows, and the caller sees a generic
+        // "Profile not found" — this returns the real reason instead.
+        const { data: ownProfileRows } = await supabase
+          .from("teacher_profiles").select("id").eq("user_id", user.id).limit(1)
+        const ownProfileId = (ownProfileRows ?? [])[0]?.id
+        if (ownProfileId !== id) {
+          return NextResponse.json(
+            { error: "Teacher accounts can only view their own profile. Browsing other teachers' profiles is available to school accounts." },
+            { status: 403 }
+          )
+        }
+      }
+
       if (viewerRole === "school") {
         const { data: schoolRows } = await supabase
           .from("school_profiles").select("id").eq("user_id", user.id)

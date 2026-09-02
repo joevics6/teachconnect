@@ -28,6 +28,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { toE164Nigeria } from "@/lib/utils"
 import { getInitials } from "@/lib/utils"
+import { getFetchErrorMessage } from "@/lib/network-error"
 
 // ─── Types ───────────────────────────────────────────────────
 
@@ -201,6 +202,7 @@ export default function TeacherProfilePage() {
   const [specializationResults, setSpecializationResults] = useState<SpecializationQuizResult[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState("")
+  const [errorStatus, setErrorStatus] = useState<number | null>(null)
   const [isInviting, setIsInviting] = useState(false)
   const [downloadingCv, setDownloadingCv] = useState(false)
 
@@ -246,7 +248,11 @@ export default function TeacherProfilePage() {
           router.push(`/login?next=/profile/teacher/${profileId}`)
           return
         }
-        if (!response.ok) throw new Error("Profile not found")
+        if (!response.ok) {
+          const data = await response.json().catch(() => null)
+          setErrorStatus(response.status)
+          throw new Error(data?.error || "Profile not found")
+        }
         const data = await response.json()
         setProfile(data.profile)
         setQuizResults(data.quiz_results || [])
@@ -267,7 +273,7 @@ export default function TeacherProfilePage() {
           }
         } catch { /* not a teacher or not logged in */ }
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load profile")
+        setError(getFetchErrorMessage(err, err instanceof Error ? err.message : "Failed to load profile"))
       } finally {
         setIsLoading(false)
       }
@@ -350,6 +356,7 @@ export default function TeacherProfilePage() {
   }
 
   if (error || !profile) {
+    const isAccessRestricted = errorStatus === 403
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
         <div className="text-center">
@@ -357,14 +364,14 @@ export default function TeacherProfilePage() {
             <AlertCircle className="h-8 w-8 text-red-500" />
           </div>
           <h2 className="text-xl font-bold text-gray-900 mb-2">
-            Profile Not Found
+            {isAccessRestricted ? "School Accounts Only" : "Profile Not Found"}
           </h2>
           <p className="text-gray-500 text-sm mb-6">
             {error || "This teacher profile could not be found."}
           </p>
-          <Link href="/talent">
+          <Link href={isAccessRestricted ? "/jobs" : "/talent"}>
             <Button className="bg-ink-600 hover:bg-ink-700 text-white">
-              Browse Teachers
+              {isAccessRestricted ? "Browse Jobs" : "Browse Teachers"}
             </Button>
           </Link>
         </div>
