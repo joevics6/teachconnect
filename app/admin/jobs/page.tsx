@@ -1,9 +1,11 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Loader2, CheckCircle, XCircle, ShieldCheck, ShieldOff, Copy, Check, RefreshCw, Megaphone } from "lucide-react"
+import Link from "next/link"
+import { Loader2, CheckCircle, XCircle, ShieldCheck, ShieldOff, Copy, Check, RefreshCw, Megaphone, Plus } from "lucide-react"
 import { formatDate, formatCurrency } from "@/lib/utils"
 import { AdminShell } from "@/components/admin/AdminShell"
+import { Button } from "@/components/ui/button"
 
 interface AdminJob {
   id: string
@@ -109,7 +111,15 @@ export default function AdminJobsPage() {
   return (
     <AdminShell>
       <div className="max-w-6xl mx-auto px-4 py-8">
-        <h1 className="text-xl font-bold text-gray-900 mb-4">Jobs</h1>
+        <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
+          <h1 className="text-xl font-bold text-gray-900">Jobs</h1>
+          <Link href="/admin/jobs/new">
+            <Button className="bg-ink-600 hover:bg-ink-700 text-white flex items-center gap-2">
+              <Plus className="h-4 w-4" />
+              New Job
+            </Button>
+          </Link>
+        </div>
 
         <div className="flex gap-1 bg-gray-100 rounded-lg p-1 mb-5 w-fit overflow-x-auto">
           {STATUS_TABS.map((t) => (
