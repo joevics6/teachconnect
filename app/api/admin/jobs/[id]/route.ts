@@ -8,6 +8,7 @@ import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { requireAdmin } from "@/lib/admin"
+import { generateAndSaveSocialPost } from "@/lib/social-post"
 import { revalidateTag } from "next/cache"
 
 export async function PATCH(
@@ -34,6 +35,16 @@ export async function PATCH(
       .update({ status: action === "approve" ? "active" : "rejected" })
       .eq("id", id)
     if (error) throw error
+
+    // The moment a job goes live is the moment it needs a social post.
+    // Best-effort — generateAndSaveSocialPost never throws, so a Gemini
+    // hiccup here can't block the approval itself; admin can retry via
+    // the "Regenerate" action on /admin/jobs (POST .../[id]/social).
+    if (action === "approve") {
+      generateAndSaveSocialPost(id).catch((err) =>
+        console.error("Social post generation failed for job", id, err)
+      )
+    }
 
     // DORMANT — see notifyMatchingTeachersOfNewJob in lib/notifications.ts
     // for why (Resend cost/limits at fan-out scale). Enable once on SES:

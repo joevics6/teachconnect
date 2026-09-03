@@ -28,7 +28,7 @@ export async function GET(request: Request) {
       .select(`
         id, title, subject, employment_type, salary_min, salary_max,
         status, is_private, is_featured, quiz_enabled, deadline,
-        created_at, school_id,
+        created_at, school_id, social,
         school_profiles ( school_name, is_verified, logo_url, state )
       `)
       .order("created_at", { ascending: false })
