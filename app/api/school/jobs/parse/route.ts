@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
+import { requireAdmin } from "@/lib/admin"
 import { ALL_SUBJECTS, BENEFITS } from "@/lib/constants"
 import { generateWithGemini, parseGeminiJson } from "@/lib/gemini"
 
@@ -32,7 +33,9 @@ export async function POST(request: Request) {
   try {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user || user.user_metadata?.role !== "school") {
+    const isSchool = user?.user_metadata?.role === "school"
+    const isAdmin = !isSchool && !!(await requireAdmin(supabase))
+    if (!user || (!isSchool && !isAdmin)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 

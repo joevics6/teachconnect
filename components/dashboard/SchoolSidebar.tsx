@@ -18,6 +18,7 @@ import {
   CreditCard,
   Settings,
   X,
+  Search,
 } from "lucide-react"
 import { LogoutButton } from "@/components/layout/LogoutButton"
 import { AdminLink } from "@/components/dashboard/AdminLink"
@@ -31,6 +32,7 @@ export const SCHOOL_NAV_ITEMS = [
   { href: "/dashboard/school/jobs",         label: "My Jobs",         icon: Briefcase     },
   { href: "/talent",                        label: "Browse Teachers", icon: GraduationCap },
   { href: "/dashboard/school/saved-teachers", label: "Saved Teachers", icon: Star          },
+  { href: "/dashboard/school/claim",        label: "Claim Your School", icon: Search      },
   { href: "/dashboard/school/subscription", label: "Subscription",    icon: CreditCard    },
   { href: "/dashboard/school/edit-profile", label: "Edit Profile",    icon: Building2     },
   { href: "/dashboard/school/settings",     label: "Settings",        icon: Settings      },
