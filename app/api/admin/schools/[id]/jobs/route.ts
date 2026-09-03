@@ -12,6 +12,7 @@ import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { requireAdmin } from "@/lib/admin"
+import { generateAndSaveSocialPost } from "@/lib/social-post"
 
 export async function POST(
   request: Request,
@@ -119,6 +120,13 @@ export async function POST(
       console.error("Admin job insert error:", insertError)
       return NextResponse.json({ error: "Something went wrong posting this job. Please try again." }, { status: 500 })
     }
+
+    // Same as the school-approval path in api/admin/jobs/[id] — the
+    // moment a job goes live is the moment it needs a social post.
+    // Best-effort, never blocks the response.
+    generateAndSaveSocialPost(newJob.id).catch((err) =>
+      console.error("Social post generation failed for job", newJob.id, err)
+    )
 
     return NextResponse.json({ success: true, job: newJob })
   } catch (err) {

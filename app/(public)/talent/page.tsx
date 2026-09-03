@@ -875,21 +875,28 @@ function TalentPageContent() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {teachers.map((teacher, index) => (
-              <TeacherCard
-                key={teacher.id}
-                teacher={teacher}
-                isLocked={!isPremium && index >= FREE_TIER_LIMIT}
-                isGuest={!user}
-                onInvite={(teacherId) => {
-                  setInviteError("")
-                  if (inviteJobId) handleInvite(teacherId, inviteJobId)
-                  else setInvitingTeacher(teacherId)
-                }}
-                inviting={null}
-                jobContext={inviteJobId}
-              />
-            ))}
+            {teachers
+              // Only render ONE locked teaser card, not one per
+              // remaining teacher — the gradient banner below already
+              // makes the "there's more, upgrade to see it" pitch once;
+              // repeating the same locked card 10+ times just looks
+              // broken, not persuasive.
+              .slice(0, isPremium ? teachers.length : FREE_TIER_LIMIT + 1)
+              .map((teacher, index) => (
+                <TeacherCard
+                  key={teacher.id}
+                  teacher={teacher}
+                  isLocked={!isPremium && index >= FREE_TIER_LIMIT}
+                  isGuest={!user}
+                  onInvite={(teacherId) => {
+                    setInviteError("")
+                    if (inviteJobId) handleInvite(teacherId, inviteJobId)
+                    else setInvitingTeacher(teacherId)
+                  }}
+                  inviting={null}
+                  jobContext={inviteJobId}
+                />
+              ))}
           </div>
         )}
 
