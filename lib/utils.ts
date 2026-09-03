@@ -25,6 +25,32 @@ export function formatSalaryRange(min: number, max: number): string {
   return `${formatCurrency(min)} – ${formatCurrency(max)}`
 }
 
+/**
+ * Abbreviates a full name to first name + initials — e.g.
+ * "Oriahi Ebere Naomi" -> "Oriahi E. N." Used to anonymize teacher
+ * identities in the guest-facing talent preview.
+ */
+export function abbreviateName(fullName: string): string {
+  const parts = fullName.trim().split(/\s+/).filter(Boolean)
+  if (parts.length <= 1) return fullName.trim()
+  const [first, ...rest] = parts
+  return `${first} ${rest.map((p) => `${p[0].toUpperCase()}.`).join(" ")}`
+}
+
+/**
+ * Buckets exact years of experience into a range label, so a guest
+ * preview can show "qualitative" experience without the exact number
+ * (which, combined with other visible fields, could help re-identify
+ * a specific known teacher).
+ */
+export function getExperienceBucket(years: number): string {
+  if (years <= 1) return "0-1 yrs"
+  if (years <= 3) return "2-3 yrs"
+  if (years <= 6) return "4-6 yrs"
+  if (years <= 10) return "7-10 yrs"
+  return "10+ yrs"
+}
+
 export function formatDate(date: string): string {
   return new Intl.DateTimeFormat("en-NG", {
     day: "numeric",

@@ -2,6 +2,28 @@ import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { hasTalentAccess, getActivePlanType } from "@/lib/school-plan"
 import type { PlanType } from "@/lib/school-plan"
+import { abbreviateName, getExperienceBucket } from "@/lib/utils"
+
+// ── Guest anonymization ─────────────────────────────────────────
+// Guests (no session) get a real preview of the marketplace — real
+// teachers, real diversity of subjects/locations — but not their
+// identifying/contactable details. This strips those server-side
+// (not just hidden in the UI) so a guest reading the raw response
+// can't recover them either. A specific teacher's full profile still
+// requires sign-in entirely (api/teacher/profile/[id]).
+function anonymizeForGuest(teacher: Record<string, unknown>) {
+  return {
+    ...teacher,
+    full_name: abbreviateName(teacher.full_name as string),
+    photo_url: null,
+    lga: null,
+    bio: null,
+    salary_min: null,
+    salary_max: null,
+    years_experience: null,
+    experience_bucket: getExperienceBucket(teacher.years_experience as number),
+  }
+}
 
 // ── Match score calculator ────────────────────────────────────
 function calcMatchScore(
@@ -170,7 +192,13 @@ export async function GET(request: Request) {
       }
     }
 
-    return NextResponse.json({ teachers: withInviteStatus, total: subject && level ? filtered.length : (count || 0), is_premium: isPremium, plan_type: planTypeForResponse })
+    // Guests get real teachers with identifying/contactable fields
+    // stripped (see anonymizeForGuest above) — a logged-in school
+    // (free or premium) still sees real data here; only the >5th card
+    // gets blurred client-side, which is a separate, unrelated gate.
+    const responseTeachers = user ? withInviteStatus : withInviteStatus.map(anonymizeForGuest)
+
+    return NextResponse.json({ teachers: responseTeachers, total: subject && level ? filtered.length : (count || 0), is_premium: isPremium, plan_type: planTypeForResponse })
   } catch (err) {
     console.error("GET /api/talent error:", err)
     return NextResponse.json({ error: "Failed to fetch teachers" }, { status: 500 })
