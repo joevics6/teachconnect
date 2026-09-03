@@ -26,7 +26,7 @@ export async function POST(
 
     const adminDb = createAdminClient()
     const { data: school } = await adminDb
-      .from("school_profiles").select("id, created_by_admin").eq("id", schoolId).single()
+      .from("school_profiles").select("id, created_by_admin, is_anonymous").eq("id", schoolId).single()
     if (!school || !school.created_by_admin) {
       return NextResponse.json({ error: "School not found" }, { status: 404 })
     }
@@ -74,6 +74,17 @@ export async function POST(
     if (body.external_apply_enabled && !String(body.external_apply_value || "").trim()) {
       return NextResponse.json(
         { error: "Enter an email, phone number, or URL for external applications" },
+        { status: 400 }
+      )
+    }
+    // A "Confidential School" stub has no real account, so a job under
+    // it can never rely on in-app applications — nobody would ever see
+    // them. Enforced here too, not just client-side, since is_anonymous
+    // lives on the school row and the client can't be trusted to have
+    // set external_apply_enabled correctly.
+    if (school.is_anonymous && !body.external_apply_enabled) {
+      return NextResponse.json(
+        { error: "Anonymous postings require an external application contact" },
         { status: 400 }
       )
     }

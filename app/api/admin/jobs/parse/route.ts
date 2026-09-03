@@ -36,7 +36,8 @@ Return exactly this JSON structure (use null for fields not mentioned, do not ad
     "accommodation_type": "fully-furnished or unfurnished or allowance or null",
     "benefits": ["array of applicable values from exactly: ${BENEFITS.join(", ")}"],
     "description": "a professional 3-5 sentence job description written from the school perspective based on the input",
-    "required_qualifications": "a clear list of required qualifications inferred from the subject, level and any mentioned requirements"
+    "required_qualifications": "a clear list of required qualifications inferred from the subject, level and any mentioned requirements",
+    "apply_contact": "an email address, phone/WhatsApp number, or website mentioned as the way to apply or get in touch — or null if nothing like that is mentioned"
   },
   "school": {
     "school_name": "the hiring school's name, or null if not mentioned",

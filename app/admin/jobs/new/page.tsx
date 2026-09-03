@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react"
 import Link from "next/link"
-import { ArrowLeft, Sparkles, Loader2, CheckCircle2, BookOpen, Search, School, X } from "lucide-react"
+import { ArrowLeft, Sparkles, Loader2, CheckCircle2, BookOpen, Search, School, X, EyeOff } from "lucide-react"
 import { AdminShell } from "@/components/admin/AdminShell"
 import { Button } from "@/components/ui/button"
 import { StateLgaSelect } from "@/components/ui/StateLgaSelect"
@@ -75,8 +75,13 @@ export default function AdminNewJobPage() {
   const [aiError, setAiError] = useState("")
   const [aiSuccess, setAiSuccess] = useState(false)
 
-  // School: either pick an existing admin-created school, or fill in a new one.
-  const [schoolMode, setSchoolMode] = useState<"new" | "existing">("new")
+  // School: pick an existing admin-created school, fill in a new one,
+  // or post "anonymously" — a fresh "Confidential School" stub with a
+  // real location but no name, for posts where the source (e.g. a
+  // Facebook listing) never says who's hiring. Anonymous jobs always
+  // require an external apply contact — there's no real school account
+  // to receive in-app applications.
+  const [schoolMode, setSchoolMode] = useState<"new" | "existing" | "anonymous">("new")
   const [schoolSearch, setSchoolSearch] = useState("")
   const [schoolResults, setSchoolResults] = useState<ExistingSchool[]>([])
   const [searchingSchools, setSearchingSchools] = useState(false)
@@ -109,12 +114,13 @@ export default function AdminNewJobPage() {
   }
 
   const subjectOptions = getSubjectsForLevels(jobData.teaching_levels)
+  const isAnonymousMode = schoolMode === "anonymous"
 
   // Live search over admin-created schools once "existing" mode is picked.
   const searchSchools = useCallback(async (q: string) => {
     setSearchingSchools(true)
     try {
-      const params = new URLSearchParams()
+      const params = new URLSearchParams({ exclude_anonymous: "true" })
       if (q) params.set("search", q)
       const res = await fetch(`/api/admin/schools?${params.toString()}`)
       if (res.ok) {
@@ -165,18 +171,24 @@ export default function AdminNewJobPage() {
         if (job.benefits?.length) updateJob("benefits", job.benefits)
         if (job.description) updateJob("description", job.description)
         if (job.required_qualifications) updateJob("required_qualifications", job.required_qualifications)
+        if (job.apply_contact) {
+          updateJob("external_apply_enabled", true)
+          updateJob("external_apply_value", job.apply_contact)
+        }
       }
 
-      // Only pre-fill the "new school" form — never silently override an
-      // existing school the admin already picked from search.
+      // Only pre-fill the "new"/"anonymous" school forms — never
+      // silently override an existing school the admin already picked
+      // from search. Anonymous mode still wants state/lga (real,
+      // known) even though school_name is never used there.
       const school = data.parsed?.school
-      if (school && schoolMode === "new") {
-        if (school.school_name) updateSchool("school_name", school.school_name)
+      if (school && (schoolMode === "new" || schoolMode === "anonymous")) {
+        if (schoolMode === "new" && school.school_name) updateSchool("school_name", school.school_name)
         if (school.school_type) updateSchool("school_type", school.school_type)
         if (school.state) updateSchool("state", school.state)
         if (school.lga) updateSchool("lga", school.lga)
-        if (school.website) updateSchool("website", school.website)
-        if (school.about) updateSchool("about", school.about)
+        if (schoolMode === "new" && school.website) updateSchool("website", school.website)
+        if (schoolMode === "new" && school.about) updateSchool("about", school.about)
       }
 
       setAiSuccess(true)
@@ -199,13 +211,14 @@ export default function AdminNewJobPage() {
     if (!jobData.description) newErrors.description = "Job description is required"
     if (!jobData.required_qualifications) newErrors.required_qualifications = "Required qualifications is required"
     if (jobData.accommodation_offered && !jobData.accommodation_type) newErrors.accommodation_type = "Select accommodation type"
-    if (jobData.external_apply_enabled && !jobData.external_apply_value.trim())
+    if ((jobData.external_apply_enabled || isAnonymousMode) && !jobData.external_apply_value.trim())
       newErrors.external_apply_value = "Enter an email, phone number, or URL"
 
     if (schoolMode === "existing") {
       if (!selectedSchool) newErrors.school_pick = "Pick a school from the list"
     } else {
-      if (!schoolData.school_name.trim()) newErrors.school_name = "Required"
+      // "new" and "anonymous" both need type + location; only "new" needs a name.
+      if (schoolMode === "new" && !schoolData.school_name.trim()) newErrors.school_name = "Required"
       if (!schoolData.school_type) newErrors.school_type = "Required"
       if (!schoolData.state) newErrors.state = "Required"
       if (!schoolData.lga) newErrors.lga = "Required"
@@ -232,11 +245,11 @@ export default function AdminNewJobPage() {
     try {
       let schoolId = selectedSchool?.id
 
-      if (schoolMode === "new") {
+      if (schoolMode === "new" || schoolMode === "anonymous") {
         const schoolRes = await fetch("/api/admin/schools", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(schoolData),
+          body: JSON.stringify({ ...schoolData, is_anonymous: schoolMode === "anonymous" }),
         })
         const schoolResult = await schoolRes.json()
         if (!schoolRes.ok) throw new Error(schoolResult.error || "Failed to create school")
@@ -250,11 +263,11 @@ export default function AdminNewJobPage() {
       })
       const jobResult = await jobRes.json()
       if (!jobRes.ok) {
-        // The school (if new) was created successfully even though the job
-        // failed — say so, since "New School" showing up in /admin/schools
-        // afterward isn't a bug, it's exactly what happened.
+        // The school (if new/anonymous) was created successfully even
+        // though the job failed — say so, since it showing up in
+        // /admin/schools afterward isn't a bug, it's exactly what happened.
         throw new Error(
-          schoolMode === "new"
+          schoolMode !== "existing"
             ? `School was created, but posting the job failed: ${jobResult.error || "unknown error"}. You can post the job to it from the Schools tab.`
             : jobResult.error || "Failed to post job"
         )
@@ -286,7 +299,13 @@ export default function AdminNewJobPage() {
           <CheckCircle2 className="h-12 w-12 text-ink-600 mx-auto mb-4" />
           <h1 className="text-xl font-bold text-gray-900 mb-2">Job Posted</h1>
           <p className="text-gray-500 text-sm mb-6">
-            The job is live{selectedSchool ? <> for <span className="font-medium">{selectedSchool.school_name}</span></> : ""}.
+            The job is live{
+              schoolMode === "anonymous"
+                ? <> as a <span className="font-medium">Confidential School</span> posting</>
+                : selectedSchool
+                ? <> for <span className="font-medium">{selectedSchool.school_name}</span></>
+                : ""
+            }.
           </p>
           <div className="flex gap-3 justify-center">
             <Button variant="outline" onClick={resetAll}>Post Another</Button>
@@ -498,11 +517,14 @@ export default function AdminNewJobPage() {
             <input
               type="checkbox"
               checked={jobData.external_apply_enabled}
+              disabled={isAnonymousMode}
               onChange={(e) => updateJob("external_apply_enabled", e.target.checked)}
             />
           </label>
           <p className="text-gray-500 text-xs mb-3">
-            If you got a direct contact (email/phone/website) from the school, applicants can use it instead of the built-in form. Separate multiple with commas.
+            {isAnonymousMode
+              ? "Required for anonymous postings — there's no school account to receive in-app applications, so applicants must use this contact instead."
+              : "If you got a direct contact (email/phone/website) from the school, applicants can use it instead of the built-in form. Separate multiple with commas."}
           </p>
           {jobData.external_apply_enabled && (
             <div id="field-external_apply_value">
@@ -560,7 +582,7 @@ export default function AdminNewJobPage() {
             <h2 className="font-bold text-gray-900 text-sm">School</h2>
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             <button
               type="button"
               onClick={() => { setSchoolMode("new"); setSelectedSchool(null) }}
@@ -579,7 +601,29 @@ export default function AdminNewJobPage() {
             >
               Existing School
             </button>
+            <button
+              type="button"
+              onClick={() => {
+                setSchoolMode("anonymous")
+                setSelectedSchool(null)
+                // Anonymous postings always need an external apply
+                // contact — force it on the moment this mode is chosen.
+                updateJob("external_apply_enabled", true)
+              }}
+              className={`px-3 py-1.5 rounded-lg text-sm border flex items-center gap-1.5 ${
+                schoolMode === "anonymous" ? "bg-ink-600 text-white border-ink-600" : "bg-white text-gray-600 border-gray-300"
+              }`}
+            >
+              <EyeOff className="h-3.5 w-3.5" />
+              Anonymous
+            </button>
           </div>
+
+          {isAnonymousMode && (
+            <p className="text-xs text-gray-500 bg-gray-50 border border-gray-200 rounded-lg p-3">
+              For posts where the source never names the school. This job goes live as <span className="font-medium">&quot;Confidential School&quot;</span> — you still enter the real type and location, since those are usually known even when the name isn&apos;t. Applicants apply via an external contact instead of the built-in form.
+            </p>
+          )}
 
           {schoolMode === "existing" ? (
             <div id="field-school_pick">
@@ -629,16 +673,18 @@ export default function AdminNewJobPage() {
             </div>
           ) : (
             <>
-              <div id="field-school_name">
-                <label className="block text-sm font-medium text-gray-700 mb-1">School Name</label>
-                <input
-                  value={schoolData.school_name}
-                  onChange={(e) => updateSchool("school_name", e.target.value)}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm"
-                  placeholder="e.g. Bright Kids Academy"
-                />
-                {errors.school_name && <p className="text-red-500 text-xs mt-1">{errors.school_name}</p>}
-              </div>
+              {!isAnonymousMode && (
+                <div id="field-school_name">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">School Name</label>
+                  <input
+                    value={schoolData.school_name}
+                    onChange={(e) => updateSchool("school_name", e.target.value)}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm"
+                    placeholder="e.g. Bright Kids Academy"
+                  />
+                  {errors.school_name && <p className="text-red-500 text-xs mt-1">{errors.school_name}</p>}
+                </div>
+              )}
 
               <div id="field-school_type">
                 <label className="block text-sm font-medium text-gray-700 mb-2">School Type</label>
@@ -672,30 +718,34 @@ export default function AdminNewJobPage() {
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Website (optional)</label>
-                <input
-                  value={schoolData.website}
-                  onChange={(e) => updateSchool("website", e.target.value)}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm"
-                  placeholder="schoolwebsite.com"
-                />
-              </div>
+              {!isAnonymousMode && (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Website (optional)</label>
+                    <input
+                      value={schoolData.website}
+                      onChange={(e) => updateSchool("website", e.target.value)}
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm"
+                      placeholder="schoolwebsite.com"
+                    />
+                  </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">About (optional)</label>
-                <textarea
-                  value={schoolData.about}
-                  onChange={(e) => updateSchool("about", e.target.value)}
-                  rows={2}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm"
-                  placeholder="Brief description of the school"
-                />
-              </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">About (optional)</label>
+                    <textarea
+                      value={schoolData.about}
+                      onChange={(e) => updateSchool("about", e.target.value)}
+                      rows={2}
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm"
+                      placeholder="Brief description of the school"
+                    />
+                  </div>
+                </>
+              )}
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Claim Note (optional — internal, e.g. where you found this school)
+                  {isAnonymousMode ? "Internal Note (optional — e.g. where you found this)" : "Claim Note (optional — internal, e.g. where you found this school)"}
                 </label>
                 <input
                   value={schoolData.claim_note}

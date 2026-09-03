@@ -24,6 +24,7 @@ interface GhostSchool {
   logo_url: string | null
   about: string | null
   is_claimed: boolean
+  is_anonymous: boolean
   jobs_count: number
   created_at: string
 }
@@ -267,6 +268,9 @@ export default function AdminSchoolsPage() {
                     </span>
                     {school.is_claimed && (
                       <span className="px-2 py-0.5 bg-ink-50 text-ink-600 text-xs rounded-full">Claimed</span>
+                    )}
+                    {school.is_anonymous && (
+                      <span className="px-2 py-0.5 bg-purple-50 text-purple-600 text-xs rounded-full">Anonymous</span>
                     )}
                   </div>
                   <p className="text-xs text-gray-500 mt-0.5">
