@@ -113,11 +113,26 @@ export function getSubjectsForLevel(level: TeachingLevel): string[] {
   return (LEVEL_SUBJECTS[level] ?? []).map((s) => s.name)
 }
 
-/** Subject names valid across ALL given levels (intersection) — for jobs/quizzes spanning multiple levels. */
+/**
+ * Subject names across ALL given levels (union, deduped) — e.g. selecting
+ * both Primary and SSS shows "Primary Education" AND the full SSS subject
+ * list, not just names common to both (which for levels like Primary,
+ * whose only "subject" is the broad category itself, would always be
+ * empty — an intersection here effectively hid every subject).
+ */
 export function getSubjectsForLevels(levels: TeachingLevel[]): string[] {
   if (levels.length === 0) return []
-  const lists = levels.map((l) => new Set(getSubjectsForLevel(l)))
-  return getSubjectsForLevel(levels[0]).filter((name) => lists.every((set) => set.has(name)))
+  const seen = new Set<string>()
+  const result: string[] = []
+  for (const level of levels) {
+    for (const name of getSubjectsForLevel(level)) {
+      if (!seen.has(name)) {
+        seen.add(name)
+        result.push(name)
+      }
+    }
+  }
+  return result
 }
 
 /** AI-generation topic hints for a subject at a level (nursery/primary only — undefined otherwise). */

@@ -196,7 +196,6 @@ export default function AdminNewJobPage() {
     if (!jobData.title) newErrors.title = "Job title is required"
     if (!jobData.subject) newErrors.subject = "Subject is required"
     if (jobData.teaching_levels.length === 0) newErrors.teaching_levels = "Select at least one level"
-    if (!jobData.salary_min && !jobData.salary_max) newErrors.salary_max = "Enter a minimum or maximum salary"
     if (!jobData.description) newErrors.description = "Job description is required"
     if (!jobData.required_qualifications) newErrors.required_qualifications = "Required qualifications is required"
     if (jobData.accommodation_offered && !jobData.accommodation_type) newErrors.accommodation_type = "Select accommodation type"
@@ -215,7 +214,7 @@ export default function AdminNewJobPage() {
     setErrors(newErrors)
     if (Object.keys(newErrors).length > 0) {
       const order = [
-        "title", "subject", "teaching_levels", "salary_max", "accommodation_type",
+        "title", "subject", "teaching_levels", "accommodation_type",
         "external_apply_value", "description", "required_qualifications",
         "school_name", "school_type", "state", "lga", "school_pick",
       ]
@@ -417,7 +416,7 @@ export default function AdminNewJobPage() {
           </div>
 
           <div id="field-salary_max">
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Monthly Salary Range (₦)</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">Monthly Salary Range (₦) — optional</label>
             <div className="grid grid-cols-2 gap-3">
               <input
                 type="number"
@@ -434,7 +433,6 @@ export default function AdminNewJobPage() {
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm"
               />
             </div>
-            {errors.salary_max && <p className="text-red-500 text-xs mt-1">{errors.salary_max}</p>}
           </div>
 
           <div>

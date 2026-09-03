@@ -23,7 +23,7 @@ import {
   ExternalLink,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { formatCurrency, formatDate } from "@/lib/utils"
+import { formatSalaryRange, formatCurrency, formatDate } from "@/lib/utils"
 import { getExternalApplySummaryLabel } from "@/lib/external-apply"
 import { getFetchErrorMessage } from "@/lib/network-error"
 import { ExternalApplyPanel } from "@/components/jobs/ExternalApplyPanel"
@@ -314,8 +314,7 @@ export default function JobDetailPage() {
                 <div>
                   <p className="text-xs text-gray-500 mb-1">Monthly Salary</p>
                   <p className="text-sm font-bold text-gray-900">
-                    {formatCurrency(job.salary_min)} –{" "}
-                    {formatCurrency(job.salary_max)}
+                    {formatSalaryRange(job.salary_min, job.salary_max)}
                   </p>
                 </div>
                 <div>
@@ -475,7 +474,9 @@ export default function JobDetailPage() {
                       </div>
                       <div className="flex items-center gap-2 flex-shrink-0">
                         <span className="text-sm font-medium text-gray-700 hidden sm:block">
-                          {formatCurrency(related.salary_min)}+
+                          {related.salary_min || related.salary_max
+                            ? `${formatCurrency(related.salary_min || related.salary_max)}+`
+                            : "N/A"}
                         </span>
                         <ChevronRight className="h-4 w-4 text-gray-400" />
                       </div>
@@ -493,10 +494,11 @@ export default function JobDetailPage() {
             <div className="bg-white rounded-xl border border-gray-200 p-6 sticky top-24">
               <div className="text-center mb-5">
                 <p className="text-2xl font-bold text-gray-900">
-                  {formatCurrency(job.salary_min)} –{" "}
-                  {formatCurrency(job.salary_max)}
+                  {formatSalaryRange(job.salary_min, job.salary_max)}
                 </p>
-                <p className="text-sm text-gray-500">per month</p>
+                {(job.salary_min || job.salary_max) && (
+                  <p className="text-sm text-gray-500">per month</p>
+                )}
               </div>
 
               {hasApplied ? (

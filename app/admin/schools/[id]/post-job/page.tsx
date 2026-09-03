@@ -130,7 +130,6 @@ export default function AdminSchoolPostJobPage() {
     if (!formData.title) newErrors.title = "Job title is required"
     if (!formData.subject) newErrors.subject = "Subject is required"
     if (formData.teaching_levels.length === 0) newErrors.teaching_levels = "Select at least one level"
-    if (!formData.salary_min && !formData.salary_max) newErrors.salary_max = "Enter a minimum or maximum salary"
     if (!formData.description) newErrors.description = "Job description is required"
     if (!formData.required_qualifications) newErrors.required_qualifications = "Required qualifications is required"
     if (formData.accommodation_offered && !formData.accommodation_type) newErrors.accommodation_type = "Select accommodation type"
@@ -139,7 +138,7 @@ export default function AdminSchoolPostJobPage() {
     setErrors(newErrors)
 
     if (Object.keys(newErrors).length > 0) {
-      const order = ["title", "subject", "teaching_levels", "salary_max", "accommodation_type", "external_apply_value", "description", "required_qualifications"]
+      const order = ["title", "subject", "teaching_levels", "accommodation_type", "external_apply_value", "description", "required_qualifications"]
       const first = order.find((k) => newErrors[k])
       if (first) requestAnimationFrame(() => scrollToField(first))
       return false
@@ -303,7 +302,7 @@ export default function AdminSchoolPostJobPage() {
           </div>
 
           <div id="field-salary_max">
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Monthly Salary Range (₦)</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">Monthly Salary Range (₦) — optional</label>
             <div className="grid grid-cols-2 gap-3">
               <input
                 type="number"
@@ -320,7 +319,6 @@ export default function AdminSchoolPostJobPage() {
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm"
               />
             </div>
-            {errors.salary_max && <p className="text-red-500 text-xs mt-1">{errors.salary_max}</p>}
           </div>
 
           <div>

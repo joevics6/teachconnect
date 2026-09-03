@@ -21,7 +21,7 @@ import {
   DollarSign,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { formatCurrency, getInitials } from "@/lib/utils"
+import { formatSalaryRange, formatCurrency, getInitials } from "@/lib/utils"
 
 // ─── Types ───────────────────────────────────────────────────
 
@@ -147,8 +147,10 @@ function JobCard({ job }: { job: ActiveJob }) {
 
         <div className="flex items-center justify-between">
           <p className="text-sm font-bold text-gray-900">
-            {formatCurrency(job.salary_min)} – {formatCurrency(job.salary_max)}
-            <span className="text-xs font-normal text-gray-400">/mo</span>
+            {formatSalaryRange(job.salary_min, job.salary_max)}
+            {(job.salary_min || job.salary_max) ? (
+              <span className="text-xs font-normal text-gray-400">/mo</span>
+            ) : null}
           </p>
           <p
             className={`text-xs ${

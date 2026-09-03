@@ -13,6 +13,18 @@ export function formatCurrency(amount: number): string {
   }).format(amount)
 }
 
+/**
+ * Formats a job's salary range for display, handling the case where
+ * neither bound was given (both 0 — the DB default for jobs posted
+ * without a disclosed salary, e.g. via the admin quick-post flow).
+ */
+export function formatSalaryRange(min: number, max: number): string {
+  if (!min && !max) return "Salary not disclosed"
+  if (!min) return `Up to ${formatCurrency(max)}`
+  if (!max) return `${formatCurrency(min)}+`
+  return `${formatCurrency(min)} – ${formatCurrency(max)}`
+}
+
 export function formatDate(date: string): string {
   return new Intl.DateTimeFormat("en-NG", {
     day: "numeric",

@@ -47,14 +47,16 @@ export async function POST(
       deadline = d.toISOString().split("T")[0]
     }
 
-    // Same salary normalization as the school-facing route: either
+    // Salary normalization — same as the school-facing route: either
     // bound is enough, equal values collapse to max-only, reversed
-    // values get swapped rather than erroring.
+    // values get swapped rather than erroring. Unlike the school-facing
+    // route, salary here is optional altogether — admin is often
+    // working from a raw Facebook/WhatsApp post that never states a
+    // number, and jobs.salary_min/max both default to 0 in the DB for
+    // exactly this case ("not disclosed", handled by formatSalaryRange
+    // wherever a job's salary is displayed).
     let salaryMin = body.salary_min ? parseInt(body.salary_min) : 0
     let salaryMax = body.salary_max ? parseInt(body.salary_max) : 0
-    if (!salaryMin && !salaryMax) {
-      return NextResponse.json({ error: "Enter a minimum or maximum salary" }, { status: 400 })
-    }
     if (salaryMin && salaryMax && salaryMin === salaryMax) {
       salaryMin = 0
     } else if (salaryMin && salaryMax && salaryMax < salaryMin) {

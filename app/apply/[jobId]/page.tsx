@@ -21,7 +21,7 @@ import {
   BookOpen,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { formatCurrency, formatDate } from "@/lib/utils"
+import { formatSalaryRange, formatDate } from "@/lib/utils"
 
 interface JobDetails {
   id: string
@@ -372,8 +372,10 @@ export default function ApplyPage() {
                 <div>
                   <p className="text-xs text-gray-400 mb-0.5">Salary</p>
                   <p className="font-bold text-gray-900">
-                    {formatCurrency(job?.salary_min || 0)} – {formatCurrency(job?.salary_max || 0)}
-                    <span className="text-xs font-normal text-gray-400">/mo</span>
+                    {formatSalaryRange(job?.salary_min || 0, job?.salary_max || 0)}
+                    {(job?.salary_min || job?.salary_max) ? (
+                      <span className="text-xs font-normal text-gray-400">/mo</span>
+                    ) : null}
                   </p>
                 </div>
                 <div>
