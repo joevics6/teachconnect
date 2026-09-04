@@ -6,8 +6,9 @@ import { ArrowLeft, Sparkles, Loader2, CheckCircle2, BookOpen, Search, School, X
 import { AdminShell } from "@/components/admin/AdminShell"
 import { Button } from "@/components/ui/button"
 import { StateLgaSelect } from "@/components/ui/StateLgaSelect"
-import { TEACHING_LEVELS, BENEFITS, getSubjectsForLevels } from "@/lib/constants"
-import type { TeachingLevel } from "@/types"
+import { BENEFITS, getSubjectsForLevel } from "@/lib/constants"
+import { LevelSubjectPicker, splitIntoSubjectJobs } from "@/components/LevelSubjectPicker"
+import type { TeachingLevel, TeacherLevelSubjects } from "@/types"
 import { getFetchErrorMessage } from "@/lib/network-error"
 
 const SCHOOL_TYPES = [
@@ -19,8 +20,7 @@ const SCHOOL_TYPES = [
 
 interface JobFormData {
   title: string
-  subject: string
-  teaching_levels: TeachingLevel[]
+  level_subjects: TeacherLevelSubjects[]
   employment_type: string
   positions: string
   salary_min: string
@@ -37,7 +37,7 @@ interface JobFormData {
 }
 
 const EMPTY_JOB: JobFormData = {
-  title: "", subject: "", teaching_levels: [], employment_type: "full-time",
+  title: "", level_subjects: [], employment_type: "full-time",
   positions: "1", salary_min: "", salary_max: "", accommodation_offered: false,
   accommodation_type: "", benefits: [], description: "", required_qualifications: "",
   preferred_qualifications: "", deadline: "", external_apply_enabled: false,
@@ -90,6 +90,7 @@ export default function AdminNewJobPage() {
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState("")
   const [submitted, setSubmitted] = useState(false)
+  const [postedCount, setPostedCount] = useState(1)
 
   const updateJob = <K extends keyof JobFormData>(field: K, value: JobFormData[K]) => {
     setJobData((f) => ({ ...f, [field]: value }))
@@ -100,12 +101,6 @@ export default function AdminNewJobPage() {
     setErrors((e) => ({ ...e, [field]: "" }))
   }
 
-  const toggleLevel = (level: TeachingLevel) => {
-    setJobData((f) => {
-      const has = f.teaching_levels.includes(level)
-      return { ...f, teaching_levels: has ? f.teaching_levels.filter((l) => l !== level) : [...f.teaching_levels, level] }
-    })
-  }
   const toggleBenefit = (benefit: string) => {
     setJobData((f) => {
       const has = f.benefits.includes(benefit)
@@ -113,7 +108,6 @@ export default function AdminNewJobPage() {
     })
   }
 
-  const subjectOptions = getSubjectsForLevels(jobData.teaching_levels)
   const isAnonymousMode = schoolMode === "anonymous"
 
   // Live search over admin-created schools once "existing" mode is picked.
@@ -160,8 +154,20 @@ export default function AdminNewJobPage() {
       const job = data.parsed?.job
       if (job) {
         if (job.title) updateJob("title", job.title)
-        if (job.subject) updateJob("subject", job.subject)
-        if (job.teaching_levels?.length) updateJob("teaching_levels", job.teaching_levels)
+        // The parser detects one subject and a set of levels, not a
+        // per-level breakdown — apply that single subject to every
+        // level it found (same best-effort approach as CV parsing on
+        // teacher registration). Admin can add more subjects manually.
+        if (job.teaching_levels?.length) {
+          updateJob(
+            "level_subjects",
+            (job.teaching_levels as TeachingLevel[]).map((level) => {
+              const options = getSubjectsForLevel(level)
+              const subjects = options.length === 1 ? options : job.subject ? [job.subject] : []
+              return { level, subjects }
+            })
+          )
+        }
         if (job.employment_type) updateJob("employment_type", job.employment_type)
         if (job.positions) updateJob("positions", String(job.positions))
         if (job.salary_min) updateJob("salary_min", String(job.salary_min))
@@ -206,8 +212,9 @@ export default function AdminNewJobPage() {
   const validate = () => {
     const newErrors: Record<string, string> = {}
     if (!jobData.title) newErrors.title = "Job title is required"
-    if (!jobData.subject) newErrors.subject = "Subject is required"
-    if (jobData.teaching_levels.length === 0) newErrors.teaching_levels = "Select at least one level"
+    if (jobData.level_subjects.length === 0) newErrors.level_subjects = "Select at least one teaching level"
+    else if (jobData.level_subjects.some((ls) => ls.subjects.length === 0))
+      newErrors.subjects = "Select at least one subject for each level"
     if (!jobData.description) newErrors.description = "Job description is required"
     if (!jobData.required_qualifications) newErrors.required_qualifications = "Required qualifications is required"
     if (jobData.accommodation_offered && !jobData.accommodation_type) newErrors.accommodation_type = "Select accommodation type"
@@ -227,7 +234,7 @@ export default function AdminNewJobPage() {
     setErrors(newErrors)
     if (Object.keys(newErrors).length > 0) {
       const order = [
-        "title", "subject", "teaching_levels", "accommodation_type",
+        "title", "level_subjects", "accommodation_type",
         "external_apply_value", "description", "required_qualifications",
         "school_name", "school_type", "state", "lga", "school_pick",
       ]
@@ -256,23 +263,32 @@ export default function AdminNewJobPage() {
         schoolId = schoolResult.school.id
       }
 
-      const jobRes = await fetch(`/api/admin/schools/${schoolId}/jobs`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(jobData),
-      })
-      const jobResult = await jobRes.json()
-      if (!jobRes.ok) {
-        // The school (if new/anonymous) was created successfully even
-        // though the job failed — say so, since it showing up in
-        // /admin/schools afterward isn't a bug, it's exactly what happened.
-        throw new Error(
-          schoolMode !== "existing"
-            ? `School was created, but posting the job failed: ${jobResult.error || "unknown error"}. You can post the job to it from the Schools tab.`
+      const jobSplits = splitIntoSubjectJobs(jobData.title, jobData.level_subjects)
+      let posted = 0
+      for (const split of jobSplits) {
+        const jobRes = await fetch(`/api/admin/schools/${schoolId}/jobs`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...jobData, title: split.title, subject: split.subject, teaching_levels: split.teaching_levels }),
+        })
+        const jobResult = await jobRes.json()
+        if (!jobRes.ok) {
+          // The school (if new/anonymous) was created successfully even
+          // though the job failed — say so, since it showing up in
+          // /admin/schools afterward isn't a bug, it's exactly what happened.
+          const base = jobSplits.length > 1
+            ? `Posted ${posted} of ${jobSplits.length} — failed on "${split.subject}": ${jobResult.error || "unknown error"}`
             : jobResult.error || "Failed to post job"
-        )
+          throw new Error(
+            schoolMode !== "existing" && posted === 0
+              ? `School was created, but posting the job failed: ${base}. You can post from the Schools tab.`
+              : base
+          )
+        }
+        posted++
       }
 
+      setPostedCount(posted)
       setSubmitted(true)
     } catch (err) {
       setSubmitError(getFetchErrorMessage(err, err instanceof Error ? err.message : "Something went wrong"))
@@ -297,9 +313,9 @@ export default function AdminNewJobPage() {
       <AdminShell>
         <div className="max-w-xl mx-auto p-6 text-center py-20">
           <CheckCircle2 className="h-12 w-12 text-ink-600 mx-auto mb-4" />
-          <h1 className="text-xl font-bold text-gray-900 mb-2">Job Posted</h1>
+          <h1 className="text-xl font-bold text-gray-900 mb-2">{postedCount > 1 ? `${postedCount} Jobs Posted` : "Job Posted"}</h1>
           <p className="text-gray-500 text-sm mb-6">
-            The job is live{
+            {postedCount > 1 ? `${postedCount} jobs are live` : "The job is live"}{
               schoolMode === "anonymous"
                 ? <> as a <span className="font-medium">Confidential School</span> posting</>
                 : selectedSchool
@@ -375,38 +391,13 @@ export default function AdminNewJobPage() {
             {errors.title && <p className="text-red-500 text-xs mt-1">{errors.title}</p>}
           </div>
 
-          <div id="field-teaching_levels">
-            <label className="block text-sm font-medium text-gray-700 mb-2">Teaching Level(s)</label>
-            <div className="flex flex-wrap gap-2">
-              {TEACHING_LEVELS.map((l) => (
-                <button
-                  key={l.value}
-                  type="button"
-                  onClick={() => toggleLevel(l.value)}
-                  className={`px-3 py-1.5 rounded-lg text-sm border ${
-                    jobData.teaching_levels.includes(l.value)
-                      ? "bg-ink-600 text-white border-ink-600"
-                      : "bg-white text-gray-600 border-gray-300"
-                  }`}
-                >
-                  {l.label}
-                </button>
-              ))}
-            </div>
-            {errors.teaching_levels && <p className="text-red-500 text-xs mt-1">{errors.teaching_levels}</p>}
-          </div>
-
-          <div id="field-subject">
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Subject</label>
-            <select
-              value={jobData.subject}
-              onChange={(e) => updateJob("subject", e.target.value)}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm"
-            >
-              <option value="">Select subject</option>
-              {subjectOptions.map((s) => <option key={s} value={s}>{s}</option>)}
-            </select>
-            {errors.subject && <p className="text-red-500 text-xs mt-1">{errors.subject}</p>}
+          <div id="field-level_subjects">
+            <LevelSubjectPicker
+              value={jobData.level_subjects}
+              onChange={(v) => updateJob("level_subjects", v)}
+              levelsError={errors.level_subjects}
+              subjectsError={errors.subjects}
+            />
           </div>
 
           <div className="grid grid-cols-2 gap-4">

@@ -6,14 +6,14 @@ import Link from "next/link"
 import { ArrowLeft, Sparkles, Loader2, CheckCircle2, BookOpen } from "lucide-react"
 import { AdminShell } from "@/components/admin/AdminShell"
 import { Button } from "@/components/ui/button"
-import { TEACHING_LEVELS, BENEFITS, getSubjectsForLevels } from "@/lib/constants"
-import type { TeachingLevel } from "@/types"
+import { BENEFITS, getSubjectsForLevel } from "@/lib/constants"
+import { LevelSubjectPicker, splitIntoSubjectJobs } from "@/components/LevelSubjectPicker"
+import type { TeachingLevel, TeacherLevelSubjects } from "@/types"
 import { getFetchErrorMessage } from "@/lib/network-error"
 
 interface FormData {
   title: string
-  subject: string
-  teaching_levels: TeachingLevel[]
+  level_subjects: TeacherLevelSubjects[]
   employment_type: string
   positions: string
   salary_min: string
@@ -30,7 +30,7 @@ interface FormData {
 }
 
 const EMPTY_FORM: FormData = {
-  title: "", subject: "", teaching_levels: [], employment_type: "full-time",
+  title: "", level_subjects: [], employment_type: "full-time",
   positions: "1", salary_min: "", salary_max: "", accommodation_offered: false,
   accommodation_type: "", benefits: [], description: "", required_qualifications: "",
   preferred_qualifications: "", deadline: "", external_apply_enabled: false,
@@ -51,6 +51,7 @@ export default function AdminSchoolPostJobPage() {
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState("")
   const [submitted, setSubmitted] = useState(false)
+  const [postedCount, setPostedCount] = useState(1)
 
   useEffect(() => {
     fetch(`/api/admin/schools/${schoolId}`)
@@ -66,21 +67,12 @@ export default function AdminSchoolPostJobPage() {
     setErrors((e) => ({ ...e, [field]: "" }))
   }
 
-  const toggleLevel = (level: TeachingLevel) => {
-    setFormData((f) => {
-      const has = f.teaching_levels.includes(level)
-      return { ...f, teaching_levels: has ? f.teaching_levels.filter((l) => l !== level) : [...f.teaching_levels, level] }
-    })
-  }
-
   const toggleBenefit = (benefit: string) => {
     setFormData((f) => {
       const has = f.benefits.includes(benefit)
       return { ...f, benefits: has ? f.benefits.filter((b) => b !== benefit) : [...f.benefits, benefit] }
     })
   }
-
-  const subjectOptions = getSubjectsForLevels(formData.teaching_levels)
 
   const handleAiParse = async () => {
     if (!aiInput.trim()) {
@@ -101,8 +93,20 @@ export default function AdminSchoolPostJobPage() {
 
       const parsed = data.parsed
       if (parsed.title) update("title", parsed.title)
-      if (parsed.subject) update("subject", parsed.subject)
-      if (parsed.teaching_levels?.length) update("teaching_levels", parsed.teaching_levels)
+      // The parser detects one subject and a set of levels, not a
+      // per-level breakdown — apply that single subject to every level
+      // it found (same best-effort approach as CV parsing on teacher
+      // registration). Admin can add more subjects per level manually.
+      if (parsed.teaching_levels?.length) {
+        update(
+          "level_subjects",
+          (parsed.teaching_levels as TeachingLevel[]).map((level) => {
+            const options = getSubjectsForLevel(level)
+            const subjects = options.length === 1 ? options : parsed.subject ? [parsed.subject] : []
+            return { level, subjects }
+          })
+        )
+      }
       if (parsed.employment_type) update("employment_type", parsed.employment_type)
       if (parsed.positions) update("positions", String(parsed.positions))
       if (parsed.salary_min) update("salary_min", String(parsed.salary_min))
@@ -128,8 +132,9 @@ export default function AdminSchoolPostJobPage() {
   const validate = () => {
     const newErrors: Record<string, string> = {}
     if (!formData.title) newErrors.title = "Job title is required"
-    if (!formData.subject) newErrors.subject = "Subject is required"
-    if (formData.teaching_levels.length === 0) newErrors.teaching_levels = "Select at least one level"
+    if (formData.level_subjects.length === 0) newErrors.level_subjects = "Select at least one teaching level"
+    else if (formData.level_subjects.some((ls) => ls.subjects.length === 0))
+      newErrors.subjects = "Select at least one subject for each level"
     if (!formData.description) newErrors.description = "Job description is required"
     if (!formData.required_qualifications) newErrors.required_qualifications = "Required qualifications is required"
     if (formData.accommodation_offered && !formData.accommodation_type) newErrors.accommodation_type = "Select accommodation type"
@@ -138,7 +143,7 @@ export default function AdminSchoolPostJobPage() {
     setErrors(newErrors)
 
     if (Object.keys(newErrors).length > 0) {
-      const order = ["title", "subject", "teaching_levels", "accommodation_type", "external_apply_value", "description", "required_qualifications"]
+      const order = ["title", "level_subjects", "accommodation_type", "external_apply_value", "description", "required_qualifications"]
       const first = order.find((k) => newErrors[k])
       if (first) requestAnimationFrame(() => scrollToField(first))
       return false
@@ -151,13 +156,26 @@ export default function AdminSchoolPostJobPage() {
     setSubmitting(true)
     setSubmitError("")
     try {
-      const res = await fetch(`/api/admin/schools/${schoolId}/jobs`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error || "Failed to post job")
+      // jobs.subject is a single column — one job per selected subject.
+      const jobSplits = splitIntoSubjectJobs(formData.title, formData.level_subjects)
+      let posted = 0
+      for (const split of jobSplits) {
+        const res = await fetch(`/api/admin/schools/${schoolId}/jobs`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...formData, title: split.title, subject: split.subject, teaching_levels: split.teaching_levels }),
+        })
+        const data = await res.json()
+        if (!res.ok) {
+          throw new Error(
+            jobSplits.length > 1
+              ? `Posted ${posted} of ${jobSplits.length} — failed on "${split.subject}": ${data.error || "unknown error"}`
+              : data.error || "Failed to post job"
+          )
+        }
+        posted++
+      }
+      setPostedCount(posted)
       setSubmitted(true)
     } catch (err) {
       setSubmitError(getFetchErrorMessage(err, err instanceof Error ? err.message : "Failed to post job"))
@@ -172,9 +190,9 @@ export default function AdminSchoolPostJobPage() {
       <AdminShell>
         <div className="max-w-xl mx-auto p-6 text-center py-20">
           <CheckCircle2 className="h-12 w-12 text-ink-600 mx-auto mb-4" />
-          <h1 className="text-xl font-bold text-gray-900 mb-2">Job Posted</h1>
+          <h1 className="text-xl font-bold text-gray-900 mb-2">{postedCount > 1 ? `${postedCount} Jobs Posted` : "Job Posted"}</h1>
           <p className="text-gray-500 text-sm mb-6">
-            The job is live for {schoolName || "this school"}.
+            {postedCount > 1 ? `${postedCount} jobs are live for` : "The job is live for"} {schoolName || "this school"}.
           </p>
           <div className="flex gap-3 justify-center">
             <Button variant="outline" onClick={() => { setFormData(EMPTY_FORM); setAiInput(""); setSubmitted(false) }}>
@@ -242,38 +260,13 @@ export default function AdminSchoolPostJobPage() {
             {errors.title && <p className="text-red-500 text-xs mt-1">{errors.title}</p>}
           </div>
 
-          <div id="field-teaching_levels">
-            <label className="block text-sm font-medium text-gray-700 mb-2">Teaching Level(s)</label>
-            <div className="flex flex-wrap gap-2">
-              {TEACHING_LEVELS.map((l) => (
-                <button
-                  key={l.value}
-                  type="button"
-                  onClick={() => toggleLevel(l.value)}
-                  className={`px-3 py-1.5 rounded-lg text-sm border ${
-                    formData.teaching_levels.includes(l.value)
-                      ? "bg-ink-600 text-white border-ink-600"
-                      : "bg-white text-gray-600 border-gray-300"
-                  }`}
-                >
-                  {l.label}
-                </button>
-              ))}
-            </div>
-            {errors.teaching_levels && <p className="text-red-500 text-xs mt-1">{errors.teaching_levels}</p>}
-          </div>
-
-          <div id="field-subject">
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Subject</label>
-            <select
-              value={formData.subject}
-              onChange={(e) => update("subject", e.target.value)}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm"
-            >
-              <option value="">Select subject</option>
-              {subjectOptions.map((s) => <option key={s} value={s}>{s}</option>)}
-            </select>
-            {errors.subject && <p className="text-red-500 text-xs mt-1">{errors.subject}</p>}
+          <div id="field-level_subjects">
+            <LevelSubjectPicker
+              value={formData.level_subjects}
+              onChange={(v) => update("level_subjects", v)}
+              levelsError={errors.level_subjects}
+              subjectsError={errors.subjects}
+            />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
