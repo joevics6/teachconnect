@@ -492,8 +492,8 @@ export default function TeacherRegisterPage() {
           {step === 1 && (
             <div className="space-y-6">
               {!parseSuccess && (
-                <div className="flex items-start justify-between gap-4 flex-wrap">
-                  <div>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
                     <h2 className="text-lg font-bold text-gray-900">Upload Your CV</h2>
                     <p className="text-sm text-gray-500 mt-1">
                       Our AI reads your CV and auto-fills your profile. Takes about 15 seconds.
@@ -505,7 +505,7 @@ export default function TeacherRegisterPage() {
                       onClick={() => setStep(2)}
                       className="flex-shrink-0 text-sm font-semibold text-ink-600 border border-ink-300 rounded-lg px-3.5 py-2 hover:bg-ink-50 transition-colors"
                     >
-                      No CV? Fill form manually
+                      Fill Form
                     </button>
                   )}
                 </div>
@@ -691,7 +691,7 @@ export default function TeacherRegisterPage() {
                         variant="outline"
                         onClick={(e) => { e.stopPropagation(); setStep(2) }}
                       >
-                        Fill Form Instead
+                        Fill Form
                       </Button>
                     </div>
                   </div>
