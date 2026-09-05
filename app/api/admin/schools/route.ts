@@ -28,7 +28,7 @@ export async function GET(request: Request) {
     let query = adminDb
       .from("school_profiles")
       .select(`
-        id, school_name, school_type, state, lga, logo_url, about,
+        id, school_name, school_type, state, lga, town, logo_url, about,
         is_claimed, created_by_admin, claim_note, is_anonymous, created_at,
         jobs ( count )
       `)
@@ -81,6 +81,7 @@ export async function POST(request: Request) {
         school_levels: body.school_levels ?? [],
         state: body.state,
         lga: body.lga,
+        town: body.town || null,
         address: isAnonymous ? null : (body.address || null),
         website: isAnonymous ? null : (body.website || null),
         logo_url: isAnonymous ? null : (body.logo_url || null),

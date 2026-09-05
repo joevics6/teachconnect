@@ -49,13 +49,14 @@ interface SchoolFormData {
   school_type: string
   state: string
   lga: string
+  town: string
   website: string
   about: string
   claim_note: string
 }
 
 const EMPTY_SCHOOL: SchoolFormData = {
-  school_name: "", school_type: "", state: "", lga: "", website: "", about: "", claim_note: "",
+  school_name: "", school_type: "", state: "", lga: "", town: "", website: "", about: "", claim_note: "",
 }
 
 interface ExistingSchool {
@@ -193,6 +194,7 @@ export default function AdminNewJobPage() {
         if (school.school_type) updateSchool("school_type", school.school_type)
         if (school.state) updateSchool("state", school.state)
         if (school.lga) updateSchool("lga", school.lga)
+        if (school.town) updateSchool("town", school.town)
         if (schoolMode === "new" && school.website) updateSchool("website", school.website)
         if (schoolMode === "new" && school.about) updateSchool("about", school.about)
       }
@@ -706,6 +708,8 @@ export default function AdminNewJobPage() {
                   onLgaChange={(l) => updateSchool("lga", l)}
                   stateError={errors.state}
                   lgaError={errors.lga}
+                  town={schoolData.town}
+                  onTownChange={(t) => updateSchool("town", t)}
                 />
               </div>
 

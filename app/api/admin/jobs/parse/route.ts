@@ -44,6 +44,7 @@ Return exactly this JSON structure (use null for fields not mentioned, do not ad
     "school_type": "must be one of exactly: private, public, international, missionary — or null if not stated or not inferable",
     "state": "must be one of exactly: ${NIGERIAN_STATES.join(", ")} — or null if not mentioned",
     "lga": "the LGA/area mentioned (e.g. 'Ikeja'), or null",
+    "town": "a more specific town/neighborhood mentioned within that LGA (e.g. 'Opebi'), or null if not mentioned",
     "website": "school website if mentioned, or null",
     "about": "one short sentence about the school if the text gives any context, or null"
   }

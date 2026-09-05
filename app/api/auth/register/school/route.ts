@@ -12,6 +12,7 @@ export async function POST(request: Request) {
     const school_levels     = JSON.parse((formData.get("school_levels") as string) || "[]")
     const state             = (formData.get("state")             as string || "").trim()
     const lga               = (formData.get("lga")               as string || "").trim()
+    const town              = (formData.get("town")              as string || "").trim() || null
     const address           = (formData.get("address")           as string || "").trim()
     const website           = (formData.get("website")           as string || "").trim() || null
     const cac_number        = (formData.get("cac_number")        as string || "").trim()
@@ -86,6 +87,7 @@ export async function POST(request: Request) {
         school_levels:     school_levels || [],
         state,
         lga,
+        town,
         address,
         website,
         contact_name,

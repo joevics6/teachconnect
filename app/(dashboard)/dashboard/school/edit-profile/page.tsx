@@ -41,7 +41,7 @@ const SCHOOL_CATEGORIES = [
 
 interface SchoolForm {
   school_name: string; school_type: string; school_levels: string[]
-  state: string; lga: string; address: string; website: string
+  state: string; lga: string; town: string; address: string; website: string
   contact_name: string; contact_role: string
   contact_phone: string; contact_phone_alt: string
   cac_number: string
@@ -68,7 +68,7 @@ export default function EditSchoolProfilePage() {
 
   const [form, setForm] = useState<SchoolForm>({
     school_name: "", school_type: "", school_levels: [],
-    state: "", lga: "", address: "", website: "",
+    state: "", lga: "", town: "", address: "", website: "",
     contact_name: "", contact_role: "",
     contact_phone: "", contact_phone_alt: "",
     cac_number: "",
@@ -103,6 +103,7 @@ export default function EditSchoolProfilePage() {
           school_levels:    s.school_levels    || [],
           state:            s.state            || "",
           lga:              s.lga              || "",
+          town:             s.town             || "",
           address:          s.address          || "",
           website:          s.website          || "",
           contact_name:     s.contact_name     || "",
@@ -366,6 +367,8 @@ export default function EditSchoolProfilePage() {
             state={form.state} lga={form.lga}
             onStateChange={(s) => setForm({ ...form, state: s, lga: "" })}
             onLgaChange={(l) => setForm({ ...form, lga: l })}
+            town={form.town}
+            onTownChange={(t) => setForm({ ...form, town: t })}
           />
           <div>
             <label className="text-sm font-medium text-gray-700 block mb-1">Street Address</label>

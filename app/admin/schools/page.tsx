@@ -21,6 +21,7 @@ interface GhostSchool {
   school_type: string
   state: string
   lga: string
+  town: string | null
   logo_url: string | null
   about: string | null
   is_claimed: boolean
@@ -31,7 +32,7 @@ interface GhostSchool {
 
 function NewSchoolModal({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
   const [form, setForm] = useState({
-    school_name: "", school_type: "", state: "", lga: "",
+    school_name: "", school_type: "", state: "", lga: "", town: "",
     website: "", about: "", claim_note: "",
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -114,6 +115,8 @@ function NewSchoolModal({ onClose, onCreated }: { onClose: () => void; onCreated
             onLgaChange={(l) => update("lga", l)}
             stateError={errors.state}
             lgaError={errors.lga}
+            town={form.town}
+            onTownChange={(t) => update("town", t)}
           />
 
           <div>
