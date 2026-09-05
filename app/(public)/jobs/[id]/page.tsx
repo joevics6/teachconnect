@@ -301,22 +301,18 @@ export default function JobDetailPage() {
                       : getExternalApplySummaryLabel(job.external_apply_value)}
                   </span>
                 )}
-                {job.external_apply_enabled && !job.external_apply_value && requiresAuthForExternalApply && !job.quiz_enabled && (
-                  <span className="px-3 py-1 bg-orange-100 text-orange-700 text-xs rounded-full font-medium flex items-center gap-1">
-                    <ExternalLink className="h-3 w-3" />
-                    Sign In to View Contact Info
-                  </span>
-                )}
               </div>
 
               {/* Key Info Grid */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 bg-gray-50 rounded-xl">
-                <div>
-                  <p className="text-xs text-gray-500 mb-1">Monthly Salary</p>
-                  <p className="text-sm font-bold text-gray-900">
-                    {formatSalaryRange(job.salary_min, job.salary_max)}
-                  </p>
-                </div>
+                {(job.salary_min || job.salary_max) ? (
+                  <div>
+                    <p className="text-xs text-gray-500 mb-1">Monthly Salary</p>
+                    <p className="text-sm font-bold text-gray-900">
+                      {formatSalaryRange(job.salary_min, job.salary_max)}
+                    </p>
+                  </div>
+                ) : null}
                 <div>
                   <p className="text-xs text-gray-500 mb-1">Location</p>
                   <p className="text-sm font-semibold text-gray-900 flex items-center gap-1">
@@ -492,14 +488,14 @@ export default function JobDetailPage() {
 
             {/* Apply Card */}
             <div className="bg-white rounded-xl border border-gray-200 p-6 sticky top-24">
-              <div className="text-center mb-5">
-                <p className="text-2xl font-bold text-gray-900">
-                  {formatSalaryRange(job.salary_min, job.salary_max)}
-                </p>
-                {(job.salary_min || job.salary_max) && (
+              {(job.salary_min || job.salary_max) ? (
+                <div className="text-center mb-5">
+                  <p className="text-2xl font-bold text-gray-900">
+                    {formatSalaryRange(job.salary_min, job.salary_max)}
+                  </p>
                   <p className="text-sm text-gray-500">per month</p>
-                )}
-              </div>
+                </div>
+              ) : null}
 
               {hasApplied ? (
                 <div className="flex items-center justify-center gap-2 p-3 bg-ink-50 border border-ink-200 rounded-xl mb-4">
@@ -536,7 +532,7 @@ export default function JobDetailPage() {
                   ) : job.external_apply_enabled && requiresAuthForExternalApply ? (
                     <>
                       <ExternalLink className="h-5 w-5 mr-2" />
-                      Sign In to View Contact Info
+                      Apply
                     </>
                   ) : (
                     "Apply Now"

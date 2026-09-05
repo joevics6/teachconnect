@@ -161,10 +161,12 @@ function JobCard({ job }: { job: JobWithSchool }) {
 
         <div className="flex items-center justify-between gap-4 pt-4 border-t border-gray-100">
           <p className="text-lg font-bold text-gray-900">
-            {formatSalaryRange(job.salary_min, job.salary_max)}
-            {(job.salary_min || job.salary_max) && (
-              <span className="text-sm font-normal text-gray-400">/mo</span>
-            )}
+            {job.salary_min || job.salary_max ? (
+              <>
+                {formatSalaryRange(job.salary_min, job.salary_max)}
+                <span className="text-sm font-normal text-gray-400">/mo</span>
+              </>
+            ) : null}
           </p>
           <span
             className={`inline-flex items-center justify-center rounded-md px-5 h-10 text-sm font-medium transition-colors ${
