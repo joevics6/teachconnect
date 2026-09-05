@@ -26,7 +26,7 @@ export async function POST(
 
     const adminDb = createAdminClient()
     const { data: school } = await adminDb
-      .from("school_profiles").select("id, created_by_admin").eq("id", schoolId).single()
+      .from("school_profiles").select("id, created_by_admin, is_anonymous").eq("id", schoolId).single()
     if (!school || !school.created_by_admin) {
       return NextResponse.json({ error: "School not found" }, { status: 404 })
     }
@@ -47,14 +47,16 @@ export async function POST(
       deadline = d.toISOString().split("T")[0]
     }
 
-    // Same salary normalization as the school-facing route: either
+    // Salary normalization — same as the school-facing route: either
     // bound is enough, equal values collapse to max-only, reversed
-    // values get swapped rather than erroring.
+    // values get swapped rather than erroring. Unlike the school-facing
+    // route, salary here is optional altogether — admin is often
+    // working from a raw Facebook/WhatsApp post that never states a
+    // number, and jobs.salary_min/max both default to 0 in the DB for
+    // exactly this case ("not disclosed", handled by formatSalaryRange
+    // wherever a job's salary is displayed).
     let salaryMin = body.salary_min ? parseInt(body.salary_min) : 0
     let salaryMax = body.salary_max ? parseInt(body.salary_max) : 0
-    if (!salaryMin && !salaryMax) {
-      return NextResponse.json({ error: "Enter a minimum or maximum salary" }, { status: 400 })
-    }
     if (salaryMin && salaryMax && salaryMin === salaryMax) {
       salaryMin = 0
     } else if (salaryMin && salaryMax && salaryMax < salaryMin) {
@@ -72,6 +74,17 @@ export async function POST(
     if (body.external_apply_enabled && !String(body.external_apply_value || "").trim()) {
       return NextResponse.json(
         { error: "Enter an email, phone number, or URL for external applications" },
+        { status: 400 }
+      )
+    }
+    // A "Confidential School" stub has no real account, so a job under
+    // it can never rely on in-app applications — nobody would ever see
+    // them. Enforced here too, not just client-side, since is_anonymous
+    // lives on the school row and the client can't be trusted to have
+    // set external_apply_enabled correctly.
+    if (school.is_anonymous && !body.external_apply_enabled) {
+      return NextResponse.json(
+        { error: "Anonymous postings require an external application contact" },
         { status: 400 }
       )
     }

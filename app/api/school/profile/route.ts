@@ -68,7 +68,7 @@ export async function PATCH(request: Request) {
 
     const body = await request.json()
     const allowedFields = [
-      "school_name", "school_type", "school_levels", "state", "lga", "address", "website",
+      "school_name", "school_type", "school_levels", "state", "lga", "town", "address", "website",
       "contact_name", "contact_role", "contact_email", "contact_phone", "contact_phone_alt",
       "logo_url", "cac_number",
       // New fields

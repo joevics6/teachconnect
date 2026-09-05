@@ -27,7 +27,7 @@ import { FREE_PLAN_TALENT_LIMIT } from "@/lib/pricing"
 import type { TeachingLevel } from "@/types"
 import { useAuth } from "@/lib/auth-context"
 import { SchoolSidebar } from "@/components/dashboard/SchoolSidebar"
-import { getInitials } from "@/lib/utils"
+import { getInitials, formatSalaryRange } from "@/lib/utils"
 import { getFetchErrorMessage } from "@/lib/network-error"
 
 // ─── Types ───────────────────────────────────────────────────
@@ -36,15 +36,16 @@ interface Teacher {
   id: string
   full_name: string
   state: string
-  lga: string
+  lga: string | null
   subjects: string[]
   teaching_levels: string[]
-  years_experience: number
+  years_experience: number | null
+  experience_bucket?: string
   trcn_status: string
   willing_to_relocate: boolean
   accommodation_needed: boolean
-  salary_min: number
-  salary_max: number
+  salary_min: number | null
+  salary_max: number | null
   photo_url: string | null
   bio: string | null
   profile_completion: number
@@ -68,15 +69,6 @@ interface Filters {
 }
 
 // ─── Helpers ─────────────────────────────────────────────────
-
-
-function formatCurrency(amount: number) {
-  return new Intl.NumberFormat("en-NG", {
-    style: "currency",
-    currency: "NGN",
-    minimumFractionDigits: 0,
-  }).format(amount)
-}
 
 function getAvailabilityLabel(availability: string) {
   const map: Record<string, string> = {
@@ -184,12 +176,13 @@ function TeacherCard({
               <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                 <span className="flex items-center gap-1 text-xs text-gray-500">
                   <MapPin className="h-3 w-3" />
-                  {teacher.lga}, {teacher.state}
+                  {teacher.lga ? `${teacher.lga}, ` : ""}{teacher.state}
                 </span>
                 <span className="text-xs text-gray-400">•</span>
                 <span className="text-xs text-gray-500">
-                  {teacher.years_experience} yr
-                  {teacher.years_experience !== 1 ? "s" : ""} exp
+                  {teacher.years_experience !== null
+                    ? `${teacher.years_experience} yr${teacher.years_experience !== 1 ? "s" : ""} exp`
+                    : `${teacher.experience_bucket} exp`}
                 </span>
               </div>
             </div>
@@ -249,11 +242,14 @@ function TeacherCard({
       <div className="flex items-center justify-between mb-4">
         <div>
           <p className="text-xs text-gray-400">Expected salary</p>
-          <p className="text-sm font-semibold text-gray-900">
-            {formatCurrency(teacher.salary_min)} –{" "}
-            {formatCurrency(teacher.salary_max)}
-            <span className="text-xs font-normal text-gray-400">/mo</span>
-          </p>
+          {teacher.salary_min !== null || teacher.salary_max !== null ? (
+            <p className="text-sm font-semibold text-gray-900">
+              {formatSalaryRange(teacher.salary_min ?? 0, teacher.salary_max ?? 0)}
+              <span className="text-xs font-normal text-gray-400">/mo</span>
+            </p>
+          ) : (
+            <p className="text-sm font-semibold text-gray-400">Sign up to view</p>
+          )}
         </div>
         <div className="text-right">
           <p className="text-xs text-gray-400">Availability</p>
@@ -278,7 +274,7 @@ function TeacherCard({
             className="w-full text-xs flex items-center gap-1.5"
           >
             <BookOpen className="h-3.5 w-3.5" />
-            View Profile
+            {isGuest ? "Sign Up to View Profile" : "View Profile"}
           </Button>
         </Link>
         {isGuest ? null : alreadyApplied ? (
@@ -459,7 +455,6 @@ function TalentPageContent() {
   const [jobs, setJobs] = useState<Job[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [fetchError, setFetchError] = useState("")
-  const [totalCount, setTotalCount] = useState(0)
   const [isPremium, setIsPremium] = useState(false)
   const [showFilters, setShowFilters] = useState(false)
   const [invitingTeacher, setInvitingTeacher] = useState<string | null>(null)
@@ -532,13 +527,11 @@ function TalentPageContent() {
       const jobsData = await jobsRes.json()
 
       setTeachers(teachersData.teachers || [])
-      setTotalCount(teachersData.total || 0)
       setIsPremium(teachersData.is_premium || false)
       setJobs(jobsData.jobs || [])
     } catch (err) {
       console.error("Failed to fetch talent:", err)
       setTeachers([])
-      setTotalCount(0)
       setFetchError(getFetchErrorMessage(err, "Failed to load teachers. Please try again."))
     } finally {
       setIsLoading(false)
@@ -786,25 +779,10 @@ function TalentPageContent() {
 
         {/* Stats Row */}
         <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
-          <p className="text-sm text-gray-500">
-            {isLoading ? (
-              "Loading..."
-            ) : (
-              <>
-                <span className="font-semibold text-gray-900">
-                  {totalCount}
-                </span>{" "}
-                teacher{totalCount !== 1 ? "s" : ""} available
-              </>
-            )}
-          </p>
+          <p className="text-sm text-gray-500">Available Teachers</p>
 
-          {/* Quick Stats */}
+          {/* Quick Stats — no headcount, just qualitative badges */}
           <div className="flex items-center gap-4 text-xs text-gray-500">
-            <span className="flex items-center gap-1">
-              <Users className="h-3.5 w-3.5 text-ink-500" />
-              {totalCount} registered
-            </span>
             <span className="flex items-center gap-1">
               <Star className="h-3.5 w-3.5 text-ink-500" />
               TRCN verified available

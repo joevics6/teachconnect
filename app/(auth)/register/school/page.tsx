@@ -33,6 +33,7 @@ interface FormData {
   school_levels: string[]
   state: string
   lga: string
+  town: string
   address: string
   website: string
   is_registered: "yes" | "no" | ""
@@ -65,7 +66,7 @@ export default function SchoolRegisterPage() {
 
   const [formData, setFormData] = useState<FormData>({
     school_name: "", school_type: "", school_levels: [],
-    state: "", lga: "", address: "", website: "",
+    state: "", lga: "", town: "", address: "", website: "",
     is_registered: "", cac_number: "",
     contact_name: "", contact_role: "", contact_email: "",
     password: "", confirm_password: "",
@@ -309,6 +310,8 @@ export default function SchoolRegisterPage() {
                 onLgaChange={(l) => update("lga", l)}
                 stateError={errors.state}
                 lgaError={errors.lga}
+                town={formData.town}
+                onTownChange={(t) => update("town", t)}
               />
 
               <div>

@@ -19,7 +19,7 @@ import {
   BookOpen as QuizIcon,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { formatCurrency, getInitials } from "@/lib/utils"
+import { formatSalaryRange, getInitials } from "@/lib/utils"
 import { TeacherSidebar } from "@/components/dashboard/TeacherSidebar"
 
 type PipelineStage =
@@ -105,8 +105,10 @@ function ApplicationCard({ app }: { app: Application }) {
           <div className="flex items-center justify-between flex-wrap gap-3">
             <div className="flex items-center gap-3">
               <p className="text-sm font-bold text-gray-900">
-                {formatCurrency(app.salary_min)} – {formatCurrency(app.salary_max)}
-                <span className="text-xs font-normal text-gray-400">/mo</span>
+                {formatSalaryRange(app.salary_min, app.salary_max)}
+                {(app.salary_min || app.salary_max) ? (
+                  <span className="text-xs font-normal text-gray-400">/mo</span>
+                ) : null}
               </p>
               {app.quiz_score !== null && (
                 <span className={`flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full ${

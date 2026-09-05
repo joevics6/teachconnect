@@ -49,8 +49,8 @@ export async function POST(request: Request) {
     const adminDb = createAdminClient()
 
     const { data: ghostSchool } = await adminDb
-      .from("school_profiles").select("id, is_claimed, created_by_admin").eq("id", schoolId).single()
-    if (!ghostSchool || !ghostSchool.created_by_admin) {
+      .from("school_profiles").select("id, is_claimed, created_by_admin, is_anonymous").eq("id", schoolId).single()
+    if (!ghostSchool || !ghostSchool.created_by_admin || ghostSchool.is_anonymous) {
       return NextResponse.json({ error: "School not found" }, { status: 404 })
     }
     if (ghostSchool.is_claimed) {

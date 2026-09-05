@@ -21,16 +21,18 @@ interface GhostSchool {
   school_type: string
   state: string
   lga: string
+  town: string | null
   logo_url: string | null
   about: string | null
   is_claimed: boolean
+  is_anonymous: boolean
   jobs_count: number
   created_at: string
 }
 
 function NewSchoolModal({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
   const [form, setForm] = useState({
-    school_name: "", school_type: "", state: "", lga: "",
+    school_name: "", school_type: "", state: "", lga: "", town: "",
     website: "", about: "", claim_note: "",
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -113,6 +115,8 @@ function NewSchoolModal({ onClose, onCreated }: { onClose: () => void; onCreated
             onLgaChange={(l) => update("lga", l)}
             stateError={errors.state}
             lgaError={errors.lga}
+            town={form.town}
+            onTownChange={(t) => update("town", t)}
           />
 
           <div>
@@ -267,6 +271,9 @@ export default function AdminSchoolsPage() {
                     </span>
                     {school.is_claimed && (
                       <span className="px-2 py-0.5 bg-ink-50 text-ink-600 text-xs rounded-full">Claimed</span>
+                    )}
+                    {school.is_anonymous && (
+                      <span className="px-2 py-0.5 bg-purple-50 text-purple-600 text-xs rounded-full">Anonymous</span>
                     )}
                   </div>
                   <p className="text-xs text-gray-500 mt-0.5">

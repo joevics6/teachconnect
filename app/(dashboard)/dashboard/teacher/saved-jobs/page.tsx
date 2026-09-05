@@ -17,7 +17,7 @@ import {
   Eye,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { formatCurrency, getInitials } from "@/lib/utils"
+import { formatSalaryRange, getInitials } from "@/lib/utils"
 import { TeacherSidebar } from "@/components/dashboard/TeacherSidebar"
 
 interface SavedJob {
@@ -154,8 +154,10 @@ export default function SavedJobsPage() {
                         <div className="flex items-center justify-between flex-wrap gap-3">
                           <div className="flex items-center gap-3">
                             <p className="text-sm font-bold text-gray-900">
-                              {formatCurrency(saved.salary_min)} – {formatCurrency(saved.salary_max)}
-                              <span className="text-xs font-normal text-gray-400">/mo</span>
+                              {formatSalaryRange(saved.salary_min, saved.salary_max)}
+                              {(saved.salary_min || saved.salary_max) ? (
+                                <span className="text-xs font-normal text-gray-400">/mo</span>
+                              ) : null}
                             </p>
                             <span className={`flex items-center gap-1 text-xs ${days <= 3 && !isClosed ? "text-red-500" : "text-gray-400"}`}>
                               <Clock className="h-3 w-3" />

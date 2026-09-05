@@ -18,10 +18,11 @@ import {
   Lock,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { TEACHING_LEVELS, BENEFITS, getSubjectsForLevels, getSubjectsForLevel } from "@/lib/constants"
+import { TEACHING_LEVELS, BENEFITS, getSubjectsForLevel } from "@/lib/constants"
+import { LevelSubjectPicker, deriveSubjects, splitIntoSubjectJobs } from "@/components/LevelSubjectPicker"
 import { getFeaturedAddonPrice } from "@/lib/pricing"
 import { SchoolSidebar } from "@/components/dashboard/SchoolSidebar"
-import type { TeachingLevel } from "@/types"
+import type { TeachingLevel, TeacherLevelSubjects } from "@/types"
 import { clearCached } from "@/lib/client-cache"
 import { getFetchErrorMessage } from "@/lib/network-error"
 
@@ -101,8 +102,7 @@ interface QuizSubjectLevel {
 
 interface FormData {
   title: string
-  subject: string
-  teaching_levels: string[]
+  level_subjects: TeacherLevelSubjects[]
   employment_type: string
   positions: string
   deadline: string
@@ -129,8 +129,7 @@ interface FormData {
 
 const EMPTY_FORM: FormData = {
   title: "",
-  subject: "",
-  teaching_levels: [],
+  level_subjects: [],
   employment_type: "full-time",
   positions: "1",
   deadline: "",
@@ -205,6 +204,7 @@ function PostJobPageInner() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [submitted, setSubmitted] = useState(false)
+  const [postedCount, setPostedCount] = useState(1)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [upgradeRequired, setUpgradeRequired] = useState(false)
   const [formData, setFormData] = useState<FormData>(EMPTY_FORM)
@@ -313,12 +313,17 @@ function PostJobPageInner() {
     setErrors((prev) => ({ ...prev, [field]: "" }))
   }
 
-  const toggleLevel = (value: string) => {
-    const current = formData.teaching_levels
-    const updated = current.includes(value)
-      ? current.filter((v) => v !== value)
-      : [...current, value]
-    update("teaching_levels", updated)
+  const isMultiSubject = deriveSubjects(formData.level_subjects).length > 1
+
+  const handleLevelSubjectsChange = (v: TeacherLevelSubjects[]) => {
+    update("level_subjects", v)
+    // Featured-listing payment is tied to a single, unique-per-job
+    // Paystack reference — it can't cover more than one job at once,
+    // so posting multiple subjects together forces Featured back off
+    // rather than leaving it checked against an invalid combination.
+    if (deriveSubjects(v).length > 1 && formData.is_featured) {
+      update("is_featured", false)
+    }
   }
 
   const toggleBenefit = (value: string) => {
@@ -369,9 +374,20 @@ function PostJobPageInner() {
 
       const parsed = data.parsed
       if (parsed.title) update("title", parsed.title)
-      if (parsed.subject) update("subject", parsed.subject)
-      if (parsed.teaching_levels?.length)
-        update("teaching_levels", parsed.teaching_levels)
+      // The parser detects one subject and a set of levels, not a
+      // per-level breakdown — apply that single subject to every
+      // level it found (same best-effort approach as CV parsing on
+      // teacher registration). School can add more subjects manually.
+      if (parsed.teaching_levels?.length) {
+        update(
+          "level_subjects",
+          (parsed.teaching_levels as TeachingLevel[]).map((level) => {
+            const options = getSubjectsForLevel(level)
+            const subjects = options.length === 1 ? options : parsed.subject ? [parsed.subject] : []
+            return { level, subjects }
+          })
+        )
+      }
       if (parsed.employment_type)
         update("employment_type", parsed.employment_type)
       if (parsed.positions) update("positions", String(parsed.positions))
@@ -403,7 +419,7 @@ function PostJobPageInner() {
   // always means the first one the user will actually see, not whichever
   // validation check happened to run first.
   const FIELD_ORDER = [
-    "title", "subject", "employment_type", "teaching_levels",
+    "title", "level_subjects", "employment_type",
     "salary_max", "accommodation_type", "external_apply_value",
     "quiz_subjects", "description", "required_qualifications",
   ]
@@ -422,9 +438,9 @@ function PostJobPageInner() {
   const validate = () => {
     const newErrors: Record<string, string> = {}
     if (!formData.title) newErrors.title = "Job title is required"
-    if (!formData.subject) newErrors.subject = "Subject is required"
-    if (formData.teaching_levels.length === 0)
-      newErrors.teaching_levels = "Select at least one level"
+    if (formData.level_subjects.length === 0) newErrors.level_subjects = "Select at least one teaching level"
+    else if (formData.level_subjects.some((ls) => ls.subjects.length === 0))
+      newErrors.subjects = "Select at least one subject for each level"
     if (!formData.employment_type)
       newErrors.employment_type = "Employment type is required"
     // Deadline: left blank defaults to 30 days out (set server-side) —
@@ -444,6 +460,12 @@ function PostJobPageInner() {
       newErrors.accommodation_type = "Select accommodation type"
     if (formData.external_apply_enabled && !formData.external_apply_value.trim())
       newErrors.external_apply_value = "Enter an email, phone number, or URL"
+    // Defense in depth — handleLevelSubjectsChange already forces
+    // is_featured off the moment a 2nd subject is added, but validate
+    // here too in case that ever gets bypassed (e.g. the payment-return
+    // restore effect setting formData directly from sessionStorage).
+    if (formData.is_featured && deriveSubjects(formData.level_subjects).length > 1)
+      newErrors.subjects = "Featured listings can only be posted one subject at a time — turn off Featured Listing or select a single subject"
     setErrors(newErrors)
 
     if (Object.keys(newErrors).length > 0) {
@@ -473,29 +495,42 @@ function PostJobPageInner() {
     setIsLoading(true)
     setUpgradeRequired(false)
     try {
-      const response = await fetch("/api/school/jobs", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...formData,
-          ...(overrideReference ? { featured_payment_reference: overrideReference } : {}),
-        }),
-      })
-      const data = await response.json()
-      if (!response.ok) {
-        if (data.upgrade_required) setUpgradeRequired(true)
-        if (data.featured_payment_required) {
-          // Payment reference didn't verify (expired, already used,
-          // wrong amount) — let them retry paying rather than dead-end.
-          setFeaturedPaymentReference(null)
+      const jobSplits = splitIntoSubjectJobs(formData.title, formData.level_subjects)
+      let posted = 0
+      for (const split of jobSplits) {
+        const response = await fetch("/api/school/jobs", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ...formData,
+            title: split.title,
+            subject: split.subject,
+            teaching_levels: split.teaching_levels,
+            ...(overrideReference ? { featured_payment_reference: overrideReference } : {}),
+          }),
+        })
+        const data = await response.json()
+        if (!response.ok) {
+          if (data.upgrade_required) setUpgradeRequired(true)
+          if (data.featured_payment_required) {
+            // Payment reference didn't verify (expired, already used,
+            // wrong amount) — let them retry paying rather than dead-end.
+            setFeaturedPaymentReference(null)
+          }
+          throw new Error(
+            jobSplits.length > 1
+              ? `Posted ${posted} of ${jobSplits.length} — failed on "${split.subject}": ${data.error || "unknown error"}`
+              : data.error || "Failed to post job"
+          )
         }
-        throw new Error(data.error || "Failed to post job")
+        posted++
       }
-      // New job changes what the dashboard's Active Jobs/Total
+      // New job(s) change what the dashboard's Active Jobs/Total
       // Applicants counts and jobs list should show — clear the cached
       // copy so the next dashboard visit fetches fresh instead of
       // showing stale pre-post numbers.
       clearCached("school:jobs")
+      setPostedCount(posted)
       setSubmitted(true)
     } catch (err: unknown) {
       setErrors({
@@ -515,10 +550,12 @@ function PostJobPageInner() {
             <CheckCircle2 className="h-8 w-8 text-ink-600" />
           </div>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            Job Submitted for Review
+            {postedCount > 1 ? `${postedCount} Jobs Submitted for Review` : "Job Submitted for Review"}
           </h2>
           <p className="text-gray-500 text-sm mb-6">
-            Your vacancy is pending admin approval. It&apos;ll go live and start accepting applications shortly.
+            {postedCount > 1
+              ? "Your vacancies are pending admin approval. They'll go live and start accepting applications shortly."
+              : "Your vacancy is pending admin approval. It'll go live and start accepting applications shortly."}
           </p>
           <div className="flex flex-col gap-3">
             <Link href="/dashboard/school/jobs">
@@ -664,27 +701,6 @@ function PostJobPageInner() {
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <div id="field-subject">
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                    Subject
-                  </label>
-                  <select
-                    value={formData.subject}
-                    onChange={(e) => update("subject", e.target.value)}
-                    disabled={formData.teaching_levels.length === 0}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ink-500 bg-white disabled:bg-gray-50 disabled:text-gray-400"
-                  >
-                    <option value="">
-                      {formData.teaching_levels.length === 0 ? "Select teaching level(s) first" : "Select subject"}
-                    </option>
-                    {getSubjectsForLevels(formData.teaching_levels as TeachingLevel[]).map((s) => (
-                      <option key={s} value={s}>{s}</option>
-                    ))}
-                  </select>
-                  {errors.subject && (
-                    <p className="text-red-500 text-xs mt-1">{errors.subject}</p>
-                  )}
-                </div>
                 <div id="field-employment_type">
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">
                     Employment Type
@@ -713,31 +729,14 @@ function PostJobPageInner() {
                 </div>
               </div>
 
-              <div id="field-teaching_levels">
-                <label className="block text-sm font-medium text-gray-700 mb-3">
-                  Teaching Level(s)
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  {TEACHING_LEVELS.map((level) => (
-                    <button
-                      key={level.value}
-                      type="button"
-                      onClick={() => toggleLevel(level.value)}
-                      className={`px-4 py-2 rounded-lg text-sm font-medium border transition-all ${
-                        formData.teaching_levels.includes(level.value)
-                          ? "bg-ink-700 text-white border-ink-700"
-                          : "bg-white text-gray-600 border-gray-300 hover:border-ink-400"
-                      }`}
-                    >
-                      {level.label}
-                    </button>
-                  ))}
-                </div>
-                {errors.teaching_levels && (
-                  <p className="text-red-500 text-xs mt-1">
-                    {errors.teaching_levels}
-                  </p>
-                )}
+              <div id="field-level_subjects">
+                <LevelSubjectPicker
+                  value={formData.level_subjects}
+                  onChange={handleLevelSubjectsChange}
+                  levelsError={errors.level_subjects}
+                  subjectsError={errors.subjects}
+                  maxSubjects={5}
+                />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -937,7 +936,9 @@ function PostJobPageInner() {
                     )}
                   </p>
                   <p className="text-gray-500 text-xs mt-0.5">
-                    {featuredRemaining !== null && featuredRemaining === 0 ? (
+                    {isMultiSubject ? (
+                      "Only available when posting a single subject"
+                    ) : featuredRemaining !== null && featuredRemaining === 0 ? (
                       isPaidPlan
                         ? "You've used the featured listings included in your plan — this one requires payment at submit."
                         : "Appear at the top of search results — requires payment at submit."
@@ -950,6 +951,8 @@ function PostJobPageInner() {
                   value={formData.is_featured}
                   onChange={(v) => update("is_featured", v)}
                   color="yellow"
+                  locked={isMultiSubject}
+                  lockedTitle="Featured listings can only be posted one subject at a time"
                 />
               </div>
             </div>

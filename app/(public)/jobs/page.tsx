@@ -20,7 +20,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { ALL_SUBJECTS, TEACHING_LEVELS, NIGERIAN_STATES, getSubjectsForLevel } from "@/lib/constants"
 import type { TeachingLevel } from "@/types"
-import { formatCurrency } from "@/lib/utils"
+import { formatSalaryRange } from "@/lib/utils"
 import type { Job } from "@/types"
 import { useAuth } from "@/hooks/useAuth"
 import { getFetchErrorMessage } from "@/lib/network-error"
@@ -161,9 +161,12 @@ function JobCard({ job }: { job: JobWithSchool }) {
 
         <div className="flex items-center justify-between gap-4 pt-4 border-t border-gray-100">
           <p className="text-lg font-bold text-gray-900">
-            {formatCurrency(job.salary_min)} –{" "}
-            {formatCurrency(job.salary_max)}
-            <span className="text-sm font-normal text-gray-400">/mo</span>
+            {job.salary_min || job.salary_max ? (
+              <>
+                {formatSalaryRange(job.salary_min, job.salary_max)}
+                <span className="text-sm font-normal text-gray-400">/mo</span>
+              </>
+            ) : null}
           </p>
           <span
             className={`inline-flex items-center justify-center rounded-md px-5 h-10 text-sm font-medium transition-colors ${

@@ -31,6 +31,7 @@ export async function GET(request: Request) {
       .from("school_profiles")
       .select("id, school_name, school_type, state, lga, logo_url")
       .eq("is_claimed", false)
+      .eq("is_anonymous", false)
       .ilike("school_name", `%${search}%`)
       .limit(10)
 
