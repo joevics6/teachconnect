@@ -492,11 +492,22 @@ export default function TeacherRegisterPage() {
           {step === 1 && (
             <div className="space-y-6">
               {!parseSuccess && (
-                <div>
-                  <h2 className="text-lg font-bold text-gray-900">Upload Your CV</h2>
-                  <p className="text-sm text-gray-500 mt-1">
-                    Our AI reads your CV and auto-fills your profile. Takes about 15 seconds.
-                  </p>
+                <div className="flex items-start justify-between gap-4 flex-wrap">
+                  <div>
+                    <h2 className="text-lg font-bold text-gray-900">Upload Your CV</h2>
+                    <p className="text-sm text-gray-500 mt-1">
+                      Our AI reads your CV and auto-fills your profile. Takes about 15 seconds.
+                    </p>
+                  </div>
+                  {!cvFileName && !isParsing && (
+                    <button
+                      type="button"
+                      onClick={() => setStep(2)}
+                      className="flex-shrink-0 text-sm font-semibold text-ink-600 border border-ink-300 rounded-lg px-3.5 py-2 hover:bg-ink-50 transition-colors"
+                    >
+                      No CV? Fill form manually
+                    </button>
+                  )}
                 </div>
               )}
 
@@ -667,13 +678,22 @@ export default function TeacherRegisterPage() {
                       <p className="text-sm font-semibold text-gray-700">Tap to upload your CV</p>
                       <p className="text-xs text-gray-400 mt-1">PDF, JPG or PNG · Max 5MB</p>
                     </div>
-                    <Button
-                      type="button"
-                      onClick={(e) => { e.stopPropagation(); cvInputRef.current?.click() }}
-                      className="bg-ink-600 hover:bg-ink-700 text-white mt-1"
-                    >
-                      <Upload className="h-4 w-4" /> Upload CV
-                    </Button>
+                    <div className="flex items-center gap-3 mt-1">
+                      <Button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); cvInputRef.current?.click() }}
+                        className="bg-ink-600 hover:bg-ink-700 text-white"
+                      >
+                        <Upload className="h-4 w-4" /> Upload CV
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={(e) => { e.stopPropagation(); setStep(2) }}
+                      >
+                        Fill Form Instead
+                      </Button>
+                    </div>
                   </div>
                 )}
                 <input
@@ -686,15 +706,6 @@ export default function TeacherRegisterPage() {
                 />
               </div>
               {errors.cv_file && <p className="text-red-500 text-xs">{errors.cv_file}</p>}
-
-              {!cvFileName && (
-                <p className="text-xs text-center text-gray-400">
-                  No CV?{" "}
-                  <button type="button" className="text-ink-600 underline" onClick={() => setStep(2)}>
-                    Skip and fill manually
-                  </button>
-                </p>
-              )}
             </div>
           )}
 
