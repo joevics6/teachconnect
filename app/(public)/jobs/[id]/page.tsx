@@ -23,7 +23,7 @@ import {
   ExternalLink,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { formatSalaryRange, formatCurrency, formatDate } from "@/lib/utils"
+import { formatSalaryRange, formatDate } from "@/lib/utils"
 import { getExternalApplySummaryLabel } from "@/lib/external-apply"
 import { getFetchErrorMessage } from "@/lib/network-error"
 import { ExternalApplyPanel } from "@/components/jobs/ExternalApplyPanel"
@@ -34,6 +34,7 @@ interface JobWithSchool extends Job {
   school_type: string
   school_state: string
   school_lga: string
+  school_town?: string | null
   school_logo_url: string | null
   school_is_verified: boolean
 }
@@ -41,11 +42,18 @@ interface JobWithSchool extends Job {
 interface RelatedJob {
   id: string
   title: string
-  school_name: string
-  school_state: string
+  subject: string
+  teaching_levels: string[]
+  employment_type: string
   salary_min: number
   salary_max: number
-  employment_type: string
+  accommodation_offered: boolean
+  deadline: string
+  school_name: string
+  school_state: string
+  school_lga: string
+  school_logo_url: string | null
+  school_is_verified: boolean
 }
 
 export default function JobDetailPage() {
@@ -358,8 +366,9 @@ export default function JobDetailPage() {
                   <p className="text-sm text-purple-700 leading-relaxed">
                     Before your application reaches the school, you must complete
                     a {job.quiz_subjects?.length ? job.quiz_subjects.join(" + ") : job.subject} quiz
-                    and score at least {job.quiz_pass_mark}%. The quiz takes approximately
-                    15–20 minutes.
+                    and score at least {job.quiz_pass_mark}%.
+                    {job.quiz_question_count ? ` It has ${job.quiz_question_count} questions` : ""}
+                    {job.quiz_duration ? `${job.quiz_question_count ? " and takes" : " Takes"} approximately ${job.quiz_duration} minutes.` : job.quiz_question_count ? "." : " The quiz takes approximately 15–20 minutes."}
                   </p>
                   <p className="text-xs text-purple-500 mt-2">
                     You can only attempt this quiz once for this job posting.
@@ -442,41 +451,6 @@ export default function JobDetailPage() {
                       <CheckCircle2 className="h-3.5 w-3.5" />
                       {benefit}
                     </span>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Related Jobs */}
-            {relatedJobs.length > 0 && (
-              <div className="bg-white rounded-xl border border-gray-200 p-6">
-                <h2 className="font-bold text-gray-900 mb-4 text-lg">
-                  Similar Jobs
-                </h2>
-                <div className="space-y-3">
-                  {relatedJobs.map((related) => (
-                    <Link
-                      key={related.id}
-                      href={`/jobs/${related.id}`}
-                      className="flex items-center justify-between p-3 border border-gray-100 rounded-xl hover:border-ink-200 hover:bg-ink-50 transition group"
-                    >
-                      <div>
-                        <p className="font-semibold text-gray-900 text-sm group-hover:text-ink-600 transition-colors">
-                          {related.title}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          {related.school_name} • {related.school_state}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-2 flex-shrink-0">
-                        <span className="text-sm font-medium text-gray-700 hidden sm:block">
-                          {related.salary_min || related.salary_max
-                            ? `${formatCurrency(related.salary_min || related.salary_max)}+`
-                            : "N/A"}
-                        </span>
-                        <ChevronRight className="h-4 w-4 text-gray-400" />
-                      </div>
-                    </Link>
                   ))}
                 </div>
               </div>
@@ -635,6 +609,101 @@ export default function JobDetailPage() {
 
           </div>
         </div>
+
+        {/* Similar Jobs — full width, after everything about this job */}
+        {relatedJobs.length > 0 && (
+          <div className="mt-8">
+            <h2 className="font-bold text-gray-900 mb-4 text-lg">Similar Jobs</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {relatedJobs.map((related) => {
+                const relatedDaysLeft = Math.ceil(
+                  (new Date(related.deadline).getTime() - nowMs) / (1000 * 60 * 60 * 24)
+                )
+                return (
+                  <Link
+                    key={related.id}
+                    href={`/jobs/${related.id}`}
+                    className="bg-white rounded-xl border border-gray-200 p-5 hover:border-ink-300 hover:shadow-md transition group flex flex-col"
+                  >
+                    <div className="flex items-start gap-3 mb-3">
+                      <div className="w-10 h-10 rounded-lg bg-gray-50 flex items-center justify-center flex-shrink-0 overflow-hidden border border-gray-200">
+                        {related.school_logo_url ? (
+                          <img
+                            src={related.school_logo_url}
+                            alt={related.school_name}
+                            className="w-full h-full object-contain p-1"
+                          />
+                        ) : (
+                          <Building2 className="h-5 w-5 text-gray-400" />
+                        )}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="font-bold text-gray-900 text-sm group-hover:text-ink-600 transition-colors truncate">
+                          {related.title}
+                        </p>
+                        <div className="flex items-center gap-1 text-xs text-gray-500 truncate">
+                          {related.school_name}
+                          {related.school_is_verified && (
+                            <Star className="h-3 w-3 text-ink-500 flex-shrink-0" />
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap gap-1.5 mb-3">
+                      <span className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-full font-medium capitalize">
+                        {related.employment_type}
+                      </span>
+                      <span className="px-2 py-0.5 bg-ink-100 text-ink-700 text-xs rounded-full font-medium">
+                        {related.subject}
+                      </span>
+                      {related.teaching_levels.map((level) => (
+                        <span
+                          key={level}
+                          className="px-2 py-0.5 bg-ink-100 text-ink-700 text-xs rounded-full font-medium capitalize"
+                        >
+                          {level.toUpperCase()}
+                        </span>
+                      ))}
+                      {related.accommodation_offered && (
+                        <span className="px-2 py-0.5 bg-purple-100 text-purple-700 text-xs rounded-full font-medium flex items-center gap-1">
+                          <Home className="h-3 w-3" />
+                          Accommodation
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-1.5 text-xs text-gray-500 mb-4">
+                      <MapPin className="h-3.5 w-3.5" />
+                      {related.school_lga}, {related.school_state}
+                    </div>
+
+                    <div className="mt-auto flex items-center justify-between pt-3 border-t border-gray-100">
+                      <div>
+                        {(related.salary_min || related.salary_max) ? (
+                          <p className="text-sm font-bold text-gray-900">
+                            {formatSalaryRange(related.salary_min, related.salary_max)}
+                            <span className="text-xs font-normal text-gray-400">/mo</span>
+                          </p>
+                        ) : (
+                          <p className="text-xs text-gray-400">
+                            {relatedDaysLeft <= 3 && relatedDaysLeft > 0
+                              ? `${relatedDaysLeft} day${relatedDaysLeft !== 1 ? "s" : ""} left`
+                              : "Open"}
+                          </p>
+                        )}
+                      </div>
+                      <span className="flex items-center gap-1 text-xs font-medium text-ink-600 group-hover:gap-1.5 transition-all">
+                        View Job
+                        <ChevronRight className="h-3.5 w-3.5" />
+                      </span>
+                    </div>
+                  </Link>
+                )
+              })}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

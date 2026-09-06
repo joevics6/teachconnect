@@ -116,8 +116,12 @@ export interface Job {
   is_featured: boolean
   quiz_enabled: boolean
   quiz_subjects?: string[]
+  quiz_subject_levels?: { level: TeachingLevel; subjects: string[] }[]
   quiz_difficulty?: string
   quiz_pass_mark?: number
+  quiz_mode?: string
+  quiz_duration?: number
+  quiz_question_count?: number
   external_apply_enabled: boolean
   external_apply_value?: string | null
   description: string

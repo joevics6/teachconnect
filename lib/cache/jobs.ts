@@ -137,7 +137,7 @@ export const getRelatedJobs = unstable_cache(
     const supabase = createPublicClient()
     const { data } = await supabase
       .from("jobs_with_school")
-      .select("id, title, school_name, school_state, salary_min, salary_max, employment_type")
+      .select("id, title, subject, teaching_levels, employment_type, salary_min, salary_max, accommodation_offered, deadline, school_name, school_state, school_lga, school_logo_url, school_is_verified")
       .eq("subject", subject)
       .eq("status", "active")
       .eq("is_private", false)
