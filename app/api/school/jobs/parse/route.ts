@@ -14,7 +14,7 @@ Return exactly this JSON structure (use null for fields not mentioned, do not ad
 {
   "title": "job title string or null",
   "subject": "must be one of exactly: ${ALL_SUBJECTS.join(", ")} — or null if not mentioned",
-  "teaching_levels": ["array of applicable values from: nursery, primary, jss, sss, tertiary — empty array if not mentioned"],
+  "teaching_levels": ["array of applicable values from: nursery, primary, jss, sss, tertiary, non_teaching — empty array if not mentioned"],
   "employment_type": "full-time or part-time or contract or null",
   "positions": 1,
   "salary_min": 0,
@@ -27,6 +27,16 @@ Return exactly this JSON structure (use null for fields not mentioned, do not ad
   "quiz_enabled": false,
   "is_private": false
 }
+
+If the role is a NON-TEACHING position (e.g. bursar, accountant, admin
+officer, receptionist, librarian, guidance counsellor, nurse, IT
+support, security guard, driver, cook/caterer, cleaner, gardener,
+maintenance/handyman, store keeper, sports coach, transport
+coordinator, or a school leadership role like principal/head teacher/
+vice principal), set teaching_levels to exactly ["non_teaching"] and
+set subject to the matching position name from the list above — NOT
+an academic subject. Never set quiz_enabled to true for a
+non-teaching position; it has nothing to quiz on.
 `
 
 export async function POST(request: Request) {

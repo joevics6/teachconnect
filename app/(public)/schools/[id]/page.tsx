@@ -128,7 +128,7 @@ function JobCard({ job }: { job: ActiveJob }) {
               key={level}
               className="px-2 py-0.5 bg-ink-50 text-ink-600 text-xs rounded uppercase"
             >
-              {level}
+              {level === "non_teaching" ? "Staff" : level}
             </span>
           ))}
           {job.quiz_enabled && (

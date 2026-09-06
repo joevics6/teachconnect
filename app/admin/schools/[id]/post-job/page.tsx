@@ -266,6 +266,7 @@ export default function AdminSchoolPostJobPage() {
               onChange={(v) => update("level_subjects", v)}
               levelsError={errors.level_subjects}
               subjectsError={errors.subjects}
+              includeNonTeaching
             />
           </div>
 

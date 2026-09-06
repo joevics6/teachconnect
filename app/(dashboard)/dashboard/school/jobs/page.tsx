@@ -424,7 +424,7 @@ function SchoolJobsContent() {
                             <span className="px-1.5 py-0.5 bg-gray-100 text-gray-500 text-xs rounded font-medium">Private</span>
                           )}
                         </div>
-                        <p className="text-xs text-gray-500">{job.subject} • {job.teaching_levels.join(", ").toUpperCase()}</p>
+                        <p className="text-xs text-gray-500">{job.subject} • {job.teaching_levels.map((l) => l === "non_teaching" ? "Staff" : l.toUpperCase()).join(", ")}</p>
                       </div>
                       <div className="flex items-center gap-2 flex-shrink-0">
                         {getStatusBadge(job.status, daysLeft)}

@@ -16,6 +16,7 @@ export const TEACHING_LEVELS: { value: TeachingLevel; label: string }[] = [
   { value: "jss", label: "Junior Secondary (JSS)" },
   { value: "sss", label: "Senior Secondary (SSS)" },
   { value: "tertiary", label: "Tertiary" },
+  { value: "non_teaching", label: "Non-Teaching Staff" },
 ]
 
 /**
@@ -105,6 +106,20 @@ export const LEVEL_SUBJECTS: Record<TeachingLevel, { name: string; topics?: stri
     "AI & Machine Learning in Education", "Peace & Conflict Resolution Studies",
     "Philosophy of Education", "Measurement & Evaluation in Education",
     "Teacher Education (General Methodologies)",
+  ].map((name) => ({ name })),
+
+  // Not academic subjects — these are job titles/positions. No `topics`
+  // since there's no quiz for non-teaching roles; keep in the same
+  // shape as every other level so the rest of the app (dropdowns,
+  // filters, AI parsing, multi-position splitting) needs zero special
+  // casing to support it.
+  non_teaching: [
+    "Head Teacher / Principal", "Vice Principal", "Bursar", "Accountant",
+    "Administrative Officer", "Human Resources Officer", "Receptionist / Front Desk",
+    "School Librarian", "Guidance Counsellor", "School Nurse",
+    "IT Support / Systems Administrator", "Security Guard", "Driver",
+    "Cook / Caterer", "Cleaner", "Gardener", "Maintenance / Handyman",
+    "Store Keeper", "Sports Coach", "Transport Coordinator",
   ].map((name) => ({ name })),
 }
 
