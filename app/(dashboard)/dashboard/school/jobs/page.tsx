@@ -19,6 +19,7 @@ import {
   MoreVertical,
   CalendarPlus,
   Send,
+  Pencil,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { SchoolSidebar } from "@/components/dashboard/SchoolSidebar"
@@ -112,6 +113,14 @@ function JobActionsMenu({
             >
               <Eye className="h-3.5 w-3.5 text-ink-500" />
               View Applicants
+            </Link>
+            <Link
+              href={`/dashboard/school/jobs/${job.id}/edit`}
+              className="flex items-center gap-2 px-3 py-2.5 text-xs text-gray-700 hover:bg-gray-50 transition"
+              onClick={() => setOpen(false)}
+            >
+              <Pencil className="h-3.5 w-3.5 text-gray-400" />
+              Edit Job
             </Link>
             <Link
               href={`/jobs/${job.id}`}
