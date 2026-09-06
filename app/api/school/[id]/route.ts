@@ -6,7 +6,8 @@
 // ============================================================
 
 import { NextRequest, NextResponse } from "next/server"
-import { getPublicSchoolProfile } from "@/lib/cache/schools"
+import { createClient } from "@/lib/supabase/server"
+import { getPublicSchoolProfile, getSchoolContactInfo } from "@/lib/cache/schools"
 
 export async function GET(
   request: NextRequest,
@@ -23,7 +24,14 @@ export async function GET(
       )
     }
 
-    return NextResponse.json(result)
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    const contact = user ? await getSchoolContactInfo(result.school.id) : null
+
+    return NextResponse.json({
+      ...result,
+      school: { ...result.school, ...contact },
+    })
   } catch (err) {
     console.error("GET school profile error:", err)
     return NextResponse.json(

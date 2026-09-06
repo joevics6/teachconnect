@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 import {
   ArrowLeft, Save, Loader2, CheckCircle2, AlertCircle,
-  Camera, X, Upload, Building2, Menu,
+  Camera, X, Upload, Building2, Menu, Sparkles, Plus, Trash2,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { StateLgaSelect } from "@/components/ui/StateLgaSelect"
@@ -49,6 +49,8 @@ interface SchoolForm {
   salary_range_min: string; salary_range_max: string
   benefits: string[]; school_category: string
   logo_url: string | null
+  long_description: string; faq: { question: string; answer: string }[]
+  slug: string
 }
 
 const VERIFICATION_BADGE_MAP: Record<string, { label: string; color: string }> = {
@@ -76,6 +78,8 @@ export default function EditSchoolProfilePage() {
     salary_range_min: "", salary_range_max: "",
     benefits: [], school_category: "",
     logo_url: null,
+    long_description: "", faq: [],
+    slug: "",
   })
 
   const [verificationStatus, setVerificationStatus] = useState("unverified")
@@ -86,6 +90,8 @@ export default function EditSchoolProfilePage() {
   const [error, setError]               = useState("")
   const [logoPreview, setLogoPreview]   = useState<string | null>(null)
   const [uploadingLogo, setUploadingLogo] = useState(false)
+  const [generating, setGenerating]     = useState(false)
+  const [generateError, setGenerateError] = useState("")
 
   useEffect(() => {
     fetch("/api/school/profile")
@@ -119,6 +125,9 @@ export default function EditSchoolProfilePage() {
           benefits:         s.benefits         || [],
           school_category:  s.school_category  || "",
           logo_url:         s.logo_url         || null,
+          long_description: s.long_description || "",
+          faq:              s.faq              || [],
+          slug:             s.slug             || "",
         })
       })
       .catch(console.error)
@@ -148,6 +157,34 @@ export default function EditSchoolProfilePage() {
       setUploadingLogo(false)
       if (logoInputRef.current) logoInputRef.current.value = ""
     }
+  }
+
+  const handleGenerateContent = async () => {
+    setGenerateError("")
+    setGenerating(true)
+    try {
+      const res = await fetch("/api/school/profile/generate-content", { method: "POST" })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || "Generation failed")
+      setForm((f) => ({ ...f, long_description: data.long_description, faq: data.faq }))
+    } catch (err) {
+      setGenerateError(err instanceof Error ? err.message : "Generation failed")
+    } finally {
+      setGenerating(false)
+    }
+  }
+
+  const updateFaqItem = (index: number, field: "question" | "answer", value: string) => {
+    setForm((f) => ({
+      ...f,
+      faq: f.faq.map((item, i) => (i === index ? { ...item, [field]: value } : item)),
+    }))
+  }
+  const removeFaqItem = (index: number) => {
+    setForm((f) => ({ ...f, faq: f.faq.filter((_, i) => i !== index) }))
+  }
+  const addFaqItem = () => {
+    setForm((f) => ({ ...f, faq: [...f.faq, { question: "", answer: "" }] }))
   }
 
   const handleSave = async () => {
@@ -343,6 +380,82 @@ export default function EditSchoolProfilePage() {
               onChange={(e) => setForm({ ...form, about: e.target.value })}
               rows={4} className={`${inputClass} resize-none`}
               placeholder="Describe your school — history, ethos, achievements, environment…" />
+          </div>
+
+          {/* Public page content — the long description + FAQ shown on
+              /schools/[slug], the school's public SEO page. Optional,
+              AI-assisted: schools can generate a draft, then edit or
+              regenerate before saving. */}
+          <div className="border border-gray-200 rounded-xl p-4 bg-gray-50 space-y-4">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <div>
+                <p className="text-sm font-semibold text-gray-900">Public School Page Content</p>
+                <p className="text-xs text-gray-500">
+                  Powers your public page at classhire.jobmeter.app/schools/{form.slug || "..."} — helps you show up in search and gives teachers more reason to apply.
+                </p>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleGenerateContent}
+                disabled={generating}
+                className="flex items-center gap-1.5 flex-shrink-0"
+              >
+                {generating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+                {form.long_description ? "Regenerate with AI" : "Generate with AI"}
+              </Button>
+            </div>
+            {generateError && <p className="text-red-500 text-xs">{generateError}</p>}
+
+            <div>
+              <label className="text-sm font-medium text-gray-700 block mb-1">Long Description</label>
+              <textarea
+                value={form.long_description}
+                onChange={(e) => setForm({ ...form, long_description: e.target.value })}
+                rows={8}
+                className={`${inputClass} resize-none bg-white`}
+                placeholder="Click Generate with AI, or write your own ~500-600 word description for your public page."
+              />
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-sm font-medium text-gray-700">Frequently Asked Questions</label>
+                <button type="button" onClick={addFaqItem} className="text-xs text-ink-600 font-medium flex items-center gap-1 hover:text-ink-700">
+                  <Plus className="h-3.5 w-3.5" />
+                  Add question
+                </button>
+              </div>
+              {form.faq.length === 0 ? (
+                <p className="text-xs text-gray-400 italic">No FAQ yet — generate with AI or add your own.</p>
+              ) : (
+                <div className="space-y-3">
+                  {form.faq.map((item, i) => (
+                    <div key={i} className="bg-white border border-gray-200 rounded-lg p-3 space-y-2">
+                      <div className="flex items-start gap-2">
+                        <input
+                          value={item.question}
+                          onChange={(e) => updateFaqItem(i, "question", e.target.value)}
+                          placeholder="Question"
+                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium"
+                        />
+                        <button type="button" onClick={() => removeFaqItem(i)} className="p-2 text-gray-400 hover:text-red-500 flex-shrink-0">
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                      <textarea
+                        value={item.answer}
+                        onChange={(e) => updateFaqItem(i, "answer", e.target.value)}
+                        rows={2}
+                        placeholder="Answer"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm resize-none"
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
           <div>

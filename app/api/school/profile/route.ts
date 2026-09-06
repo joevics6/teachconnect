@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { revalidateTag } from "next/cache"
+import { generateUniqueSchoolSlug } from "@/lib/slug"
 
 export async function GET() {
   try {
@@ -20,16 +21,19 @@ export async function GET() {
     // Auto-create if missing
     if (!school) {
       const meta = user.user_metadata || {}
+      const fallbackName = (meta.school_name as string) || (meta.full_name as string) || "My School"
+      const slug = await generateUniqueSchoolSlug(supabase, fallbackName)
       const { data: created } = await supabase
         .from("school_profiles")
         .insert({
           user_id: user.id,
-          school_name: (meta.school_name as string) || (meta.full_name as string) || "My School",
+          school_name: fallbackName,
+          slug,
           school_type: "private", school_levels: [], state: "", lga: "",
           address: "", website: null, contact_name: (meta.full_name as string) || "",
           contact_role: "", contact_email: user.email || "", contact_phone: "",
           contact_phone_alt: null, cac_number: "", logo_url: null, is_verified: false,
-          about: null, curriculum: [], student_population: null,
+          about: null, long_description: null, faq: [], curriculum: [], student_population: null,
           salary_range_min: null, salary_range_max: null, benefits: [],
           school_category: null, verification_status: "unverified",
         })
@@ -75,6 +79,7 @@ export async function PATCH(request: Request) {
       "about", "curriculum", "student_population",
       "salary_range_min", "salary_range_max", "benefits",
       "school_category", "notification_prefs",
+      "long_description", "faq",
     ]
     const updates: Record<string, unknown> = {}
     allowedFields.forEach((f) => { if (body[f] !== undefined) updates[f] = body[f] })

@@ -11,7 +11,9 @@ export default function SchoolMeRedirect() {
     fetch("/api/school/profile")
       .then((r) => r.json())
       .then((data) => {
-        if (data.school?.id) {
+        if (data.school?.slug) {
+          router.replace(`/schools/${data.school.slug}`)
+        } else if (data.school?.id) {
           router.replace(`/schools/${data.school.id}`)
         } else {
           router.replace("/dashboard/school")

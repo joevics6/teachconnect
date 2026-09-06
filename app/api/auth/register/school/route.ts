@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
+import { generateUniqueSchoolSlug } from "@/lib/slug"
 
 export async function POST(request: Request) {
   try {
@@ -78,11 +79,13 @@ export async function POST(request: Request) {
     }
 
     // ── Insert school profile ───────────────────────────────────
+    const slug = await generateUniqueSchoolSlug(supabase, school_name)
     const { error: profileError } = await supabase
       .from("school_profiles")
       .insert({
         user_id:           userId,
         school_name,
+        slug,
         school_type:       school_type || "private",
         school_levels:     school_levels || [],
         state,

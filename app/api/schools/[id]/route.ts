@@ -9,7 +9,8 @@
 // ============================================================
 
 import { NextRequest, NextResponse } from "next/server"
-import { getPublicSchoolProfile } from "@/lib/cache/schools"
+import { createClient } from "@/lib/supabase/server"
+import { getPublicSchoolProfile, getSchoolContactInfo } from "@/lib/cache/schools"
 
 export async function GET(
   _request: NextRequest,
@@ -23,7 +24,17 @@ export async function GET(
       return NextResponse.json({ error: "School not found" }, { status: 404 })
     }
 
-    return NextResponse.json(result)
+    // Contact details are only for signed-in visitors — see the
+    // comment on getPublicSchoolProfile in lib/cache/schools.ts for
+    // why they're not part of the cached, shared payload.
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    const contact = user ? await getSchoolContactInfo(result.school.id) : null
+
+    return NextResponse.json({
+      ...result,
+      school: { ...result.school, ...contact },
+    })
   } catch (err) {
     console.error("GET public school profile error:", err)
     return NextResponse.json({ error: "Failed to fetch school" }, { status: 500 })

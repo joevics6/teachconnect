@@ -31,7 +31,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       supabase.from("jobs").select("id, updated_at").eq("status", "active"),
       supabase.from("resource_posts").select("slug, updated_at").eq("is_published", true),
       supabase.from("blog_posts").select("slug, updated_at").eq("is_published", true),
-      supabase.from("school_profiles").select("id, updated_at").eq("is_verified", true),
+      // Verified AND has real long-form content — thin/placeholder
+      // pages (ghost schools, or verified schools that haven't filled
+      // in their public page yet) shouldn't be submitted for indexing;
+      // generateMetadata on the page itself also sets noindex for
+      // these as a second layer, but it's wasted crawl budget to list
+      // them here at all.
+      supabase.from("school_profiles").select("slug, updated_at").eq("is_verified", true).not("long_description", "is", null),
     ])
 
   const jobEntries: MetadataRoute.Sitemap = (jobs || []).map((job) => ({
@@ -56,7 +62,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }))
 
   const schoolEntries: MetadataRoute.Sitemap = (schools || []).map((s) => ({
-    url: `${baseUrl}/schools/${s.id}`,
+    url: `${baseUrl}/schools/${s.slug}`,
     lastModified: s.updated_at ? new Date(s.updated_at) : new Date(),
     changeFrequency: "monthly",
     priority: 0.5,

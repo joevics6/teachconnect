@@ -13,6 +13,7 @@ import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { requireAdmin } from "@/lib/admin"
+import { generateUniqueSchoolSlug } from "@/lib/slug"
 
 export async function GET(request: Request) {
   try {
@@ -72,11 +73,14 @@ export async function POST(request: Request) {
     }
 
     const adminDb = createAdminClient()
+    const finalSchoolName = isAnonymous ? "Confidential School" : body.school_name
+    const slug = await generateUniqueSchoolSlug(adminDb, finalSchoolName)
     const { data: school, error } = await adminDb
       .from("school_profiles")
       .insert({
         user_id: null,
-        school_name: isAnonymous ? "Confidential School" : body.school_name,
+        school_name: finalSchoolName,
+        slug,
         school_type: body.school_type,
         school_levels: body.school_levels ?? [],
         state: body.state,
@@ -92,7 +96,7 @@ export async function POST(request: Request) {
         is_anonymous: isAnonymous,
         claim_note: body.claim_note || null,
       })
-      .select("id, school_name")
+      .select("id, school_name, slug")
       .single()
 
     if (error) {
