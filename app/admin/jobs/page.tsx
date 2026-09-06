@@ -180,6 +180,12 @@ export default function AdminJobsPage() {
                   </p>
                 </div>
 
+                <Link href={`/admin/jobs/${job.id}/edit`} className="flex-shrink-0">
+                  <button className="px-3 py-1.5 rounded-lg text-xs font-medium border border-gray-200 text-gray-600 hover:bg-gray-50">
+                    Edit
+                  </button>
+                </Link>
+
                 {job.status === "pending_approval" && (
                   <div className="flex items-center gap-2 flex-shrink-0">
                     <button

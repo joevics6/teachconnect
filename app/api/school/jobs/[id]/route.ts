@@ -1,6 +1,8 @@
 // ============================================================
 // app/api/school/jobs/[id]/route.ts
-// PATCH — update job status (close, reopen)
+// GET — fetch one of the logged-in school's own jobs, full detail,
+// for the edit page.
+// PATCH — update job status (close, reopen) or edit its content.
 // ============================================================
 
 import { NextRequest, NextResponse } from "next/server"
@@ -8,6 +10,40 @@ import { createClient } from "@/lib/supabase/server"
 import { checkJobPostingLimit } from "@/lib/job-limits"
 import { getActivePlanType, isPremiumPlan, hasExternalApplyAccess } from "@/lib/school-plan"
 import { revalidateTag } from "next/cache"
+
+export async function GET(
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params
+    const supabase = await createClient()
+
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+
+    const { data: schoolRows } = await supabase
+      .from("school_profiles").select("id").eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(1)
+    const school = (schoolRows ?? [])[0] ?? null
+    if (!school) return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+
+    const { data: job, error } = await supabase
+      .from("jobs")
+      .select("*")
+      .eq("id", id)
+      .eq("school_id", school.id)
+      .single()
+
+    if (error || !job) return NextResponse.json({ error: "Job not found" }, { status: 404 })
+
+    return NextResponse.json({ job })
+  } catch (err) {
+    console.error("GET school job error:", err)
+    return NextResponse.json({ error: "Failed to load job" }, { status: 500 })
+  }
+}
 
 export async function PATCH(
   request: NextRequest,
@@ -28,11 +64,28 @@ export async function PATCH(
     if (!school) return NextResponse.json({ error: "Forbidden" }, { status: 403 })
 
     const body = await request.json()
-    const allowed = ["status", "title", "description", "deadline",
-      "salary_min", "salary_max", "is_featured", "is_private",
-      "external_apply_enabled", "external_apply_value"]
+    const allowed = [
+      "status", "title", "subject", "teaching_levels", "description", "deadline",
+      "employment_type", "positions", "salary_min", "salary_max",
+      "accommodation_offered", "accommodation_type", "benefits",
+      "required_qualifications", "preferred_qualifications",
+      "is_featured", "is_private",
+      "external_apply_enabled", "external_apply_value",
+      "quiz_enabled", "quiz_pass_mark", "quiz_mode", "quiz_duration", "quiz_question_count"]
     const updates: Record<string, unknown> = {}
     allowed.forEach((f) => { if (body[f] !== undefined) updates[f] = body[f] })
+
+    // quiz_subjects/quiz_difficulty are derived from quiz_subject_levels,
+    // same as job creation (api/school/jobs POST) — never trust a raw
+    // pass-through value for these, they need to stay in sync with
+    // whatever level/subject pairs were actually picked.
+    if (body.quiz_subject_levels !== undefined || body.quiz_enabled !== undefined) {
+      const quizEnabled = body.quiz_enabled ?? false
+      const subjectLevels = body.quiz_subject_levels || []
+      updates.quiz_subjects = quizEnabled ? subjectLevels.map((sl: { subject: string }) => sl.subject) : []
+      updates.quiz_difficulty = quizEnabled ? (subjectLevels[0]?.level || null) : null
+      updates.quiz_subject_levels = quizEnabled ? subjectLevels : null
+    }
 
     // Same premium gate as job creation — otherwise a Free-plan school
     // could create a plain job then PATCH it into private/featured after
