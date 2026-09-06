@@ -284,7 +284,7 @@ export default function JobDetailPage() {
                     key={level}
                     className="px-3 py-1 bg-ink-100 text-ink-700 text-xs rounded-full font-medium capitalize"
                   >
-                    {level.toUpperCase()}
+                    {level === "non_teaching" ? "STAFF" : level.toUpperCase()}
                   </span>
                 ))}
                 {job.quiz_enabled && !(job.external_apply_enabled && (job.external_apply_value || requiresAuthForExternalApply)) && (

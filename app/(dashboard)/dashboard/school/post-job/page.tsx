@@ -498,6 +498,12 @@ function PostJobPageInner() {
       const jobSplits = splitIntoSubjectJobs(formData.title, formData.level_subjects)
       let posted = 0
       for (const split of jobSplits) {
+        // Non-teaching roles (bursar, cleaner, security, etc.) never
+        // use the subject quiz, regardless of the form's global toggle —
+        // a school could post a mixed batch (e.g. Mathematics + Bursar
+        // in one go), and only the teaching-subject jobs should carry
+        // whatever quiz setting was chosen.
+        const isNonTeaching = split.teaching_levels.includes("non_teaching")
         const response = await fetch("/api/school/jobs", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -506,6 +512,7 @@ function PostJobPageInner() {
             title: split.title,
             subject: split.subject,
             teaching_levels: split.teaching_levels,
+            quiz_enabled: isNonTeaching ? false : formData.quiz_enabled,
             ...(overrideReference ? { featured_payment_reference: overrideReference } : {}),
           }),
         })
@@ -736,6 +743,7 @@ function PostJobPageInner() {
                   levelsError={errors.level_subjects}
                   subjectsError={errors.subjects}
                   maxSubjects={5}
+                  includeNonTeaching
                 />
               </div>
 

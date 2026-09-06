@@ -399,6 +399,7 @@ export default function AdminNewJobPage() {
               onChange={(v) => updateJob("level_subjects", v)}
               levelsError={errors.level_subjects}
               subjectsError={errors.subjects}
+              includeNonTeaching
             />
           </div>
 

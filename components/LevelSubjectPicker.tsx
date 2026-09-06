@@ -10,6 +10,14 @@ interface LevelSubjectPickerProps {
   subjectsError?: string
   /** Caps total subjects selected across all levels combined — e.g. 5 for a school posting one job listing. Omit for no cap. */
   maxSubjects?: number
+  /**
+   * Show "Non-Teaching Staff" as a selectable level — job postings want
+   * this (schools hire bursars, cleaners, security, etc., not just
+   * teachers), but teacher registration/profile editing should NOT show
+   * it, since a teacher isn't picking a level they teach. Defaults to
+   * false so every existing caller is unaffected unless it opts in.
+   */
+  includeNonTeaching?: boolean
 }
 
 /**
@@ -17,7 +25,10 @@ interface LevelSubjectPickerProps {
  * Nursery/Primary have exactly one subject each, so it's auto-selected —
  * there's nothing for the teacher to choose there.
  */
-export function LevelSubjectPicker({ value, onChange, levelsError, subjectsError, maxSubjects }: LevelSubjectPickerProps) {
+export function LevelSubjectPicker({ value, onChange, levelsError, subjectsError, maxSubjects, includeNonTeaching = false }: LevelSubjectPickerProps) {
+  const visibleLevels = includeNonTeaching
+    ? TEACHING_LEVELS
+    : TEACHING_LEVELS.filter((l) => l.value !== "non_teaching")
   const selectedLevels = value.map((v) => v.level)
   const totalSubjects = deriveSubjects(value).length
   const atCap = maxSubjects !== undefined && totalSubjects >= maxSubjects
@@ -59,7 +70,7 @@ export function LevelSubjectPicker({ value, onChange, levelsError, subjectsError
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">Teaching Levels</label>
         <div className="flex flex-wrap gap-2">
-          {TEACHING_LEVELS.map((level) => (
+          {visibleLevels.map((level) => (
             <button
               key={level.value}
               type="button"
@@ -92,7 +103,7 @@ export function LevelSubjectPicker({ value, onChange, levelsError, subjectsError
             return (
               <div key={level} className="border border-gray-200 rounded-xl p-3.5 bg-gray-50">
                 <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
-                  {levelLabel} {isSingleSubject ? "" : "subjects"}
+                  {levelLabel} {isSingleSubject ? "" : level === "non_teaching" ? "positions" : "subjects"}
                 </p>
                 {isSingleSubject ? (
                   <p className="text-sm text-gray-700 font-medium">{options[0]}</p>

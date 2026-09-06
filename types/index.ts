@@ -6,6 +6,7 @@ export type TeachingLevel =
   | "jss"
   | "sss"
   | "tertiary"
+  | "non_teaching"
 
 export type EmploymentType =
   | "full-time"
