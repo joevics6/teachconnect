@@ -5,7 +5,7 @@ import Link from "next/link"
 import {
   Briefcase, Bell,
   ChevronRight, Plus, Menu, XCircle,
-  CheckCircle2, Clock, Eye, Star, BookOpen, TrendingUp,
+  CheckCircle2, Clock, Eye, Star, BookOpen, TrendingUp, Sparkles,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
@@ -88,6 +88,7 @@ export default function SchoolDashboardPage() {
   const [loadingJobs, setLoadingJobs]               = useState(() => !getCached<Job[]>("school:jobs"))
   const [loadingNotifications, setLoadingNotifications] = useState(() => !getCached<Notification[]>("school:notifications"))
   const [loadingApplicants, setLoadingApplicants]   = useState(false)
+  const [hasPublicPageContent, setHasPublicPageContent] = useState(true)
   const [metrics, setMetrics] = useState(() =>
     getCached<{ interviews: number; offers: number; hired: number; avgScore: number }>("school:metrics") ||
     { interviews: 0, offers: 0, hired: 0, avgScore: 0 }
@@ -110,6 +111,7 @@ export default function SchoolDashboardPage() {
         const data = await res.json()
         if (data.school) {
           setSchoolName(data.school.school_name || "School")
+          setHasPublicPageContent(!!data.school.long_description)
           setCached("school:profile", data.school)
         }
       })
@@ -290,6 +292,29 @@ export default function SchoolDashboardPage() {
               </Button>
             </Link>
           </div>
+
+          {/* Public page nudge — only shown until the school generates/writes
+              their long-form About + FAQ; disappears permanently once
+              long_description is set (checked server-side on every fetch,
+              not dismissed client-side, so it comes back if they clear it) */}
+          {!loadingProfile && !hasPublicPageContent && (
+            <div className="bg-purple-50 border border-purple-200 rounded-xl p-4 flex items-center justify-between gap-4 flex-wrap">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-lg bg-purple-100 flex items-center justify-center flex-shrink-0">
+                  <Sparkles className="h-4 w-4 text-purple-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-gray-900">Finish your public school page</p>
+                  <p className="text-xs text-gray-500">Takes 2 minutes — AI can write it for you, and it helps you show up in search results.</p>
+                </div>
+              </div>
+              <Link href="/dashboard/school/edit-profile" className="flex-shrink-0">
+                <Button size="sm" variant="outline" className="text-xs border-purple-300 text-purple-700 hover:bg-purple-100">
+                  Complete Now
+                </Button>
+              </Link>
+            </div>
+          )}
 
           {/* Stats */}
           {loadingJobs ? <StatsSkeleton /> : (
