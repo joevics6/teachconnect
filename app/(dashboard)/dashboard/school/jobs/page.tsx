@@ -470,7 +470,15 @@ function SchoolJobsContent() {
                     {/* Bottom Row */}
                     <div className="flex items-center justify-between flex-wrap gap-3">
                       <div className="flex items-center gap-3 text-xs text-gray-500">
-                        <span>{formatCurrency(job.salary_min)} – {formatCurrency(job.salary_max)}/mo</span>
+                        <span>
+                          {!job.salary_min && !job.salary_max
+                            ? "Salary not disclosed"
+                            : !job.salary_min
+                            ? `Up to ${formatCurrency(job.salary_max)}`
+                            : !job.salary_max
+                            ? `${formatCurrency(job.salary_min)}+`
+                            : `${formatCurrency(job.salary_min)} – ${formatCurrency(job.salary_max)}/mo`}
+                        </span>
                         <span>•</span>
                         <span className="capitalize">{job.employment_type}</span>
                         {job.quiz_enabled && (

@@ -195,14 +195,12 @@ export async function POST(request: Request) {
       deadline = d.toISOString().split("T")[0]
     }
 
-    // Salary: either bound is enough on its own — only reject when BOTH
-    // are missing. If they're equal, min is redundant noise; keep max
-    // and drop min instead of erroring.
+    // Salary is optional (matches admin job posting) — a school may not
+    // want to disclose it or may not know it yet. Both bounds default
+    // to 0 ("not disclosed") when left blank; formatSalaryRange()
+    // already handles that everywhere a job's salary is displayed.
     let salaryMin = body.salary_min ? parseInt(body.salary_min) : 0
     let salaryMax = body.salary_max ? parseInt(body.salary_max) : 0
-    if (!salaryMin && !salaryMax) {
-      return NextResponse.json({ error: "Enter a minimum or maximum salary" }, { status: 400 })
-    }
     if (salaryMin && salaryMax && salaryMin === salaryMax) {
       // Same value in both boxes is really just one number — keep it
       // as the max (matches how a single figure reads to applicants)

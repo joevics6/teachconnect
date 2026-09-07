@@ -445,11 +445,10 @@ function PostJobPageInner() {
       newErrors.employment_type = "Employment type is required"
     // Deadline: left blank defaults to 30 days out (set server-side) —
     // no client error needed.
-    // Salary: either bound is enough; only flag it when both are empty.
-    // Equal min/max, or max < min, are both handled server-side instead
-    // of erroring here.
-    if (!formData.salary_min && !formData.salary_max)
-      newErrors.salary_max = "Enter a minimum or maximum salary"
+    // Salary is optional — a school may not want to disclose it, or
+    // may not know it yet. formatSalaryRange() shows "Salary not
+    // disclosed" wherever a job's salary renders when both bounds are
+    // 0, same treatment as admin-posted jobs.
     if (!formData.description)
       newErrors.description = "Job description is required"
     if (!formData.required_qualifications)
@@ -800,7 +799,7 @@ function PostJobPageInner() {
 
               <div id="field-salary_max">
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                  Monthly Salary Range (₦)
+                  Monthly Salary Range (₦) — optional
                 </label>
                 <div className="grid grid-cols-2 gap-4">
                   <div>

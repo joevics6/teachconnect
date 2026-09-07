@@ -342,8 +342,9 @@ export default function AdminSchoolPostJobPage() {
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm"
                 >
                   <option value="">Select type</option>
-                  <option value="shared">Shared</option>
-                  <option value="private">Private</option>
+                  <option value="fully-furnished">Fully Furnished</option>
+                  <option value="unfurnished">Unfurnished</option>
+                  <option value="allowance">Housing Allowance</option>
                 </select>
                 {errors.accommodation_type && <p className="text-red-500 text-xs mt-1">{errors.accommodation_type}</p>}
               </div>
