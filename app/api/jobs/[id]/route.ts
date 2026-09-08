@@ -90,20 +90,18 @@ export async function GET(
 
     const related = await getRelatedJobs(job.subject, jobId)
 
-    // External contact info (email/phone/website) is only for signed-in
-    // users — strip it from the payload entirely for guests rather than
-    // just hiding it client-side, since anyone can read the raw network
-    // response regardless of what the UI shows.
-    const jobForResponse = user
-      ? job
-      : { ...job, external_apply_value: null }
-
+    // External contact info (email/phone/website) is intentionally
+    // public now — most people bounce off a signup wall before they've
+    // seen any value, and this info (unlike the internal apply flow)
+    // has nothing sensitive behind it beyond what a school already
+    // chose to publish. In-app applications still require an account
+    // (see /apply/[jobId] and the quiz gate) — this only affects the
+    // "here's an email/phone/website, go apply directly" case.
     return NextResponse.json({
-      job: jobForResponse,
+      job,
       related,
       is_saved,
       has_applied,
-      requires_auth_for_external_apply: !user && !!job.external_apply_enabled && !!job.external_apply_value,
     })
   } catch (err) {
     console.error("GET /api/jobs/[id] error:", err)

@@ -67,7 +67,6 @@ export default function JobDetailPage() {
   const [isSaved, setIsSaved] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [hasApplied, setHasApplied] = useState(false)
-  const [requiresAuthForExternalApply, setRequiresAuthForExternalApply] = useState(false)
   const [error, setError] = useState("")
   const [copied, setCopied] = useState(false)
 
@@ -82,7 +81,6 @@ export default function JobDetailPage() {
         setRelatedJobs(data.related || [])
         setIsSaved(data.is_saved || false)
         setHasApplied(data.has_applied || false)
-        setRequiresAuthForExternalApply(!!data.requires_auth_for_external_apply)
       } catch (err) {
         setError(getFetchErrorMessage(err, err instanceof Error ? err.message : "Failed to load job"))
       } finally {
@@ -126,18 +124,15 @@ export default function JobDetailPage() {
   const handleApply = () => {
     if (!job) return
     // Quiz always wins when both are enabled — it's the gate in front
-    // of the external contact info, not an alternative to it.
+    // of the external contact info, not an alternative to it. Taking
+    // the quiz still requires an account.
     if (job.quiz_enabled) {
       router.push(`/quiz/${job.id}`)
       return
     }
-    if (requiresAuthForExternalApply) {
-      router.push(`/login?next=/jobs/${job.id}`)
-      return
-    }
-    // Note: the external_apply_enabled + value-revealed, no-quiz case
-    // never reaches this handler — it renders ExternalApplyPanel
-    // directly instead of a clickable "Apply" button.
+    // Note: the external_apply_enabled + no-quiz case never reaches
+    // this handler — it renders ExternalApplyPanel directly, visible
+    // to everyone, signed in or not.
     router.push(`/apply/${job.id}`)
   }
 
@@ -295,7 +290,7 @@ export default function JobDetailPage() {
                     {level === "non_teaching" ? "STAFF" : level.toUpperCase()}
                   </span>
                 ))}
-                {job.quiz_enabled && !(job.external_apply_enabled && (job.external_apply_value || requiresAuthForExternalApply)) && (
+                {job.quiz_enabled && !(job.external_apply_enabled && job.external_apply_value) && (
                   <span className="px-3 py-1 bg-purple-100 text-purple-700 text-xs rounded-full font-medium flex items-center gap-1">
                     <BookOpen className="h-3 w-3" />
                     Quiz Required
@@ -486,8 +481,8 @@ export default function JobDetailPage() {
                   </p>
                 </div>
               ) : job.external_apply_enabled && job.external_apply_value && !job.quiz_enabled ? (
-                // Contact info is fully revealed (signed in, no quiz gate) —
-                // show it directly instead of hiding it behind a button.
+                // Contact info is public — no sign-in required — as long
+                // as there's no quiz gating it.
                 <div className="mb-3">
                   <ExternalApplyPanel value={job.external_apply_value} schoolName={job.school_name} />
                 </div>
@@ -499,14 +494,9 @@ export default function JobDetailPage() {
                   {job.quiz_enabled ? (
                     <>
                       <BookOpen className="h-5 w-5 mr-2" />
-                      {job.external_apply_enabled && (job.external_apply_value || requiresAuthForExternalApply)
+                      {job.external_apply_enabled && job.external_apply_value
                         ? "Take Quiz to Unlock Contact Info"
                         : "Take Quiz & Apply"}
-                    </>
-                  ) : job.external_apply_enabled && requiresAuthForExternalApply ? (
-                    <>
-                      <ExternalLink className="h-5 w-5 mr-2" />
-                      Apply
                     </>
                   ) : (
                     "Apply Now"
