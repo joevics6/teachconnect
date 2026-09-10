@@ -286,7 +286,7 @@ export default function JobsPage() {
       <div className="bg-white border-b border-gray-200 py-6 px-4">
         <div className="max-w-7xl mx-auto">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">
-            Teaching Jobs in Nigeria
+            Teaching Jobs
           </h1>
           <div className="flex gap-3">
             <div className="relative flex-1">

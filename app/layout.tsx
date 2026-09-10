@@ -14,22 +14,21 @@ const fraunces = Fraunces({
 })
 
 const siteUrl = process.env.NEXT_PUBLIC_APP_URL || "https://classhire.jobmeter.app"
-const title = "ClassHire — Nigeria's Teacher Recruitment Platform"
+const title = "ClassHire — Teacher Recruitment Platform"
 const description =
-  "Find teaching jobs across Nigeria or hire pre-screened, qualified teachers for your school. Nigeria's only dedicated teacher recruitment platform."
+  "Find teaching jobs or hire pre-screened, qualified teachers for your school — direct hiring, no agencies, no middlemen."
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title,
   description,
   keywords:
-    "teacher jobs nigeria, school recruitment, teaching jobs lagos, hire teachers nigeria, classhire",
+    "teacher jobs, school recruitment, teaching jobs, hire teachers, classhire, teacher jobs nigeria",
   openGraph: {
     title,
     description,
     url: siteUrl,
     siteName: "ClassHire",
-    locale: "en_NG",
     type: "website",
   },
   twitter: {
