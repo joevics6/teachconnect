@@ -88,6 +88,7 @@ export default function Navbar() {
             {(!user || user.role === "school") && (
               <Link href="/talent" className="text-sm text-gray-600 hover:text-gray-900">Find Teachers</Link>
             )}
+            <Link href="/schools" className="text-sm text-gray-600 hover:text-gray-900">Schools</Link>
             <Link href="/pricing"   className="text-sm text-gray-600 hover:text-gray-900">Pricing</Link>
             <Link href="/resources" className="text-sm text-gray-600 hover:text-gray-900">Resources</Link>
             <Link href="/blog"      className="text-sm text-gray-600 hover:text-gray-900">Blog</Link>
@@ -210,6 +211,7 @@ export default function Navbar() {
                   Find Teachers
                 </Link>
               )}
+              <Link href="/schools" className="px-3 py-2.5 text-sm text-gray-700 rounded-xl hover:bg-gray-50" onClick={() => setIsOpen(false)}>Schools</Link>
               <Link href="/pricing"   className="px-3 py-2.5 text-sm text-gray-700 rounded-xl hover:bg-gray-50" onClick={() => setIsOpen(false)}>Pricing</Link>
               <Link href="/resources" className="px-3 py-2.5 text-sm text-gray-700 rounded-xl hover:bg-gray-50" onClick={() => setIsOpen(false)}>Resources</Link>
               <Link href="/blog"      className="px-3 py-2.5 text-sm text-gray-700 rounded-xl hover:bg-gray-50" onClick={() => setIsOpen(false)}>Blog</Link>

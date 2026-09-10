@@ -86,31 +86,50 @@ export async function DELETE(
 
     const adminDb = createAdminClient()
 
+    const { data: school } = await adminDb
+      .from("school_profiles").select("id, is_claimed").eq("id", id).single()
+    if (!school) return NextResponse.json({ error: "School not found" }, { status: 404 })
+
     // Jobs cascade with the school in the DB, but surfacing an explicit
     // count first avoids silently deleting live listings by accident —
-    // require confirm=true once the caller has seen the count.
+    // require confirm=true once the caller has seen the count. This
+    // applies to ANY school, not just admin-created ones — deleting a
+    // real, registered school's profile is a valid admin action (spam,
+    // duplicates, a school that closed), it just needs the same
+    // confirmation step, and the caller should know it's a real
+    // account (is_claimed) so the UI can warn more strongly.
     const { searchParams } = new URL(_request.url)
     if (searchParams.get("confirm") !== "true") {
       const { count } = await adminDb
         .from("jobs")
         .select("id", { count: "exact", head: true })
         .eq("school_id", id)
-      if ((count ?? 0) > 0) {
+      if ((count ?? 0) > 0 || school.is_claimed) {
         return NextResponse.json(
-          { error: `This school has ${count} job(s) posted. Deleting it will delete those jobs too.`, jobs_count: count, requires_confirm: true },
+          {
+            error: school.is_claimed
+              ? `This is a REGISTERED school with ${count ?? 0} job(s) posted. Deleting it removes their profile and all their jobs — their login stays but loses its school profile.`
+              : `This school has ${count} job(s) posted. Deleting it will delete those jobs too.`,
+            jobs_count: count ?? 0,
+            is_claimed: school.is_claimed,
+            requires_confirm: true,
+          },
           { status: 409 }
         )
       }
     }
 
+    // Deleting a claimed school's profile does NOT delete their auth
+    // account/login — school_profiles.user_id has no cascade in that
+    // direction. They'd just be a school-role user with no profile,
+    // same state as right after signup before onboarding completed.
     const { error } = await adminDb
       .from("school_profiles")
       .delete()
       .eq("id", id)
-      .eq("created_by_admin", true)
 
     if (error) {
-      console.error("Ghost school delete error:", error)
+      console.error("School delete error:", error)
       return NextResponse.json({ error: "Something went wrong deleting this school." }, { status: 500 })
     }
 

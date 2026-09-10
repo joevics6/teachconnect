@@ -151,3 +151,34 @@ export async function PATCH(
     return NextResponse.json({ error: "Failed to update job" }, { status: 500 })
   }
 }
+
+export async function DELETE(
+  _request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const supabase = await createClient()
+    const admin = await requireAdmin(supabase)
+    if (!admin) return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+
+    const { id } = await params
+    const adminDb = createAdminClient()
+
+    const { data: job } = await adminDb.from("jobs").select("id").eq("id", id).single()
+    if (!job) return NextResponse.json({ error: "Job not found" }, { status: 404 })
+
+    const { error } = await adminDb.from("jobs").delete().eq("id", id)
+    if (error) {
+      console.error("Admin job delete error:", error)
+      return NextResponse.json({ error: "Something went wrong deleting this job. Please try again." }, { status: 500 })
+    }
+
+    revalidateTag("jobs", "max")
+    revalidateTag("schools", "max")
+
+    return NextResponse.json({ success: true })
+  } catch (err) {
+    console.error("DELETE admin job error:", err)
+    return NextResponse.json({ error: "Something went wrong deleting this job. Please try again." }, { status: 500 })
+  }
+}

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { Loader2, CheckCircle, XCircle, ShieldCheck, ShieldOff, Copy, Check, RefreshCw, Megaphone, Plus } from "lucide-react"
+import { Loader2, CheckCircle, XCircle, ShieldCheck, ShieldOff, Copy, Check, RefreshCw, Megaphone, Plus, Pencil, X, AlertCircle } from "lucide-react"
 import { formatDate, formatCurrency } from "@/lib/utils"
 import { AdminShell } from "@/components/admin/AdminShell"
 import { Button } from "@/components/ui/button"
@@ -41,6 +41,11 @@ export default function AdminJobsPage() {
   const [busyId, setBusyId] = useState<string | null>(null)
   const [socialBusyId, setSocialBusyId] = useState<string | null>(null)
   const [copiedId, setCopiedId] = useState<string | null>(null)
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [editingSocialId, setEditingSocialId] = useState<string | null>(null)
+  const [editSocialText, setEditSocialText] = useState("")
+  const [savingSocialId, setSavingSocialId] = useState<string | null>(null)
 
   const load = () => {
     setIsLoading(true)
@@ -77,6 +82,46 @@ export default function AdminJobsPage() {
       console.error("Action failed:", err)
     } finally {
       setBusyId(null)
+    }
+  }
+
+  const handleDelete = async (jobId: string) => {
+    setDeletingId(jobId)
+    try {
+      const res = await fetch(`/api/admin/jobs/${jobId}`, { method: "DELETE" })
+      if (res.ok) {
+        setJobs((prev) => prev.filter((j) => j.id !== jobId))
+        setDeleteConfirmId(null)
+      } else {
+        const data = await res.json().catch(() => null)
+        console.error("Delete failed:", data?.error)
+      }
+    } catch (err) {
+      console.error("Delete failed:", err)
+    } finally {
+      setDeletingId(null)
+    }
+  }
+
+  const handleSaveSocial = async (jobId: string) => {
+    setSavingSocialId(jobId)
+    try {
+      const res = await fetch(`/api/admin/jobs/${jobId}/social`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ social: editSocialText }),
+      })
+      const data = await res.json()
+      if (res.ok) {
+        setJobs((prev) => prev.map((j) => (j.id === jobId ? { ...j, social: data.social } : j)))
+        setEditingSocialId(null)
+      } else {
+        console.error("Save social post failed:", data.error)
+      }
+    } catch (err) {
+      console.error("Save social post failed:", err)
+    } finally {
+      setSavingSocialId(null)
     }
   }
 
@@ -186,6 +231,13 @@ export default function AdminJobsPage() {
                   </button>
                 </Link>
 
+                <button
+                  onClick={() => setDeleteConfirmId(job.id)}
+                  className="flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium border border-red-200 text-red-600 hover:bg-red-50"
+                >
+                  Delete
+                </button>
+
                 {job.status === "pending_approval" && (
                   <div className="flex items-center gap-2 flex-shrink-0">
                     <button
@@ -227,6 +279,14 @@ export default function AdminJobsPage() {
                           )}
                           {job.social ? "Regenerate" : "Generate"}
                         </button>
+                        {job.social && editingSocialId !== job.id && (
+                          <button
+                            onClick={() => { setEditingSocialId(job.id); setEditSocialText(job.social || "") }}
+                            className="px-2 py-1 rounded-md text-xs font-medium border border-gray-200 text-gray-600 hover:bg-gray-50 flex items-center gap-1"
+                          >
+                            <Pencil className="h-3 w-3" /> Edit
+                          </button>
+                        )}
                         {job.social && (
                           <button
                             onClick={() => handleCopySocial(job)}
@@ -245,7 +305,32 @@ export default function AdminJobsPage() {
                         )}
                       </div>
                     </div>
-                    {job.social ? (
+                    {editingSocialId === job.id ? (
+                      <div>
+                        <textarea
+                          value={editSocialText}
+                          onChange={(e) => setEditSocialText(e.target.value)}
+                          rows={6}
+                          className="w-full text-xs text-gray-700 bg-white border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-1 focus:ring-ink-500"
+                        />
+                        <div className="flex items-center gap-2 mt-2">
+                          <button
+                            onClick={() => handleSaveSocial(job.id)}
+                            disabled={savingSocialId === job.id || !editSocialText.trim()}
+                            className="px-3 py-1.5 rounded-md text-xs font-medium bg-ink-600 text-white hover:bg-ink-700 disabled:opacity-50 flex items-center gap-1"
+                          >
+                            {savingSocialId === job.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}
+                            Save
+                          </button>
+                          <button
+                            onClick={() => setEditingSocialId(null)}
+                            className="px-3 py-1.5 rounded-md text-xs font-medium border border-gray-200 text-gray-600 hover:bg-gray-50 flex items-center gap-1"
+                          >
+                            <X className="h-3 w-3" /> Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : job.social ? (
                       <pre className="whitespace-pre-wrap font-sans text-xs text-gray-700 bg-gray-50 border border-gray-200 rounded-lg p-3">
                         {job.social}
                       </pre>
@@ -256,6 +341,28 @@ export default function AdminJobsPage() {
                 )}
               </div>
             ))}
+          </div>
+        )}
+
+        {deleteConfirmId && (
+          <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-2xl max-w-sm w-full p-6 text-center">
+              <AlertCircle className="h-10 w-10 text-red-500 mx-auto mb-3" />
+              <p className="text-gray-900 font-semibold mb-1">Delete this job?</p>
+              <p className="text-sm text-gray-500 mb-5">
+                This permanently deletes the job along with its applications, invites, and quiz attempts. This can&apos;t be undone.
+              </p>
+              <div className="flex gap-3">
+                <Button variant="outline" className="flex-1" onClick={() => setDeleteConfirmId(null)}>Cancel</Button>
+                <Button
+                  className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+                  onClick={() => handleDelete(deleteConfirmId)}
+                  disabled={deletingId === deleteConfirmId}
+                >
+                  {deletingId === deleteConfirmId ? <Loader2 className="h-4 w-4 animate-spin" /> : "Delete"}
+                </Button>
+              </div>
+            </div>
           </div>
         )}
       </div>

@@ -26,6 +26,7 @@ interface GhostSchool {
   about: string | null
   is_claimed: boolean
   is_anonymous: boolean
+  created_by_admin: boolean
   jobs_count: number
   created_at: string
 }
@@ -174,7 +175,8 @@ export default function AdminSchoolsPage() {
   const [search, setSearch] = useState("")
   const [showNewModal, setShowNewModal] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
-  const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; jobsCount: number } | null>(null)
+  const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; jobsCount: number; isClaimed: boolean } | null>(null)
+  const [typeFilter, setTypeFilter] = useState<"all" | "ghost" | "registered">("all")
 
   const fetchSchools = useCallback(async () => {
     setIsLoading(true)
@@ -182,6 +184,7 @@ export default function AdminSchoolsPage() {
     try {
       const params = new URLSearchParams()
       if (search) params.set("search", search)
+      params.set("type", typeFilter)
       const res = await fetch(`/api/admin/schools?${params.toString()}`)
       if (!res.ok) throw new Error("Failed to load schools")
       const data = await res.json()
@@ -191,7 +194,7 @@ export default function AdminSchoolsPage() {
     } finally {
       setIsLoading(false)
     }
-  }, [search])
+  }, [search, typeFilter])
 
   useEffect(() => {
     const t = setTimeout(fetchSchools, 300)
@@ -205,7 +208,7 @@ export default function AdminSchoolsPage() {
       const data = await res.json()
       if (!res.ok) {
         if (data.requires_confirm) {
-          setDeleteConfirm({ id, jobsCount: data.jobs_count })
+          setDeleteConfirm({ id, jobsCount: data.jobs_count, isClaimed: !!data.is_claimed })
           return
         }
         throw new Error(data.error || "Failed to delete school")
@@ -238,14 +241,33 @@ export default function AdminSchoolsPage() {
           </Button>
         </div>
 
-        <div className="relative mb-5 max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by school name"
-            className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm"
-          />
+        <div className="flex flex-wrap items-center gap-3 mb-5">
+          <div className="relative max-w-sm flex-1 min-w-[200px]">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search by school name"
+              className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm"
+            />
+          </div>
+          <div className="flex gap-2">
+            {([
+              { value: "all", label: "All Schools" },
+              { value: "registered", label: "Registered" },
+              { value: "ghost", label: "Unclaimed" },
+            ] as const).map((t) => (
+              <button
+                key={t.value}
+                onClick={() => setTypeFilter(t.value)}
+                className={`px-3 py-1.5 rounded-lg text-sm font-medium ${
+                  typeFilter === t.value ? "bg-ink-600 text-white" : "bg-gray-100 text-gray-600"
+                }`}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
         </div>
 
         {isLoading ? (
@@ -270,7 +292,10 @@ export default function AdminSchoolsPage() {
                       {school.school_type}
                     </span>
                     {school.is_claimed && (
-                      <span className="px-2 py-0.5 bg-ink-50 text-ink-600 text-xs rounded-full">Claimed</span>
+                      <span className="px-2 py-0.5 bg-ink-50 text-ink-600 text-xs rounded-full">Registered</span>
+                    )}
+                    {!school.is_claimed && school.created_by_admin && (
+                      <span className="px-2 py-0.5 bg-amber-50 text-amber-600 text-xs rounded-full">Unclaimed</span>
                     )}
                     {school.is_anonymous && (
                       <span className="px-2 py-0.5 bg-purple-50 text-purple-600 text-xs rounded-full">Anonymous</span>
@@ -312,10 +337,24 @@ export default function AdminSchoolsPage() {
           <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">
             <div className="bg-white rounded-2xl max-w-sm w-full p-6 text-center">
               <AlertCircle className="h-10 w-10 text-red-500 mx-auto mb-3" />
-              <p className="text-gray-900 font-semibold mb-1">
-                This school has {deleteConfirm.jobsCount} job{deleteConfirm.jobsCount !== 1 ? "s" : ""} posted
-              </p>
-              <p className="text-sm text-gray-500 mb-5">Deleting it will delete those jobs too. This can&apos;t be undone.</p>
+              {deleteConfirm.isClaimed ? (
+                <>
+                  <p className="text-gray-900 font-semibold mb-1">
+                    This is a REGISTERED school
+                  </p>
+                  <p className="text-sm text-gray-500 mb-5">
+                    It has a real account and {deleteConfirm.jobsCount} job{deleteConfirm.jobsCount !== 1 ? "s" : ""} posted.
+                    Deleting removes their profile and jobs — their login stays but loses its school profile. This can&apos;t be undone.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="text-gray-900 font-semibold mb-1">
+                    This school has {deleteConfirm.jobsCount} job{deleteConfirm.jobsCount !== 1 ? "s" : ""} posted
+                  </p>
+                  <p className="text-sm text-gray-500 mb-5">Deleting it will delete those jobs too. This can&apos;t be undone.</p>
+                </>
+              )}
               <div className="flex gap-3">
                 <Button variant="outline" className="flex-1" onClick={() => setDeleteConfirm(null)}>Cancel</Button>
                 <Button

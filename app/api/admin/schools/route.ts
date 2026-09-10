@@ -1,11 +1,10 @@
 // ============================================================
 // app/api/admin/schools/route.ts
-// GET  — list admin-created ("ghost") school profiles, searchable by
-//        name. These are schools found on Facebook groups etc. that
-//        haven't registered yet — admin creates a placeholder profile
-//        so a real job can be posted and attract applicants before
-//        the school signs up (see /dashboard/school/claim for the
-//        other half of that flow).
+// GET  — list school profiles, searchable by name. Includes BOTH
+//        admin-created ("ghost") placeholders and real, registered
+//        schools — admin needs to be able to manage/delete either
+//        (spam registrations, duplicates, a school that closed down),
+//        not just the ghost ones this route originally only listed.
 // POST — create a new ghost school profile.
 // ============================================================
 
@@ -24,19 +23,23 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url)
     const search = searchParams.get("search")?.trim()
     const excludeAnonymous = searchParams.get("exclude_anonymous") === "true"
+    // "all" (default) | "ghost" (admin-created, unclaimed) | "registered" (real accounts)
+    const type = searchParams.get("type") || "all"
 
     const adminDb = createAdminClient()
     let query = adminDb
       .from("school_profiles")
       .select(`
         id, school_name, school_type, state, lga, town, logo_url, about,
-        is_claimed, created_by_admin, claim_note, is_anonymous, created_at,
+        is_claimed, created_by_admin, claim_note, is_anonymous, is_verified,
+        user_id, created_at,
         jobs ( count )
       `)
-      .eq("created_by_admin", true)
       .order("created_at", { ascending: false })
       .limit(200)
 
+    if (type === "ghost") query = query.eq("created_by_admin", true)
+    if (type === "registered") query = query.eq("is_claimed", true)
     if (excludeAnonymous) query = query.eq("is_anonymous", false)
     if (search) query = query.ilike("school_name", `%${search}%`)
 
