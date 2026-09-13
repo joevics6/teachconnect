@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button"
 import { TEACHING_LEVELS } from "@/lib/constants"
 import { Logo } from "@/components/ui/Logo"
 import { StateLgaSelect } from "@/components/ui/StateLgaSelect"
+import { COUNTRIES, ENABLED_COUNTRY_LIST } from "@/lib/countries"
 import { createClient } from "@/lib/supabase/client"
 import { useAuth } from "@/lib/auth-context"
 
@@ -31,6 +32,7 @@ interface FormData {
   school_name: string
   school_type: string
   school_levels: string[]
+  country: string
   state: string
   lga: string
   town: string
@@ -66,6 +68,7 @@ export default function SchoolRegisterPage() {
 
   const [formData, setFormData] = useState<FormData>({
     school_name: "", school_type: "", school_levels: [],
+    country: ENABLED_COUNTRY_LIST[0] || "Nigeria",
     state: "", lga: "", town: "", address: "", website: "",
     is_registered: "", cac_number: "",
     contact_name: "", contact_role: "", contact_email: "",
@@ -302,6 +305,30 @@ export default function SchoolRegisterPage() {
                 {errors.school_levels && <p className="text-red-500 text-xs mt-1">{errors.school_levels}</p>}
               </div>
 
+              {/* Country — only shown once more than one is actually open for
+                  registration; until then this is a no-op that keeps the
+                  data model and StateLgaSelect wired correctly for when a
+                  second country is enabled, without showing a dead
+                  one-option dropdown to every school right now. */}
+              {ENABLED_COUNTRY_LIST.length > 1 && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Country</label>
+                  <select
+                    value={formData.country}
+                    onChange={(e) => {
+                      update("country", e.target.value)
+                      update("state", "")
+                      update("lga", "")
+                    }}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ink-500 bg-white"
+                  >
+                    {ENABLED_COUNTRY_LIST.map((c) => (
+                      <option key={c} value={c}>{COUNTRIES[c].name}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
               {/* State + LGA using the same component as teacher signup */}
               <StateLgaSelect
                 state={formData.state}
@@ -312,6 +339,7 @@ export default function SchoolRegisterPage() {
                 lgaError={errors.lga}
                 town={formData.town}
                 onTownChange={(t) => update("town", t)}
+                country={formData.country}
               />
 
               <div>

@@ -11,6 +11,7 @@ export async function POST(request: Request) {
     const school_name       = (formData.get("school_name")       as string || "").trim()
     const school_type       = (formData.get("school_type")       as string || "").trim()
     const school_levels     = JSON.parse((formData.get("school_levels") as string) || "[]")
+    const country           = (formData.get("country")           as string || "").trim() || "Nigeria"
     const state             = (formData.get("state")             as string || "").trim()
     const lga               = (formData.get("lga")               as string || "").trim()
     const town              = (formData.get("town")              as string || "").trim() || null
@@ -88,6 +89,7 @@ export async function POST(request: Request) {
         slug,
         school_type:       school_type || "private",
         school_levels:     school_levels || [],
+        country,
         state,
         lga,
         town,
