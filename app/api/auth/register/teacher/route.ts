@@ -18,6 +18,7 @@ export async function POST(request: Request) {
     const password = formData.get("password") as string
     const full_name = formData.get("full_name") as string
     const phone = formData.get("phone") as string
+    const country = (formData.get("country") as string || "").trim() || "Nigeria"
     const state = formData.get("state") as string
     const lga = formData.get("lga") as string
     const level_subjects: { level: string; subjects: string[] }[] =
@@ -151,6 +152,7 @@ export async function POST(request: Request) {
         user_id: userId,
         full_name,
         phone,
+        country,
         state,
         lga,
         level_subjects,

@@ -25,6 +25,11 @@ export interface CountryConfig {
   areaLabelLower: string
   states: string[]
   areas: Record<string, string[]>
+  // ISO 4217 currency code — not read anywhere yet (every
+  // formatCurrency/formatSalaryRange call site still defaults to
+  // NGN), but present so a future call site has a real value to pass
+  // once jobs/schools actually vary by country.
+  currency: string
   // Live/bookable now vs visible-but-not-yet-open. UAE ships with
   // this false — the location picker and registration data model
   // fully support it, but pricing/payments (Paystack is NGN-only)
@@ -44,6 +49,7 @@ export const COUNTRIES: Record<string, CountryConfig> = {
     areaLabelLower: "LGA",
     states: NIGERIAN_STATES,
     areas: NIGERIAN_LGAS,
+    currency: "NGN",
     enabled: true,
   },
   UAE: {
@@ -55,6 +61,7 @@ export const COUNTRIES: Record<string, CountryConfig> = {
     areaLabelLower: "area",
     states: UAE_EMIRATES,
     areas: UAE_AREAS,
+    currency: "AED",
     enabled: false,
   },
 }

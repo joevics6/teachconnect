@@ -5,10 +5,13 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat("en-NG", {
+export function formatCurrency(amount: number, currencyCode: string = "NGN"): string {
+  // Locale matters for symbol placement/formatting conventions, not
+  // just the currency code — Intl needs both to render correctly.
+  const locale = currencyCode === "AED" ? "en-AE" : "en-NG"
+  return new Intl.NumberFormat(locale, {
     style: "currency",
-    currency: "NGN",
+    currency: currencyCode,
     minimumFractionDigits: 0,
   }).format(amount)
 }
@@ -17,12 +20,16 @@ export function formatCurrency(amount: number): string {
  * Formats a job's salary range for display, handling the case where
  * neither bound was given (both 0 — the DB default for jobs posted
  * without a disclosed salary, e.g. via the admin quick-post flow).
+ * currencyCode defaults to NGN so every existing caller (all of
+ * which only ever pass min/max) is unaffected — this is here so a
+ * future UAE-aware call site can pass "AED" once jobs actually have
+ * a non-Nigeria country, not because anything does yet.
  */
-export function formatSalaryRange(min: number, max: number): string {
+export function formatSalaryRange(min: number, max: number, currencyCode: string = "NGN"): string {
   if (!min && !max) return "Salary not disclosed"
-  if (!min) return `Up to ${formatCurrency(max)}`
-  if (!max) return `${formatCurrency(min)}+`
-  return `${formatCurrency(min)} – ${formatCurrency(max)}`
+  if (!min) return `Up to ${formatCurrency(max, currencyCode)}`
+  if (!max) return `${formatCurrency(min, currencyCode)}+`
+  return `${formatCurrency(min, currencyCode)} – ${formatCurrency(max, currencyCode)}`
 }
 
 /**

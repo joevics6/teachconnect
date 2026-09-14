@@ -9,7 +9,8 @@ import {
   ClipboardCheck, Eye, EyeOff,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { StateLgaSelect, NIGERIAN_STATES } from "@/components/ui/StateLgaSelect"
+import { StateLgaSelect } from "@/components/ui/StateLgaSelect"
+import { COUNTRIES, ENABLED_COUNTRY_LIST, getCountryConfig } from "@/lib/countries"
 import { LevelSubjectPicker, deriveTeachingLevels, deriveSubjects } from "@/components/LevelSubjectPicker"
 import { getSubjectsForLevel } from "@/lib/constants"
 import { createClient } from "@/lib/supabase/client"
@@ -53,6 +54,7 @@ interface FormData {
   confirm_password: string
   full_name: string
   phone: string
+  country: string
   state: string
   lga: string
   level_subjects: TeacherLevelSubjects[]
@@ -124,7 +126,7 @@ export default function TeacherRegisterPage() {
 
   const [formData, setFormData] = useState<FormData>({
     email: "", password: "", confirm_password: "",
-    full_name: "", phone: "", state: "", lga: "",
+    full_name: "", phone: "", country: ENABLED_COUNTRY_LIST[0] || "Nigeria", state: "", lga: "",
     level_subjects: [],
     years_experience: "", trcn_number: "", trcn_status: "",
     preferred_states: [], willing_to_relocate: false,
@@ -783,12 +785,35 @@ export default function TeacherRegisterPage() {
                 </div>
               </div>
 
+              {/* Country — only shown once more than one is actually open for
+                  registration (see school registration for the same pattern). */}
+              {ENABLED_COUNTRY_LIST.length > 1 && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Country</label>
+                  <select
+                    value={formData.country}
+                    onChange={(e) => {
+                      update("country", e.target.value)
+                      update("state", "")
+                      update("lga", "")
+                      update("preferred_states", [])
+                    }}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ink-500 bg-white"
+                  >
+                    {ENABLED_COUNTRY_LIST.map((c) => (
+                      <option key={c} value={c}>{COUNTRIES[c].name}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
               {/* State + LGA dropdown component */}
               <StateLgaSelect
                 state={formData.state} lga={formData.lga}
                 onStateChange={(v) => update("state", v)}
                 onLgaChange={(v) => update("lga", v)}
                 stateError={errors.state} lgaError={errors.lga}
+                country={formData.country}
               />
             </div>
           )}
@@ -860,10 +885,10 @@ export default function TeacherRegisterPage() {
               {formData.willing_to_relocate && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-3">
-                    Preferred States <span className="text-gray-400 font-normal">(optional)</span>
+                    Preferred {getCountryConfig(formData.country).stateLabel}s <span className="text-gray-400 font-normal">(optional)</span>
                   </label>
                   <div className="flex flex-wrap gap-2 max-h-40 overflow-y-auto p-1">
-                    {NIGERIAN_STATES.map((s) => (
+                    {getCountryConfig(formData.country).states.map((s) => (
                       <button key={s} type="button" onClick={() => toggleArray("preferred_states", s)}
                         className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
                           formData.preferred_states.includes(s)
