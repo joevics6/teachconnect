@@ -81,7 +81,7 @@ export async function generateMetadata(
       title,
       description,
       url,
-      siteName: "ClassHire Nigeria",
+      siteName: "ClassHire",
       images:   [{ url: image, width: 1200, height: 630, alt: resource.title }],
       type:     "article",
       publishedTime: resource.published_at,
@@ -128,7 +128,7 @@ function ArticleSchema({ resource }: { resource: Resource }) {
     },
     publisher: {
       "@type": "Organization",
-      name: "ClassHire Nigeria",
+      name: "ClassHire",
       logo: {
         "@type": "ImageObject",
         url: "https://classhire.jobmeter.app/logo.png",
@@ -191,7 +191,7 @@ function FAQSchema({ resource }: { resource: Resource }) {
         name: `Is ${resource.title} free to download?`,
         acceptedAnswer: {
           "@type": "Answer",
-          text: "Yes. All resources on ClassHire are free for Nigerian teachers to access and download.",
+          text: "Yes. All resources on ClassHire are free for teachers to access and download.",
         },
       },
     ],

@@ -317,7 +317,7 @@ export default function ResourcesPage() {
           </h1>
           <p className="text-gray-500 mb-6">
             Guides, salary insights, and tools to help you advance your
-            teaching career in Nigeria.
+            teaching career.
           </p>
           {/* Search */}
           <div className="relative max-w-md mx-auto">

@@ -45,7 +45,7 @@ export default function BlogPage() {
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">The ClassHire Blog</h1>
           <p className="text-gray-500 max-w-xl mx-auto">
-            News, updates, and stories from Nigeria&apos;s teaching community.
+            News, updates, and stories from the teaching community.
           </p>
         </div>
       </div>

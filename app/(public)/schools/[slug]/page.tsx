@@ -93,7 +93,7 @@ export async function generateMetadata(
       title,
       description,
       url,
-      siteName: "ClassHire Nigeria",
+      siteName: "ClassHire",
       images: [{ url: image, width: 1200, height: 630, alt: school.school_name }],
       type: "website",
     },
