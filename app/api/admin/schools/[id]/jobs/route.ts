@@ -3,16 +3,15 @@
 // POST — create a job attributed to an admin-created ("ghost")
 // school. Deliberately much simpler than api/school/jobs (POST):
 // no plan limits, no premium-field gating, no featured-listing
-// payment — admin isn't a paying customer posting through a plan,
-// and the job goes straight to "active" instead of
-// "pending_approval" since admin creating it IS the approval.
+// payment — admin isn't a paying customer posting through a plan.
+// Like every other job, it is saved as "pending_approval" and only
+// goes live once approved on /admin/jobs (single, selected, or bulk).
 // ============================================================
 
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { requireAdmin } from "@/lib/admin"
-import { generateAndSaveSocialPost } from "@/lib/social-post"
 
 export async function POST(
   request: Request,
@@ -118,9 +117,11 @@ export async function POST(
       required_qualifications:  body.required_qualifications,
       preferred_qualifications: body.preferred_qualifications || null,
       deadline:                 deadline,
-      // Admin posting it IS the approval — unlike school-submitted
-      // jobs, this never sits in pending_approval.
-      status:                   "active",
+      // Admin-posted jobs go through the same approval step as
+      // school-submitted ones. Approving (api/admin/jobs/[id] or
+      // api/admin/jobs/bulk) is what makes it public and triggers the
+      // social post.
+      status:                   "pending_approval",
     }
 
     const { data: newJob, error: insertError } = await adminDb
@@ -134,12 +135,7 @@ export async function POST(
       return NextResponse.json({ error: "Something went wrong posting this job. Please try again." }, { status: 500 })
     }
 
-    // Same as the school-approval path in api/admin/jobs/[id] — the
-    // moment a job goes live is the moment it needs a social post.
-    // Best-effort, never blocks the response.
-    generateAndSaveSocialPost(newJob.id).catch((err) =>
-      console.error("Social post generation failed for job", newJob.id, err)
-    )
+    // No social post yet — it is generated when the job is approved.
 
     return NextResponse.json({ success: true, job: newJob })
   } catch (err) {

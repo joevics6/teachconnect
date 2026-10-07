@@ -190,9 +190,9 @@ export default function AdminSchoolPostJobPage() {
       <AdminShell>
         <div className="max-w-xl mx-auto p-6 text-center py-20">
           <CheckCircle2 className="h-12 w-12 text-ink-600 mx-auto mb-4" />
-          <h1 className="text-xl font-bold text-gray-900 mb-2">{postedCount > 1 ? `${postedCount} Jobs Posted` : "Job Posted"}</h1>
+          <h1 className="text-xl font-bold text-gray-900 mb-2">{postedCount > 1 ? `${postedCount} Jobs Submitted` : "Job Submitted"}</h1>
           <p className="text-gray-500 text-sm mb-6">
-            {postedCount > 1 ? `${postedCount} jobs are live for` : "The job is live for"} {schoolName || "this school"}.
+            {postedCount > 1 ? `${postedCount} jobs are pending approval for` : "The job is pending approval for"} {schoolName || "this school"}.
           </p>
           <div className="flex gap-3 justify-center">
             <Button variant="outline" onClick={() => { setFormData(EMPTY_FORM); setAiInput(""); setSubmitted(false) }}>
@@ -218,7 +218,7 @@ export default function AdminSchoolPostJobPage() {
           <h1 className="text-xl font-bold text-gray-900">
             Post a Job {schoolName && <>for <span className="text-ink-600">{schoolName}</span></>}
           </h1>
-          <p className="text-sm text-gray-500 mt-1">This job goes live immediately — no approval step needed.</p>
+          <p className="text-sm text-gray-500 mt-1">This job is saved as pending — approve it on the Jobs page to make it live.</p>
         </div>
 
         {submitError && (

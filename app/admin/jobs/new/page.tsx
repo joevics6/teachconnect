@@ -315,9 +315,9 @@ export default function AdminNewJobPage() {
       <AdminShell>
         <div className="max-w-xl mx-auto p-6 text-center py-20">
           <CheckCircle2 className="h-12 w-12 text-ink-600 mx-auto mb-4" />
-          <h1 className="text-xl font-bold text-gray-900 mb-2">{postedCount > 1 ? `${postedCount} Jobs Posted` : "Job Posted"}</h1>
+          <h1 className="text-xl font-bold text-gray-900 mb-2">{postedCount > 1 ? `${postedCount} Jobs Submitted` : "Job Submitted"}</h1>
           <p className="text-gray-500 text-sm mb-6">
-            {postedCount > 1 ? `${postedCount} jobs are live` : "The job is live"}{
+            {postedCount > 1 ? `${postedCount} jobs are pending approval` : "The job is pending approval"}{
               schoolMode === "anonymous"
                 ? <> as a <span className="font-medium">Confidential School</span> posting</>
                 : selectedSchool
@@ -345,7 +345,7 @@ export default function AdminNewJobPage() {
             Back to Jobs
           </Link>
           <h1 className="text-xl font-bold text-gray-900">New Job</h1>
-          <p className="text-sm text-gray-500 mt-1">Goes live immediately — no approval step needed.</p>
+          <p className="text-sm text-gray-500 mt-1">Saved as pending — approve it on the Jobs page to make it live.</p>
         </div>
 
         {submitError && (

@@ -129,8 +129,17 @@ export interface Job {
   required_qualifications: string
   preferred_qualifications?: string
   deadline: string
-  status: "active" | "closed" | "draft"
+  status: "active" | "closed" | "draft" | "pending_approval" | "rejected"
   created_at: string
+  // Search-oriented content — see lib/job-seo.ts
+  role_category?: string | null
+  experience_level?: string | null
+  responsibilities?: string[] | null
+  skills_required?: string[] | null
+  about_role?: string | null
+  who_apply?: string | null
+  standout?: string | null
+  meta_description?: string | null
 }
 
 export interface Application {

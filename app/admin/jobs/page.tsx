@@ -46,9 +46,14 @@ export default function AdminJobsPage() {
   const [editingSocialId, setEditingSocialId] = useState<string | null>(null)
   const [editSocialText, setEditSocialText] = useState("")
   const [savingSocialId, setSavingSocialId] = useState<string | null>(null)
+  const [selected, setSelected] = useState<Set<string>>(new Set())
+  const [bulkBusy, setBulkBusy] = useState(false)
+  const [confirmApproveAll, setConfirmApproveAll] = useState(false)
+  const [bulkMessage, setBulkMessage] = useState<string | null>(null)
 
   const load = () => {
     setIsLoading(true)
+    setSelected(new Set())
     fetch(`/api/admin/jobs?status=${statusFilter}`)
       .then(async (res) => {
         if (!res.ok) return
@@ -82,6 +87,43 @@ export default function AdminJobsPage() {
       console.error("Action failed:", err)
     } finally {
       setBusyId(null)
+    }
+  }
+
+  const toggleSelected = (id: string) =>
+    setSelected((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+
+  const allSelected = jobs.length > 0 && jobs.every((j) => selected.has(j.id))
+  const toggleSelectAll = () =>
+    setSelected(allSelected ? new Set() : new Set(jobs.map((j) => j.id)))
+
+  const handleBulkApprove = async (payload: { ids: string[] } | { all: true }) => {
+    setBulkBusy(true)
+    setBulkMessage(null)
+    try {
+      const res = await fetch("/api/admin/jobs/bulk", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "approve", ...payload }),
+      })
+      const data = await res.json().catch(() => null)
+      if (res.ok) {
+        setBulkMessage(`${data.approved} job${data.approved === 1 ? "" : "s"} approved.`)
+        setConfirmApproveAll(false)
+        load()
+      } else {
+        setBulkMessage(data?.error || "Failed to approve jobs.")
+      }
+    } catch (err) {
+      console.error("Bulk approve failed:", err)
+      setBulkMessage("Failed to approve jobs.")
+    } finally {
+      setBulkBusy(false)
     }
   }
 
@@ -180,6 +222,42 @@ export default function AdminJobsPage() {
           ))}
         </div>
 
+        {statusFilter === "pending_approval" && !isLoading && jobs.length > 0 && (
+          <div className="flex items-center gap-3 flex-wrap mb-4 bg-white border border-gray-200 rounded-xl px-4 py-3">
+            <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={allSelected}
+                onChange={toggleSelectAll}
+                className="h-4 w-4 rounded border-gray-300"
+              />
+              Select all ({jobs.length})
+            </label>
+            <div className="flex items-center gap-2 ml-auto flex-wrap">
+              <button
+                onClick={() => handleBulkApprove({ ids: Array.from(selected) })}
+                disabled={bulkBusy || selected.size === 0}
+                className="px-3 py-1.5 rounded-lg text-xs font-medium border border-ink-200 text-ink-700 hover:bg-ink-50 flex items-center gap-1.5 disabled:opacity-50"
+              >
+                {bulkBusy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CheckCircle className="h-3.5 w-3.5" />}
+                Approve selected ({selected.size})
+              </button>
+              <button
+                onClick={() => setConfirmApproveAll(true)}
+                disabled={bulkBusy}
+                className="px-3 py-1.5 rounded-lg text-xs font-medium bg-ink-700 hover:bg-ink-800 text-white flex items-center gap-1.5 disabled:opacity-50"
+              >
+                <CheckCircle className="h-3.5 w-3.5" />
+                Approve all unapproved
+              </button>
+            </div>
+          </div>
+        )}
+
+        {bulkMessage && (
+          <p className="text-sm text-gray-600 mb-4">{bulkMessage}</p>
+        )}
+
         {isLoading ? (
           <div className="flex justify-center py-16"><Loader2 className="h-6 w-6 text-ink-600 animate-spin" /></div>
         ) : jobs.length === 0 ? (
@@ -190,7 +268,16 @@ export default function AdminJobsPage() {
           <div className="space-y-3">
             {jobs.map((job) => (
               <div key={job.id} className="bg-white border border-gray-200 rounded-xl p-4 flex items-start justify-between gap-4 flex-wrap">
-                <div className="min-w-0">
+                {job.status === "pending_approval" && (
+                  <input
+                    type="checkbox"
+                    checked={selected.has(job.id)}
+                    onChange={() => toggleSelected(job.id)}
+                    aria-label={`Select ${job.title}`}
+                    className="h-4 w-4 mt-1 rounded border-gray-300 flex-shrink-0"
+                  />
+                )}
+                <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2 flex-wrap mb-1">
                     <h3 className="font-semibold text-gray-900">{job.title}</h3>
                     <span className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-full font-medium capitalize">
@@ -341,6 +428,28 @@ export default function AdminJobsPage() {
                 )}
               </div>
             ))}
+          </div>
+        )}
+
+        {confirmApproveAll && (
+          <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-2xl max-w-sm w-full p-6 text-center">
+              <CheckCircle className="h-10 w-10 text-ink-600 mx-auto mb-3" />
+              <p className="text-gray-900 font-semibold mb-1">Approve all unapproved jobs?</p>
+              <p className="text-sm text-gray-500 mb-5">
+                Every job currently pending approval ({jobs.length >= 300 ? "300+" : jobs.length}) will go live immediately.
+              </p>
+              <div className="flex gap-3">
+                <Button variant="outline" className="flex-1" onClick={() => setConfirmApproveAll(false)}>Cancel</Button>
+                <Button
+                  className="flex-1 bg-ink-700 hover:bg-ink-800 text-white"
+                  onClick={() => handleBulkApprove({ all: true })}
+                  disabled={bulkBusy}
+                >
+                  {bulkBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : "Approve all"}
+                </Button>
+              </div>
+            </div>
           </div>
         )}
 

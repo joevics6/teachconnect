@@ -126,7 +126,20 @@ export const getJobById = unstable_cache(
       .select("*")
       .eq("id", jobId)
       .single()
-    return data || null
+    if (!data) return null
+
+    // Search content columns (see lib/job-seo.ts) are read straight
+    // from the jobs table rather than the jobs_with_school view, so
+    // they're available without touching the view definition.
+    const { data: seo } = await supabase
+      .from("jobs")
+      .select(
+        "role_category, experience_level, responsibilities, skills_required, about_role, who_apply, standout, meta_description"
+      )
+      .eq("id", jobId)
+      .maybeSingle()
+
+    return { ...data, ...(seo ?? {}) }
   },
   ["job-by-id"],
   { tags: TAGS, revalidate: REVALIDATE_SECONDS }

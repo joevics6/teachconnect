@@ -28,7 +28,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const [{ data: jobs }, { data: resources }, { data: blogPosts }, { data: schools }] =
     await Promise.all([
-      supabase.from("jobs").select("id, updated_at").eq("status", "active"),
+      supabase.from("jobs").select("id, updated_at").eq("status", "active").gte("deadline", new Date().toISOString().split("T")[0]),
       supabase.from("resource_posts").select("slug, updated_at").eq("is_published", true),
       supabase.from("blog_posts").select("slug, updated_at").eq("is_published", true),
       // Verified AND has real long-form content — thin/placeholder

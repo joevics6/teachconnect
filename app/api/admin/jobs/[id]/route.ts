@@ -12,7 +12,9 @@ import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { requireAdmin } from "@/lib/admin"
 import { generateAndSaveSocialPost } from "@/lib/social-post"
+import { ensureJobSeoContent } from "@/lib/job-seo"
 import { revalidateTag } from "next/cache"
+import { after } from "next/server"
 
 export async function GET(
   _request: Request,
@@ -48,6 +50,9 @@ const EDITABLE_FIELDS = [
   "is_featured", "is_private",
   "external_apply_enabled", "external_apply_value",
   "quiz_enabled", "quiz_pass_mark", "quiz_mode", "quiz_duration", "quiz_question_count",
+  // Search-oriented content (see lib/job-seo.ts) — editable by admin only
+  "role_category", "experience_level", "responsibilities", "skills_required",
+  "about_role", "who_apply", "standout", "meta_description",
 ]
 
 export async function PATCH(
@@ -114,10 +119,17 @@ export async function PATCH(
     // Best-effort — generateAndSaveSocialPost never throws, so a Gemini
     // hiccup here can't block the approval itself; admin can retry via
     // the "Regenerate" action on /admin/jobs (POST .../[id]/social).
+    // The same moment is when the job's SEO content is generated (if it
+    // doesn't have any yet), then the cache is burst again so the page
+    // picks it up without waiting out the TTL.
     if (action === "approve") {
-      generateAndSaveSocialPost(id).catch((err) =>
-        console.error("Social post generation failed for job", id, err)
-      )
+      after(async () => {
+        await ensureJobSeoContent(id)
+        await generateAndSaveSocialPost(id).catch((err) =>
+          console.error("Social post generation failed for job", id, err)
+        )
+        revalidateTag("jobs", "max")
+      })
     }
 
     // DORMANT — see notifyMatchingTeachersOfNewJob in lib/notifications.ts

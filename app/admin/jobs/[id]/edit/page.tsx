@@ -6,6 +6,7 @@ import Link from "next/link"
 import { ArrowLeft, Loader2, CheckCircle2 } from "lucide-react"
 import { AdminShell } from "@/components/admin/AdminShell"
 import { JobEditForm, type EditableJob } from "@/components/jobs/JobEditForm"
+import { JobSeoPanel, type JobSeoFields } from "@/components/admin/JobSeoPanel"
 import { getFetchErrorMessage } from "@/lib/network-error"
 
 export default function EditAdminJobPage() {
@@ -62,6 +63,7 @@ export default function EditAdminJobPage() {
               onSaved={() => setSaved(true)}
               cancelHref="/admin/jobs"
             />
+            <JobSeoPanel jobId={jobId} initial={job as unknown as JobSeoFields} />
           </>
         )}
       </div>
