@@ -1,9 +1,8 @@
 import type { Metadata } from "next"
 
-// The teacher directory lists individual teachers' profiles, so it is
-// kept out of search results (and out of the sitemap).
+// Teacher profiles are personal data — never offered to search engines.
 export const metadata: Metadata = {
-  title: "Browse Teachers",
+  title: "Teacher Profile",
   robots: { index: false, follow: false, nocache: true },
 }
 
