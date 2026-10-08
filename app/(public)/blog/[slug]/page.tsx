@@ -3,6 +3,7 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { ArrowLeft, Calendar, Clock, User } from "lucide-react"
 import { getPostBySlug, getPublishedPosts } from "@/lib/cache/blog"
+import { Markdown, TableOfContents, extractToc } from "@/components/ui/Markdown"
 import { absoluteUrl, LOGO_URL, oneLine, OG_IMAGE_URL, SITE_NAME, toJsonLdString, trimText } from "@/lib/site"
 
 export const revalidate = 300
@@ -106,9 +107,10 @@ export default async function BlogPostPage({ params }: Props) {
         <article className="bg-white border border-gray-200 rounded-xl p-6 sm:p-8">
           <p className="text-gray-600 text-lg mb-6 leading-relaxed">{post.excerpt}</p>
           {post.body && (
-            <div className="prose prose-sm max-w-none text-gray-700 whitespace-pre-wrap leading-relaxed">
-              {post.body}
-            </div>
+            <>
+              <TableOfContents items={extractToc(post.body)} />
+              <Markdown>{post.body}</Markdown>
+            </>
           )}
         </article>
 
