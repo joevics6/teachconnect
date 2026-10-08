@@ -1,4 +1,5 @@
 // Server component — renders with full SEO metadata, JSON-LD schemas, breadcrumbs
+import { absoluteUrl, LOGO_URL, OG_IMAGE_URL, toJsonLdString } from "@/lib/site"
 import { Metadata } from "next"
 import { notFound } from "next/navigation"
 import Link from "next/link"
@@ -29,6 +30,7 @@ interface Resource {
   author: string | null
   published_at: string
   seo_title: string | null
+  updated_at?: string | null
   seo_description: string | null
 }
 
@@ -69,8 +71,8 @@ export async function generateMetadata(
   const { resource } = data
   const title       = resource.seo_title || `${resource.title} | ClassHire`
   const description = resource.seo_description || resource.excerpt
-  const url         = `https://classhire.jobmeter.app/resources/${resource.slug}`
-  const image       = resource.cover_image_url || "https://classhire.jobmeter.app/og-default.png"
+  const url         = absoluteUrl(`/resources/${resource.slug}`)
+  const image       = resource.cover_image_url || OG_IMAGE_URL
 
   return {
     // A custom seo_title is used verbatim; otherwise the root template adds the brand.
@@ -86,6 +88,7 @@ export async function generateMetadata(
       images:   [{ url: image, width: 1200, height: 630, alt: resource.title }],
       type:     "article",
       publishedTime: resource.published_at,
+      modifiedTime:  resource.updated_at || resource.published_at,
     },
     twitter: {
       card:        "summary_large_image",
@@ -132,23 +135,23 @@ function ArticleSchema({ resource }: { resource: Resource }) {
       name: "ClassHire",
       logo: {
         "@type": "ImageObject",
-        url: "https://classhire.jobmeter.app/logo.png",
+        url: LOGO_URL,
       },
     },
     datePublished: resource.published_at,
-    dateModified:  resource.published_at,
-    image:         resource.cover_image_url || "https://classhire.jobmeter.app/og-default.png",
-    url:           `https://classhire.jobmeter.app/resources/${resource.slug}`,
+    dateModified:  resource.updated_at || resource.published_at,
+    image:         resource.cover_image_url || OG_IMAGE_URL,
+    url:           absoluteUrl(`/resources/${resource.slug}`),
     keywords:      resource.tags?.join(", "),
     mainEntityOfPage: {
       "@type": "WebPage",
-      "@id":   `https://classhire.jobmeter.app/resources/${resource.slug}`,
+      "@id":   absoluteUrl(`/resources/${resource.slug}`),
     },
   }
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      dangerouslySetInnerHTML={{ __html: toJsonLdString(schema) }}
     />
   )
 }
@@ -158,52 +161,19 @@ function BreadcrumbSchema({ resource }: { resource: Resource }) {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Home",      item: "https://classhire.jobmeter.app" },
-      { "@type": "ListItem", position: 2, name: "Resources", item: "https://classhire.jobmeter.app/resources" },
-      { "@type": "ListItem", position: 3, name: resource.category, item: `https://classhire.jobmeter.app/resources?category=${encodeURIComponent(resource.category)}` },
-      { "@type": "ListItem", position: 4, name: resource.title, item: `https://classhire.jobmeter.app/resources/${resource.slug}` },
+      { "@type": "ListItem", position: 1, name: "Home",      item: absoluteUrl("/") },
+      { "@type": "ListItem", position: 2, name: "Resources", item: absoluteUrl("/resources") },
+      { "@type": "ListItem", position: 3, name: resource.title, item: absoluteUrl(`/resources/${resource.slug}`) },
     ],
   }
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      dangerouslySetInnerHTML={{ __html: toJsonLdString(schema) }}
     />
   )
 }
 
-function FAQSchema({ resource }: { resource: Resource }) {
-  // Only add FAQ schema for articles/curriculum guides with enough content
-  if (!["article", "document"].includes(resource.resource_type)) return null
-  const schema = {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    mainEntity: [
-      {
-        "@type": "Question",
-        name: `What is included in ${resource.title}?`,
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: resource.excerpt,
-        },
-      },
-      {
-        "@type": "Question",
-        name: `Is ${resource.title} free to download?`,
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "Yes. All resources on ClassHire are free for teachers to access and download.",
-        },
-      },
-    ],
-  }
-  return (
-    <script
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
-    />
-  )
-}
 
 // ─── Breadcrumb UI ────────────────────────────────────────────
 
@@ -253,7 +223,6 @@ export default async function ResourceDetailPage({ params }: { params: Promise<{
       {/* JSON-LD Schemas injected into <head> via Next.js */}
       <ArticleSchema resource={resource} />
       <BreadcrumbSchema resource={resource} />
-      <FAQSchema resource={resource} />
 
       {/* Breadcrumbs */}
       <Breadcrumbs resource={resource} />

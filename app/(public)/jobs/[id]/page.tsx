@@ -18,11 +18,11 @@ import {
   toJsonLdString,
   type JobLdInput,
 } from "@/lib/job-jsonld"
+import { SITE_URL } from "@/lib/site"
 import JobDetailClient, { type JobWithSchool, type RelatedJob } from "./JobDetailClient"
 
 export const revalidate = 300
 
-const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://classhire.jobmeter.app"
 const UNAPPROVED = ["pending_approval", "rejected", "draft"]
 
 type Props = { params: Promise<{ id: string }> }

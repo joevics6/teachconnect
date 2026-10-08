@@ -24,10 +24,10 @@
 // back to a naive split of the qualifications text instead).
 // ============================================================
 
+import { SITE_URL } from "@/lib/site"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { generateWithGemini, parseGeminiJson } from "@/lib/gemini"
 
-const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://classhire.jobmeter.app"
 
 const BULLETS_PROMPT = (requiredQualifications: string, preferredQualifications: string | null) => `
 You are writing a short social media job post for a Nigerian school hiring a teacher.

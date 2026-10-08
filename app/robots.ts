@@ -1,8 +1,7 @@
 import type { MetadataRoute } from "next"
+import { SITE_URL } from "@/lib/site"
 
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://classhire.jobmeter.app"
-
   return {
     rules: [
       {
@@ -16,9 +15,15 @@ export default function robots(): MetadataRoute.Robots {
           "/register",
           "/reset-password",
           "/forgot-password",
+          // Private, per-user pages — nothing here should ever be indexed.
+          "/apply/",
+          "/quiz/",
+          "/profile/teacher/me",
+          "/schools/me",
+          "/account-disabled",
         ],
       },
     ],
-    sitemap: `${baseUrl}/sitemap.xml`,
+    sitemap: `${SITE_URL}/sitemap.xml`,
   }
 }

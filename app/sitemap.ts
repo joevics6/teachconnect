@@ -1,9 +1,11 @@
 import type { MetadataRoute } from "next"
 import { createClient } from "@/lib/supabase/server"
+import { SITE_URL } from "@/lib/site"
 
 const STATIC_ROUTES = [
   "",
   "/jobs",
+  "/schools",
   "/talent",
   "/pricing",
   "/resources",
@@ -11,18 +13,15 @@ const STATIC_ROUTES = [
   "/contact",
   "/privacy",
   "/terms",
-  "/register/teacher",
-  "/register/school",
 ]
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://classhire.jobmeter.app"
+  const baseUrl = SITE_URL
   const supabase = await createClient()
 
   const staticEntries: MetadataRoute.Sitemap = STATIC_ROUTES.map((path) => ({
     url: `${baseUrl}${path}`,
-    lastModified: new Date(),
-    changeFrequency: path === "" ? "daily" : "weekly",
+    changeFrequency: path === "" || path === "/jobs" ? "daily" : "weekly",
     priority: path === "" ? 1 : 0.7,
   }))
 
