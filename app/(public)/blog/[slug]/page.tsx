@@ -1,8 +1,9 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { ArrowLeft, Calendar, Clock, User } from "lucide-react"
+import { Calendar, Clock, User } from "lucide-react"
 import { getPostBySlug, getPublishedPosts } from "@/lib/cache/blog"
+import { Breadcrumbs } from "@/components/ui/Breadcrumbs"
 import { Markdown, TableOfContents, extractToc } from "@/components/ui/Markdown"
 import { absoluteUrl, LOGO_URL, oneLine, OG_IMAGE_URL, SITE_NAME, toJsonLdString, trimText } from "@/lib/site"
 
@@ -80,9 +81,10 @@ export default async function BlogPostPage({ params }: Props) {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: toJsonLdString(articleLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: toJsonLdString(crumbLd) }} />
       <div className="max-w-3xl mx-auto px-4 py-10">
-        <Link href="/blog" className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 mb-6">
-          <ArrowLeft className="h-4 w-4" />Back to Blog
-        </Link>
+        <Breadcrumbs
+          className="mb-6"
+          items={[{ name: "Home", href: "/" }, { name: "Blog", href: "/blog" }, { name: post.title }]}
+        />
 
         {post.cover_image_url && (
           // eslint-disable-next-line @next/next/no-img-element

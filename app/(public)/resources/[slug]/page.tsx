@@ -189,15 +189,6 @@ function Breadcrumbs({ resource }: { resource: Resource }) {
           <Link href="/resources" className="hover:text-ink-600 transition">Resources</Link>
         </li>
         <li className="text-gray-300">/</li>
-        <li>
-          <Link
-            href={`/resources?category=${encodeURIComponent(resource.category)}`}
-            className="hover:text-ink-600 transition"
-          >
-            {resource.category}
-          </Link>
-        </li>
-        <li className="text-gray-300">/</li>
         <li className="text-gray-900 font-medium truncate max-w-xs" aria-current="page">
           {resource.title}
         </li>

@@ -17,7 +17,6 @@ import {
   Users,
   Calendar,
   Building2,
-  ArrowLeft,
   Loader2,
   AlertCircle,
   ExternalLink,
@@ -28,6 +27,7 @@ import { getExternalApplySummaryLabel } from "@/lib/external-apply"
 import { getFetchErrorMessage } from "@/lib/network-error"
 import { ExternalApplyPanel } from "@/components/jobs/ExternalApplyPanel"
 import { JobSeoSections } from "@/components/jobs/JobSeoSections"
+import { Breadcrumbs } from "@/components/ui/Breadcrumbs"
 import type { Job } from "@/types"
 
 export interface JobWithSchool extends Job {
@@ -201,13 +201,14 @@ export default function JobDetailClient({
       <div className="max-w-7xl mx-auto px-4 py-8">
 
         {/* Back */}
-        <Link
-          href="/jobs"
-          className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 mb-6"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back to jobs
-        </Link>
+        <Breadcrumbs
+          className="mb-6"
+          items={[
+            { name: "Home", href: "/" },
+            { name: "Jobs", href: "/jobs" },
+            { name: job.title },
+          ]}
+        />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
