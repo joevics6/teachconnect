@@ -187,6 +187,7 @@ export interface InitialJobs {
   jobs: JobWithSchool[]
   featured: JobWithSchool[]
   total: number
+  page?: number
 }
 
 // `initial` is the unfiltered first page, fetched on the server so the
@@ -197,7 +198,7 @@ export default function JobsClient({ initial }: { initial?: InitialJobs }) {
   const [jobs, setJobs] = useState<JobWithSchool[]>(initial?.jobs ?? [])
   const [featuredJobs, setFeaturedJobs] = useState<JobWithSchool[]>(initial?.featured ?? [])
   const [totalCount, setTotalCount] = useState(initial?.total ?? 0)
-  const [currentPage, setCurrentPage] = useState(1)
+  const [currentPage, setCurrentPage] = useState(initial?.page ?? 1)
   const [isLoading, setIsLoading] = useState(!initial)
   const skipInitialFetch = useRef(!!initial)
   const [fetchError, setFetchError] = useState("")
@@ -293,6 +294,51 @@ export default function JobsClient({ initial }: { initial?: InitialJobs }) {
   }, [fetchJobs])
 
   const totalPages = Math.ceil(totalCount / JOBS_PER_PAGE)
+
+  // Filters live in component state (not the URL), so only an unfiltered
+  // list has stable, shareable page URLs. In that case pagination is made
+  // of real links (/jobs?page=2) that crawlers can follow; with filters
+  // active it falls back to plain buttons.
+  const isFiltered = Boolean(filters.keyword) || activeFilterCount > 0 || filters.sort !== "newest"
+  const pageHref = (p: number) => (p <= 1 ? "/jobs" : `/jobs?page=${p}`)
+  const goToPage = (p: number) => {
+    setCurrentPage(p)
+    if (!isFiltered) window.history.replaceState(null, "", pageHref(p))
+    window.scrollTo({ top: 0, behavior: "smooth" })
+  }
+  const PageLink = ({
+    page,
+    className,
+    disabled,
+    children,
+    label,
+  }: {
+    page: number
+    className: string
+    disabled?: boolean
+    children: React.ReactNode
+    label?: string
+  }) =>
+    isFiltered || disabled ? (
+      <button type="button" aria-label={label} onClick={() => goToPage(page)} disabled={disabled} className={className}>
+        {children}
+      </button>
+    ) : (
+      <a
+        href={pageHref(page)}
+        aria-label={label}
+        aria-current={page === currentPage ? "page" : undefined}
+        className={className}
+        onClick={(e) => {
+          // Let new-tab / modified clicks behave like normal links.
+          if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return
+          e.preventDefault()
+          goToPage(page)
+        }}
+      >
+        {children}
+      </a>
+    )
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -588,16 +634,16 @@ export default function JobsClient({ initial }: { initial?: InitialJobs }) {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="flex items-center justify-between mt-8">
-            <Button
-              variant="outline"
-              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+          <nav aria-label="Pagination" className="flex items-center justify-between mt-8">
+            <PageLink
+              page={Math.max(1, currentPage - 1)}
               disabled={currentPage === 1}
-              className="flex items-center gap-2"
+              label="Previous page"
+              className="inline-flex items-center gap-2 h-10 px-4 rounded-md border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:pointer-events-none"
             >
               <ChevronLeft className="h-4 w-4" />
               Previous
-            </Button>
+            </PageLink>
             <div className="flex items-center gap-2">
               {(() => {
                 const windowSize = 5
@@ -605,59 +651,44 @@ export default function JobsClient({ initial }: { initial?: InitialJobs }) {
                 const end = Math.min(totalPages, start + windowSize - 1)
                 start = Math.max(1, end - windowSize + 1)
                 const pages = Array.from({ length: end - start + 1 }, (_, i) => start + i)
+                const base = "w-9 h-9 inline-flex items-center justify-center rounded-lg text-sm font-medium transition-all"
                 return (
                   <>
                     {start > 1 && (
                       <>
-                        <button
-                          onClick={() => setCurrentPage(1)}
-                          className="w-9 h-9 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100"
-                        >
-                          1
-                        </button>
+                        <PageLink page={1} className={`${base} text-gray-600 hover:bg-gray-100`}>1</PageLink>
                         <span className="text-gray-400 text-sm">…</span>
                       </>
                     )}
                     {pages.map((page) => (
-                      <button
+                      <PageLink
                         key={page}
-                        onClick={() => setCurrentPage(page)}
-                        className={`w-9 h-9 rounded-lg text-sm font-medium transition-all ${
-                          currentPage === page
-                            ? "bg-ink-600 text-white"
-                            : "text-gray-600 hover:bg-gray-100"
-                        }`}
+                        page={page}
+                        className={`${base} ${currentPage === page ? "bg-ink-600 text-white" : "text-gray-600 hover:bg-gray-100"}`}
                       >
                         {page}
-                      </button>
+                      </PageLink>
                     ))}
                     {end < totalPages && (
                       <>
                         <span className="text-gray-400 text-sm">…</span>
-                        <button
-                          onClick={() => setCurrentPage(totalPages)}
-                          className="w-9 h-9 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100"
-                        >
-                          {totalPages}
-                        </button>
+                        <PageLink page={totalPages} className={`${base} text-gray-600 hover:bg-gray-100`}>{totalPages}</PageLink>
                       </>
                     )}
                   </>
                 )
               })()}
             </div>
-            <Button
-              variant="outline"
-              onClick={() =>
-                setCurrentPage((p) => Math.min(totalPages, p + 1))
-              }
+            <PageLink
+              page={Math.min(totalPages, currentPage + 1)}
               disabled={currentPage === totalPages}
-              className="flex items-center gap-2"
+              label="Next page"
+              className="inline-flex items-center gap-2 h-10 px-4 rounded-md border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:pointer-events-none"
             >
               Next
               <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
+            </PageLink>
+          </nav>
         )}
       </div>
     </div>
