@@ -64,16 +64,17 @@ export async function generateMetadata(
 ): Promise<Metadata> {
   const { slug } = await params
   const data = await getResource(slug)
-  if (!data) return { title: "Resource Not Found — ClassHire" }
+  if (!data) return { title: "Resource Not Found", robots: { index: false, follow: false } }
 
   const { resource } = data
-  const title       = resource.seo_title || `${resource.title} — ClassHire`
+  const title       = resource.seo_title || `${resource.title} | ClassHire`
   const description = resource.seo_description || resource.excerpt
   const url         = `https://classhire.jobmeter.app/resources/${resource.slug}`
   const image       = resource.cover_image_url || "https://classhire.jobmeter.app/og-default.png"
 
   return {
-    title,
+    // A custom seo_title is used verbatim; otherwise the root template adds the brand.
+    title: resource.seo_title ? { absolute: resource.seo_title } : resource.title,
     description,
     keywords: resource.tags?.join(", "),
     authors:  resource.author ? [{ name: resource.author }] : undefined,

@@ -43,16 +43,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   // Unknown or not-yet-approved jobs: nothing to describe, nothing to index.
   if (!job || UNAPPROVED.includes(job.status)) {
-    return { title: "Job | ClassHire", robots: { index: false, follow: false } }
+    return { title: "Job", robots: { index: false, follow: false } }
   }
 
   const confidential = isConfidentialSchool(job.school_name)
   const where = location(job)
   const title = trim(
     confidential
-      ? `${job.title} – ${where} | ClassHire`
-      : `${job.title} at ${job.school_name} – ${where} | ClassHire`,
-    70
+      ? `${job.title} – ${where}`
+      : `${job.title} at ${job.school_name} – ${where}`,
+    62
   )
   const description = trim(
     job.meta_description ||

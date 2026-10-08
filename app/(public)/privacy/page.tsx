@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
 
-export const metadata = { title: "Privacy Policy — ClassHire" }
+export const metadata = { title: "Privacy Policy" }
 
 export default function PrivacyPage() {
   const updated = "1 July 2025"

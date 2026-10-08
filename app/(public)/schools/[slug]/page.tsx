@@ -68,11 +68,11 @@ export async function generateMetadata(
 ): Promise<Metadata> {
   const { slug } = await params
   const data = await getSchoolData(slug)
-  if (!data) return { title: "School Not Found — ClassHire" }
+  if (!data) return { title: "School Not Found", robots: { index: false, follow: false } }
 
   const { school, active_jobs } = data
   const location = [school.town, school.lga, school.state].filter(Boolean).join(", ")
-  const title = `${school.school_name} — Teaching Jobs & Profile in ${school.lga}, ${school.state} | ClassHire`
+  const title = `${school.school_name} — Teaching Jobs & Profile in ${school.lga}, ${school.state}`
   const description =
     school.long_description?.slice(0, 155) ||
     school.about?.slice(0, 155) ||

@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
 
-export const metadata = { title: "Terms of Service — ClassHire" }
+export const metadata = { title: "Terms of Service" }
 
 export default function TermsPage() {
   const updated = "1 July 2025"
