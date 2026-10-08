@@ -111,3 +111,23 @@ export async function getSchoolContactInfo(schoolId: string) {
     .single()
   return data
 }
+
+/**
+ * First page of the public schools directory (no filters), for the
+ * server-rendered /schools page. Ghost (unclaimed) schools are excluded,
+ * matching /api/schools. Filtered/paginated views still use that API.
+ */
+export const getSchoolsDirectoryFirstPage = unstable_cache(
+  async () => {
+    const { data, count } = await createPublicClient()
+      .from("school_profiles")
+      .select("id, school_name, slug, school_type, state, lga, town, logo_url, is_verified, about", { count: "exact" })
+      .eq("is_claimed", true)
+      .order("is_verified", { ascending: false })
+      .order("school_name", { ascending: true })
+      .range(0, 19)
+    return { schools: data ?? [], total: count ?? 0 }
+  },
+  ["schools-directory-first-page"],
+  { revalidate: 300, tags: ["schools"] }
+)
