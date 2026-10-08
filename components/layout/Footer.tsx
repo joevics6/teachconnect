@@ -41,7 +41,7 @@ export default function Footer() {
             <p className="text-sm leading-relaxed">
               {user
                 ? `Welcome back, ${user.display_name?.split(" ")[0] || "there"}.`
-                : "Direct hiring for schools and teachers — no agencies, no middlemen."}
+                : "Nigeria's dedicated teacher recruitment platform — direct hiring, no agencies."}
             </p>
             {user && (
               <Link
