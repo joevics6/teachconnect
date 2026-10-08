@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { requireAdmin } from "@/lib/admin"
+import { revalidateTag } from "next/cache"
 
 export async function GET() {
   try {
@@ -56,6 +57,7 @@ export async function POST(request: Request) {
       }
       throw error
     }
+    revalidateTag("blog", "max")
     return NextResponse.json({ post })
   } catch (err) {
     console.error("POST admin blog error:", err)

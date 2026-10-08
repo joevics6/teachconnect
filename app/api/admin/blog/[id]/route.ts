@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { requireAdmin } from "@/lib/admin"
+import { revalidateTag } from "next/cache"
 
 const ALLOWED_FIELDS = [
   "title", "slug", "excerpt", "body", "author", "cover_image_url",
@@ -56,6 +57,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       }
       throw error
     }
+    revalidateTag("blog", "max")
     return NextResponse.json({ post })
   } catch (err) {
     console.error("PATCH admin blog post error:", err)
@@ -73,6 +75,7 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
 
     const { error } = await adminDb.from("blog_posts").delete().eq("id", id)
     if (error) throw error
+    revalidateTag("blog", "max")
     return NextResponse.json({ ok: true })
   } catch (err) {
     console.error("DELETE admin blog post error:", err)

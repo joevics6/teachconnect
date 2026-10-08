@@ -1,85 +1,90 @@
-"use client"
-
-import { useState, useEffect } from "react"
-import { useParams } from "next/navigation"
+import type { Metadata } from "next"
 import Link from "next/link"
-import { Calendar, Clock, ArrowLeft, Loader2, Newspaper, User } from "lucide-react"
+import { notFound } from "next/navigation"
+import { ArrowLeft, Calendar, Clock, User } from "lucide-react"
+import { getPostBySlug, getPublishedPosts } from "@/lib/cache/blog"
+import { absoluteUrl, LOGO_URL, oneLine, OG_IMAGE_URL, SITE_NAME, toJsonLdString, trimText } from "@/lib/site"
 
-interface Post {
-  id: string
-  title: string
-  excerpt: string
-  body: string | null
-  author: string | null
-  cover_image_url: string | null
-  tags: string[]
-  read_time_minutes: number | null
-  published_at: string
-}
+export const revalidate = 300
 
-interface RelatedPost {
-  id: string
-  title: string
-  slug: string
-  excerpt: string
-  cover_image_url: string | null
-  published_at: string
-}
+type Props = { params: Promise<{ slug: string }> }
 
 function formatDate(d: string) {
-  return new Date(d).toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" })
+  return new Date(d).toLocaleDateString("en-NG", { day: "numeric", month: "long", year: "numeric" })
 }
 
-export default function BlogPostPage() {
-  const params = useParams()
-  const slug = params.slug as string
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params
+  const post = await getPostBySlug(slug)
+  if (!post) return { title: "Post not found", robots: { index: false, follow: false } }
 
-  const [post, setPost] = useState<Post | null>(null)
-  const [related, setRelated] = useState<RelatedPost[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [notFound, setNotFound] = useState(false)
+  const description = trimText(oneLine(post.excerpt || post.body || post.title), 160)
+  const url = absoluteUrl(`/blog/${post.slug}`)
+  const image = post.cover_image_url || OG_IMAGE_URL
 
-  useEffect(() => {
-    fetch(`/api/blog/posts/${slug}`)
-      .then(async (res) => {
-        if (res.status === 404) { setNotFound(true); return }
-        if (!res.ok) return
-        const data = await res.json()
-        setPost(data.post)
-        setRelated(data.related || [])
-      })
-      .catch((err) => console.error("Failed to load blog post:", err))
-      .finally(() => setIsLoading(false))
-  }, [slug])
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 text-ink-600 animate-spin" />
-      </div>
-    )
+  return {
+    title: post.title,
+    description,
+    alternates: { canonical: `/blog/${post.slug}` },
+    keywords: post.tags?.length ? post.tags : undefined,
+    openGraph: {
+      title: post.title,
+      description,
+      url,
+      siteName: SITE_NAME,
+      type: "article",
+      publishedTime: post.published_at,
+      modifiedTime: post.updated_at || post.published_at,
+      authors: post.author ? [post.author] : undefined,
+      tags: post.tags,
+      images: [{ url: image }],
+    },
+    twitter: { card: "summary_large_image", title: post.title, description, images: [image] },
   }
+}
 
-  if (notFound || !post) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-        <div className="text-center">
-          <Newspaper className="h-10 w-10 text-gray-300 mx-auto mb-3" />
-          <p className="text-gray-700 mb-4">Post not found.</p>
-          <Link href="/blog" className="text-ink-600 hover:underline text-sm">Back to Blog</Link>
-        </div>
-      </div>
-    )
+export default async function BlogPostPage({ params }: Props) {
+  const { slug } = await params
+  const post = await getPostBySlug(slug)
+  if (!post) notFound()
+
+  const related = (await getPublishedPosts()).filter((p) => p.id !== post.id).slice(0, 3)
+  const url = absoluteUrl(`/blog/${post.slug}`)
+
+  const articleLd = {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    headline: trimText(post.title, 110),
+    description: oneLine(post.excerpt || ""),
+    image: [post.cover_image_url || OG_IMAGE_URL],
+    datePublished: post.published_at,
+    dateModified: post.updated_at || post.published_at,
+    mainEntityOfPage: { "@type": "WebPage", "@id": url },
+    author: post.author ? { "@type": "Person", name: post.author } : { "@type": "Organization", name: SITE_NAME },
+    publisher: { "@type": "Organization", name: SITE_NAME, logo: { "@type": "ImageObject", url: LOGO_URL } },
+    ...(post.tags?.length ? { keywords: post.tags.join(", ") } : {}),
+  }
+  const crumbLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: absoluteUrl("/") },
+      { "@type": "ListItem", position: 2, name: "Blog", item: absoluteUrl("/blog") },
+      { "@type": "ListItem", position: 3, name: post.title, item: url },
+    ],
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: toJsonLdString(articleLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: toJsonLdString(crumbLd) }} />
       <div className="max-w-3xl mx-auto px-4 py-10">
         <Link href="/blog" className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 mb-6">
           <ArrowLeft className="h-4 w-4" />Back to Blog
         </Link>
 
         {post.cover_image_url && (
+          // eslint-disable-next-line @next/next/no-img-element
           <img src={post.cover_image_url} alt={post.title} className="w-full h-64 object-cover rounded-xl mb-6" />
         )}
 
@@ -89,20 +94,23 @@ export default function BlogPostPage() {
           {post.author && (
             <span className="flex items-center gap-1.5"><User className="h-4 w-4" />{post.author}</span>
           )}
-          <span className="flex items-center gap-1.5"><Calendar className="h-4 w-4" />{formatDate(post.published_at)}</span>
+          <span className="flex items-center gap-1.5">
+            <Calendar className="h-4 w-4" />
+            <time dateTime={post.published_at}>{formatDate(post.published_at)}</time>
+          </span>
           {post.read_time_minutes && (
             <span className="flex items-center gap-1.5"><Clock className="h-4 w-4" />{post.read_time_minutes} min read</span>
           )}
         </div>
 
-        <div className="bg-white border border-gray-200 rounded-xl p-6 sm:p-8">
+        <article className="bg-white border border-gray-200 rounded-xl p-6 sm:p-8">
           <p className="text-gray-600 text-lg mb-6 leading-relaxed">{post.excerpt}</p>
           {post.body && (
             <div className="prose prose-sm max-w-none text-gray-700 whitespace-pre-wrap leading-relaxed">
               {post.body}
             </div>
           )}
-        </div>
+        </article>
 
         {post.tags?.length > 0 && (
           <div className="flex flex-wrap gap-2 mt-6">
