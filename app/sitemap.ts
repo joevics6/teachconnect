@@ -1,6 +1,8 @@
 import type { MetadataRoute } from "next"
 import { createClient } from "@/lib/supabase/server"
 import { SITE_URL } from "@/lib/site"
+import { getLandingKeysWithContent, getStateJobCounts } from "@/lib/cache/landing"
+import { landingPath, MIN_JOBS_FOR_LANDING } from "@/lib/landing"
 
 const STATIC_ROUTES = [
   "",
@@ -67,5 +69,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.5,
   }))
 
-  return [...staticEntries, ...jobEntries, ...resourceEntries, ...blogEntries, ...schoolEntries]
+  // Location pages: live (enough jobs) AND with written copy — the same
+  // rule the page uses to decide whether it is indexable.
+  const [stateCounts, statesWithCopy] = await Promise.all([getStateJobCounts(), getLandingKeysWithContent()])
+  const landingEntries: MetadataRoute.Sitemap = statesWithCopy
+    .filter((state) => (stateCounts[state] ?? 0) >= MIN_JOBS_FOR_LANDING)
+    .map((state) => ({
+      url: `${baseUrl}${landingPath(state)}`,
+      changeFrequency: "daily" as const,
+      priority: 0.8,
+    }))
+
+  return [...staticEntries, ...landingEntries, ...jobEntries, ...resourceEntries, ...blogEntries, ...schoolEntries]
 }

@@ -3,7 +3,7 @@
 import { useState, useEffect, type ReactNode } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Mail, Users, BookOpen, Newspaper, Loader2, AlertCircle, Send, HelpCircle, Palette, Briefcase, School, ClipboardCheck } from "lucide-react"
+import { Mail, Users, BookOpen, Newspaper, Loader2, AlertCircle, Send, HelpCircle, Palette, Briefcase, School, ClipboardCheck, MapPin } from "lucide-react"
 
 const ADMIN_NAV = [
   { href: "/admin/contact",     label: "Messages",     icon: Mail },
@@ -13,6 +13,7 @@ const ADMIN_NAV = [
   { href: "/admin/claims",      label: "Claims",       icon: ClipboardCheck },
   { href: "/admin/resources",   label: "Resources",    icon: BookOpen },
   { href: "/admin/blog",        label: "Blog",         icon: Newspaper },
+  { href: "/admin/seo-pages",   label: "Location pages", icon: MapPin },
   { href: "/admin/quiz-bank",   label: "Quiz Bank",    icon: HelpCircle },
   { href: "/admin/branding",    label: "Branding",     icon: Palette },
   { href: "/admin/newsletter",  label: "Newsletter",   icon: Send },

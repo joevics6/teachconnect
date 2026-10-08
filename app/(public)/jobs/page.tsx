@@ -1,5 +1,8 @@
 import type { Metadata } from "next"
+import Link from "next/link"
 import { getFeaturedJobs, getJobsSearch } from "@/lib/cache/jobs"
+import { getStateJobCounts } from "@/lib/cache/landing"
+import { MIN_JOBS_FOR_LANDING, landingPath, stateDisplayName } from "@/lib/landing"
 import { absoluteUrl, toJsonLdString } from "@/lib/site"
 import JobsClient, { type InitialJobs, type JobWithSchool } from "./JobsClient"
 
@@ -36,6 +39,12 @@ export default async function JobsPage() {
     console.error("Jobs page: server fetch failed:", err)
   }
 
+  // Crawlable links to the location landing pages that are live.
+  const stateCounts = await getStateJobCounts().catch(() => ({} as Record<string, number>))
+  const liveLocations = Object.entries(stateCounts)
+    .filter(([, n]) => n >= MIN_JOBS_FOR_LANDING)
+    .sort((a, b) => b[1] - a[1])
+
   const listed = initial ? [...initial.featured, ...initial.jobs] : []
   const listLd = {
     "@context": "https://schema.org",
@@ -54,6 +63,18 @@ export default async function JobsPage() {
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: toJsonLdString(listLd) }} />
       )}
       <JobsClient initial={initial} />
+      {liveLocations.length > 0 && (
+        <nav aria-label="Teaching jobs by location" className="max-w-6xl mx-auto px-4 pb-10">
+          <h2 className="text-sm font-semibold text-gray-700 mb-2">Browse teaching jobs by location</h2>
+          <div className="flex flex-wrap gap-2">
+            {liveLocations.map(([state, n]) => (
+              <Link key={state} href={landingPath(state)} className="px-3 py-1.5 bg-white border border-gray-200 text-ink-600 hover:border-ink-300 text-sm rounded-lg">
+                Teaching jobs in {stateDisplayName(state)} ({n})
+              </Link>
+            ))}
+          </div>
+        </nav>
+      )}
     </>
   )
 }
