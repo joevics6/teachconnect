@@ -55,7 +55,7 @@ function textOf(node: ReactNode): string {
 export function Markdown({ children, className = "" }: { children: string; className?: string }) {
   const used = new Map<string, number>()
   const headingId = (children: ReactNode) => {
-    let id = slugifyHeading(textOf(children)) || "section"
+    const id = slugifyHeading(textOf(children)) || "section"
     const n = used.get(id) ?? 0
     used.set(id, n + 1)
     return n > 0 ? `${id}-${n + 1}` : id

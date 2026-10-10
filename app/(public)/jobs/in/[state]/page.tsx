@@ -111,6 +111,8 @@ export default async function StateJobsPage({ params }: Props) {
     },
   }
 
+  // Server component: "days left" is computed once per (cached) render.
+  // eslint-disable-next-line react-hooks/purity
   const now = Date.now()
 
   return (

@@ -183,6 +183,52 @@ function JobCard({ job }: { job: JobWithSchool }) {
   )
 }
 
+const pageHref = (p: number) => (p <= 1 ? "/jobs" : `/jobs?page=${p}`)
+
+// One pagination control: a real link (crawlable) when the list is
+// unfiltered, a plain button otherwise. Defined at module level so it
+// isn't re-created on every render of JobsClient.
+function PageLink({
+  page,
+  currentPage,
+  isFiltered,
+  onGo,
+  className,
+  disabled,
+  children,
+  label,
+}: {
+  page: number
+  currentPage: number
+  isFiltered: boolean
+  onGo: (page: number) => void
+  className: string
+  disabled?: boolean
+  children: React.ReactNode
+  label?: string
+}) {
+  return isFiltered || disabled ? (
+    <button type="button" aria-label={label} onClick={() => onGo(page)} disabled={disabled} className={className}>
+      {children}
+    </button>
+  ) : (
+    <a
+      href={pageHref(page)}
+      aria-label={label}
+      aria-current={page === currentPage ? "page" : undefined}
+      className={className}
+      onClick={(e) => {
+        // Let new-tab / modified clicks behave like normal links.
+        if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return
+        e.preventDefault()
+        onGo(page)
+      }}
+    >
+      {children}
+    </a>
+  )
+}
+
 export interface InitialJobs {
   jobs: JobWithSchool[]
   featured: JobWithSchool[]
@@ -300,45 +346,11 @@ export default function JobsClient({ initial }: { initial?: InitialJobs }) {
   // of real links (/jobs?page=2) that crawlers can follow; with filters
   // active it falls back to plain buttons.
   const isFiltered = Boolean(filters.keyword) || activeFilterCount > 0 || filters.sort !== "newest"
-  const pageHref = (p: number) => (p <= 1 ? "/jobs" : `/jobs?page=${p}`)
   const goToPage = (p: number) => {
     setCurrentPage(p)
     if (!isFiltered) window.history.replaceState(null, "", pageHref(p))
     window.scrollTo({ top: 0, behavior: "smooth" })
   }
-  const PageLink = ({
-    page,
-    className,
-    disabled,
-    children,
-    label,
-  }: {
-    page: number
-    className: string
-    disabled?: boolean
-    children: React.ReactNode
-    label?: string
-  }) =>
-    isFiltered || disabled ? (
-      <button type="button" aria-label={label} onClick={() => goToPage(page)} disabled={disabled} className={className}>
-        {children}
-      </button>
-    ) : (
-      <a
-        href={pageHref(page)}
-        aria-label={label}
-        aria-current={page === currentPage ? "page" : undefined}
-        className={className}
-        onClick={(e) => {
-          // Let new-tab / modified clicks behave like normal links.
-          if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return
-          e.preventDefault()
-          goToPage(page)
-        }}
-      >
-        {children}
-      </a>
-    )
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -636,6 +648,9 @@ export default function JobsClient({ initial }: { initial?: InitialJobs }) {
         {totalPages > 1 && (
           <nav aria-label="Pagination" className="flex items-center justify-between mt-8">
             <PageLink
+              currentPage={currentPage}
+              isFiltered={isFiltered}
+              onGo={goToPage}
               page={Math.max(1, currentPage - 1)}
               disabled={currentPage === 1}
               label="Previous page"
@@ -656,12 +671,15 @@ export default function JobsClient({ initial }: { initial?: InitialJobs }) {
                   <>
                     {start > 1 && (
                       <>
-                        <PageLink page={1} className={`${base} text-gray-600 hover:bg-gray-100`}>1</PageLink>
+                        <PageLink currentPage={currentPage} isFiltered={isFiltered} onGo={goToPage} page={1} className={`${base} text-gray-600 hover:bg-gray-100`}>1</PageLink>
                         <span className="text-gray-400 text-sm">…</span>
                       </>
                     )}
                     {pages.map((page) => (
                       <PageLink
+              currentPage={currentPage}
+              isFiltered={isFiltered}
+              onGo={goToPage}
                         key={page}
                         page={page}
                         className={`${base} ${currentPage === page ? "bg-ink-600 text-white" : "text-gray-600 hover:bg-gray-100"}`}
@@ -672,7 +690,7 @@ export default function JobsClient({ initial }: { initial?: InitialJobs }) {
                     {end < totalPages && (
                       <>
                         <span className="text-gray-400 text-sm">…</span>
-                        <PageLink page={totalPages} className={`${base} text-gray-600 hover:bg-gray-100`}>{totalPages}</PageLink>
+                        <PageLink currentPage={currentPage} isFiltered={isFiltered} onGo={goToPage} page={totalPages} className={`${base} text-gray-600 hover:bg-gray-100`}>{totalPages}</PageLink>
                       </>
                     )}
                   </>
@@ -680,6 +698,9 @@ export default function JobsClient({ initial }: { initial?: InitialJobs }) {
               })()}
             </div>
             <PageLink
+              currentPage={currentPage}
+              isFiltered={isFiltered}
+              onGo={goToPage}
               page={Math.min(totalPages, currentPage + 1)}
               disabled={currentPage === totalPages}
               label="Next page"
