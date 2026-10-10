@@ -50,6 +50,8 @@ export default function AdminJobsPage() {
   const [bulkBusy, setBulkBusy] = useState(false)
   const [confirmApproveAll, setConfirmApproveAll] = useState(false)
   const [bulkMessage, setBulkMessage] = useState<string | null>(null)
+  const [seoMissing, setSeoMissing] = useState<number | null>(null)
+  const [seoBusy, setSeoBusy] = useState(false)
 
   const load = () => {
     setIsLoading(true)
@@ -87,6 +89,34 @@ export default function AdminJobsPage() {
       console.error("Action failed:", err)
     } finally {
       setBusyId(null)
+    }
+  }
+
+  // Live jobs that don't have search content yet (see lib/job-seo.ts).
+  const loadSeoMissing = () =>
+    fetch("/api/admin/jobs/seo-backfill")
+      .then(async (res) => (res.ok ? setSeoMissing((await res.json()).missing) : null))
+      .catch(() => {})
+
+  useEffect(() => {
+    if (statusFilter === "active") loadSeoMissing()
+  }, [statusFilter])
+
+  const handleSeoBackfill = async () => {
+    setSeoBusy(true)
+    setBulkMessage(null)
+    try {
+      const res = await fetch("/api/admin/jobs/seo-backfill", { method: "POST" })
+      const data = await res.json().catch(() => null)
+      setBulkMessage(
+        res.ok
+          ? `Generating search content for ${data.queued} job${data.queued === 1 ? "" : "s"} in the background — check back in a few minutes.`
+          : data?.error || "Failed to start."
+      )
+    } catch {
+      setBulkMessage("Failed to start.")
+    } finally {
+      setSeoBusy(false)
     }
   }
 
@@ -251,6 +281,22 @@ export default function AdminJobsPage() {
                 Approve all unapproved
               </button>
             </div>
+          </div>
+        )}
+
+        {statusFilter === "active" && seoMissing !== null && seoMissing > 0 && (
+          <div className="flex items-center gap-3 flex-wrap mb-4 bg-white border border-gray-200 rounded-xl px-4 py-3">
+            <p className="text-sm text-gray-700">
+              {seoMissing} live job{seoMissing === 1 ? " has" : "s have"} no search content yet (about the role, who should apply, how to stand out).
+            </p>
+            <button
+              onClick={handleSeoBackfill}
+              disabled={seoBusy}
+              className="ml-auto px-3 py-1.5 rounded-lg text-xs font-medium bg-ink-700 hover:bg-ink-800 text-white flex items-center gap-1.5 disabled:opacity-50"
+            >
+              {seoBusy && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+              Generate for live jobs
+            </button>
           </div>
         )}
 
