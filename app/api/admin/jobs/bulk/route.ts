@@ -13,6 +13,7 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import { requireAdmin } from "@/lib/admin"
 import { generateAndSaveSocialPost } from "@/lib/social-post"
 import { ensureJobSeoContent } from "@/lib/job-seo"
+import { notifyJobsPublished } from "@/lib/index-notify"
 import { revalidateTag } from "next/cache"
 import { after } from "next/server"
 
@@ -61,6 +62,7 @@ export async function POST(request: Request) {
         )
       }
       revalidateTag("jobs", "max")
+      await notifyJobsPublished(approvedIds)
     })
 
     revalidateTag("jobs", "max")

@@ -13,6 +13,7 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import { requireAdmin } from "@/lib/admin"
 import { generateAndSaveSocialPost } from "@/lib/social-post"
 import { ensureJobSeoContent } from "@/lib/job-seo"
+import { notifyJobsPublished } from "@/lib/index-notify"
 import { revalidateTag } from "next/cache"
 import { after } from "next/server"
 
@@ -129,6 +130,8 @@ export async function PATCH(
           console.error("Social post generation failed for job", id, err)
         )
         revalidateTag("jobs", "max")
+        // Tell Google / Bing the page is live (no-op unless configured).
+        await notifyJobsPublished([id])
       })
     }
 
