@@ -85,7 +85,8 @@ export async function generateMetadata(
       description,
       url,
       siteName: "ClassHire",
-      images:   [{ url: image, width: 1200, height: 630, alt: resource.title }],
+      // Without a cover image, the generated opengraph-image card is used.
+      ...(resource.cover_image_url ? { images: [{ url: resource.cover_image_url, width: 1200, height: 630, alt: resource.title }] } : {}),
       type:     "article",
       publishedTime: resource.published_at,
       modifiedTime:  resource.updated_at || resource.published_at,
@@ -94,7 +95,7 @@ export async function generateMetadata(
       card:        "summary_large_image",
       title,
       description,
-      images:      [image],
+      ...(resource.cover_image_url ? { images: [resource.cover_image_url] } : {}),
     },
     alternates: { canonical: url },
   }

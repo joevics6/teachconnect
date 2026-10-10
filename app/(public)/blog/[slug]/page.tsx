@@ -22,7 +22,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const description = trimText(oneLine(post.excerpt || post.body || post.title), 160)
   const url = absoluteUrl(`/blog/${post.slug}`)
-  const image = post.cover_image_url || OG_IMAGE_URL
 
   return {
     title: post.title,
@@ -39,9 +38,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       modifiedTime: post.updated_at || post.published_at,
       authors: post.author ? [post.author] : undefined,
       tags: post.tags,
-      images: [{ url: image }],
+      // Without a cover image, the generated opengraph-image card is used.
+      ...(post.cover_image_url ? { images: [{ url: post.cover_image_url }] } : {}),
     },
-    twitter: { card: "summary_large_image", title: post.title, description, images: [image] },
+    twitter: {
+      card: "summary_large_image",
+      title: post.title,
+      description,
+      ...(post.cover_image_url ? { images: [post.cover_image_url] } : {}),
+    },
   }
 }
 
