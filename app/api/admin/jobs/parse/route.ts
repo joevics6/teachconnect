@@ -1,6 +1,6 @@
 // ============================================================
 // app/api/admin/jobs/parse/route.ts
-// POST — admin-only. Same idea as api/school/jobs/parse, but for
+// POST — admin-only. Same idea as api/school/jobs/parse (and, like the JobMeter parser, a post with several roles comes back as several separate jobs), but for
 // the admin "New Job" quick-create flow (app/admin/jobs/new): admin
 // pastes one raw posting (e.g. copied from a Facebook group) that
 // usually names the school too, and this extracts BOTH the job
@@ -24,7 +24,7 @@ Text: "${description}"
 
 Return exactly this JSON structure (use null for fields not mentioned, do not add extra fields):
 {
-  "job": {
+  "jobs": [{
     "title": "job title string or null",
     "subject": "must be one of exactly: ${ALL_SUBJECTS.join(", ")} — or null if not mentioned",
     "teaching_levels": ["array of applicable values from: nursery, primary, jss, sss, tertiary, non_teaching — empty array if not mentioned"],
@@ -38,7 +38,7 @@ Return exactly this JSON structure (use null for fields not mentioned, do not ad
     "description": "a professional 3-5 sentence job description written from the school perspective based on the input",
     "required_qualifications": "a clear list of required qualifications inferred from the subject, level and any mentioned requirements",
     "apply_contact": "an email address, phone/WhatsApp number, or website mentioned as the way to apply or get in touch — or null if nothing like that is mentioned"
-  },
+ }],
   "school": {
     "school_name": "the hiring school's name, or null if not mentioned",
     "school_type": "must be one of exactly: private, public, international, missionary — or null if not stated or not inferable",
@@ -49,6 +49,8 @@ Return exactly this JSON structure (use null for fields not mentioned, do not ad
     "about": "one short sentence about the school if the text gives any context, or null"
   }
 }
+
+MULTIPLE ROLES: if the post lists several different roles or subjects (e.g. "Mathematics, English and Physics teachers needed", or a mix of teaching and non-teaching posts), return ONE entry in "jobs" for EACH distinct role or subject. Every entry must have its own title, subject, teaching_levels, description and required_qualifications written specifically for that role. Never reuse the same sentences across entries. Shared details (salary, benefits, employment type, how to apply) are repeated on each entry. If the post is a single role, return exactly one entry.
 
 If the role is a NON-TEACHING position (e.g. bursar, accountant, admin
 officer, receptionist, librarian, guidance counsellor, nurse, IT
@@ -73,7 +75,16 @@ export async function POST(request: Request) {
     }
 
     const text = await generateWithGemini(PROMPT(description))
-    const parsed = parseGeminiJson<{ job?: Record<string, unknown>; school?: Record<string, unknown> }>(text)
+    const raw = parseGeminiJson<{
+      jobs?: Record<string, unknown>[]
+      job?: Record<string, unknown>
+      school?: Record<string, unknown>
+    }>(text)
+
+    // One entry per distinct role. `job` stays as the first entry for
+    // callers that only handle a single job (the school-facing flow).
+    const jobs = Array.isArray(raw.jobs) && raw.jobs.length ? raw.jobs : raw.job ? [raw.job] : []
+    const parsed = { job: jobs[0], jobs, school: raw.school }
 
     return NextResponse.json({ parsed })
   } catch (err) {
