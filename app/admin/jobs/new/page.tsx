@@ -93,9 +93,6 @@ export default function AdminNewJobPage() {
 
   const [aiInput, setAiInput] = useState("")
   const [aiParsing, setAiParsing] = useState(false)
-  // Roles the parser found in the pasted post, keyed by subject, so each
-  // split job starts from its OWN parsed title/description/requirements.
-  const [parsedBySubject, setParsedBySubject] = useState<Record<string, Record<string, string>>>({})
   const [aiError, setAiError] = useState("")
   const [aiSuccess, setAiSuccess] = useState(false)
 
@@ -181,38 +178,22 @@ export default function AdminNewJobPage() {
       const data = await response.json()
       if (!response.ok) throw new Error(data.error || "Parsing failed")
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const jobs: Record<string, any>[] = data.parsed?.jobs?.length ? data.parsed.jobs : data.parsed?.job ? [data.parsed.job] : []
-      const job = jobs[0]
+      const job = data.parsed?.job
       if (job) {
         if (job.title) updateJob("title", job.title)
-        // Merge every role the parser found into one level → subjects map
-        // (a post naming Maths and English teachers becomes both subjects),
-        // and remember each role's own parsed text for the review step.
-        const merged = new Map<TeachingLevel, string[]>()
-        const bySubject: Record<string, Record<string, string>> = {}
-        for (const j of jobs) {
-          for (const level of (j.teaching_levels || []) as TeachingLevel[]) {
-            const options = getSubjectsForLevel(level)
-            const subs = options.length === 1 ? options : j.subject ? [j.subject] : []
-            const list = merged.get(level) ?? []
-            for (const sub of subs) {
-              if (!list.includes(sub)) list.push(sub)
-              if (!bySubject[sub]) {
-                bySubject[sub] = {
-                  title: j.title || "",
-                  description: j.description || "",
-                  required_qualifications: j.required_qualifications || "",
-                }
-              }
-            }
-            merged.set(level, list)
-          }
-        }
-        setParsedBySubject(bySubject)
-        setDrafts(null)
-        if (merged.size) {
-          updateJob("level_subjects", [...merged.entries()].map(([level, subjects]) => ({ level, subjects })))
+        // The parser detects one subject and a set of levels, not a
+        // per-level breakdown — apply that single subject to every
+        // level it found (same best-effort approach as CV parsing on
+        // teacher registration). Admin can add more subjects manually.
+        if (job.teaching_levels?.length) {
+          updateJob(
+            "level_subjects",
+            (job.teaching_levels as TeachingLevel[]).map((level) => {
+              const options = getSubjectsForLevel(level)
+              const subjects = options.length === 1 ? options : job.subject ? [job.subject] : []
+              return { level, subjects }
+            })
+          )
         }
         if (job.employment_type) updateJob("employment_type", job.employment_type)
         if (job.positions) updateJob("positions", String(job.positions))
@@ -300,9 +281,9 @@ export default function AdminNewJobPage() {
   const draftFromSplit = (split: { subject: string; teaching_levels: string[]; title: string }): JobDraft => ({
     subject: split.subject,
     teaching_levels: split.teaching_levels,
-    title: parsedBySubject[split.subject]?.title || split.title,
-    description: parsedBySubject[split.subject]?.description || jobData.description,
-    required_qualifications: parsedBySubject[split.subject]?.required_qualifications || jobData.required_qualifications,
+    title: split.title,
+    description: jobData.description,
+    required_qualifications: jobData.required_qualifications,
     preferred_qualifications: jobData.preferred_qualifications,
     role_category: "", experience_level: "", responsibilities: "", skills_required: "",
     about_role: "", who_apply: "", standout: "", meta_description: "",
@@ -323,10 +304,7 @@ export default function AdminNewJobPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...jobData,
-          // Start from this role's own parsed text when the parser found one.
-          description: base.description,
-          required_qualifications: base.required_qualifications,
-          title: base.title,
+          title: split.title,
           subject: split.subject,
           teaching_levels: split.teaching_levels,
           sibling_subjects: allSubjects,
