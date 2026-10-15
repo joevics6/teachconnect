@@ -12,6 +12,7 @@ import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { requireAdmin } from "@/lib/admin"
+import { sanitizeJobSeoContent } from "@/lib/job-seo"
 
 export async function POST(
   request: Request,
@@ -88,7 +89,16 @@ export async function POST(
       )
     }
 
+    // Optional per-job search content written by /api/admin/jobs/variant
+    // (used when one posting is split into several subject jobs). When it
+    // is absent, the content is generated at approval time as before.
+    const seo = body.seo && typeof body.seo === "object" ? sanitizeJobSeoContent(body.seo) : null
+    const seoFields = seo?.about_role
+      ? { ...seo, seo_generated_at: new Date().toISOString() }
+      : {}
+
     const jobPayload = {
+      ...seoFields,
       school_id:                schoolId,
       title:                    body.title,
       subject:                  body.subject,
