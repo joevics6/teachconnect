@@ -66,26 +66,6 @@ interface ExistingSchool {
   lga: string
 }
 
-interface JobDraft {
-  subject: string
-  teaching_levels: string[]
-  title: string
-  description: string
-  required_qualifications: string
-  preferred_qualifications: string
-  role_category: string
-  experience_level: string
-  responsibilities: string // one per line
-  skills_required: string // one per line
-  about_role: string
-  who_apply: string
-  standout: string
-  meta_description: string
-  generated: boolean // false = generation failed, shared form text used
-}
-
-const lines = (v: string) => v.split("\n").map((x) => x.trim()).filter(Boolean)
-
 export default function AdminNewJobPage() {
   const [jobData, setJobData] = useState<JobFormData>(EMPTY_JOB)
   const [schoolData, setSchoolData] = useState<SchoolFormData>(EMPTY_SCHOOL)
@@ -108,11 +88,6 @@ export default function AdminNewJobPage() {
   const [searchingSchools, setSearchingSchools] = useState(false)
   const [selectedSchool, setSelectedSchool] = useState<ExistingSchool | null>(null)
 
-  // Review step for postings that split into several subject jobs.
-  const [drafts, setDrafts] = useState<JobDraft[] | null>(null)
-  const [draftProgress, setDraftProgress] = useState<{ done: number; total: number } | null>(null)
-  const [openDraft, setOpenDraft] = useState<number | null>(0)
-
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState("")
   const [submitted, setSubmitted] = useState(false)
@@ -120,7 +95,6 @@ export default function AdminNewJobPage() {
 
   const updateJob = <K extends keyof JobFormData>(field: K, value: JobFormData[K]) => {
     setJobData((f) => ({ ...f, [field]: value }))
-    if (field === "level_subjects") setDrafts(null) // the split changed, drafts no longer match
     setErrors((e) => ({ ...e, [field]: "" }))
   }
   const updateSchool = <K extends keyof SchoolFormData>(field: K, value: SchoolFormData[K]) => {
@@ -273,110 +247,8 @@ export default function AdminNewJobPage() {
     return true
   }
 
-  const schoolForCopy = () =>
-    selectedSchool
-      ? { school_name: selectedSchool.school_name, school_type: "", state: selectedSchool.state, lga: selectedSchool.lga, is_anonymous: false }
-      : { ...schoolData, is_anonymous: schoolMode === "anonymous" }
-
-  const draftFromSplit = (split: { subject: string; teaching_levels: string[]; title: string }): JobDraft => ({
-    subject: split.subject,
-    teaching_levels: split.teaching_levels,
-    title: split.title,
-    description: jobData.description,
-    required_qualifications: jobData.required_qualifications,
-    preferred_qualifications: jobData.preferred_qualifications,
-    role_category: "", experience_level: "", responsibilities: "", skills_required: "",
-    about_role: "", who_apply: "", standout: "", meta_description: "",
-    generated: false,
-  })
-
-  // Writes the unique copy for one subject job (title, description,
-  // qualifications, accordions, meta description). Falls back to the
-  // shared form text if generation fails.
-  const generateDraft = async (
-    split: { subject: string; teaching_levels: string[]; title: string },
-    allSubjects: string[]
-  ): Promise<JobDraft> => {
-    const base = draftFromSplit(split)
-    try {
-      const res = await fetch("/api/admin/jobs/variant", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...jobData,
-          title: split.title,
-          subject: split.subject,
-          teaching_levels: split.teaching_levels,
-          sibling_subjects: allSubjects,
-          raw_post: aiInput,
-          school: schoolForCopy(),
-        }),
-      })
-      if (!res.ok) return base
-      const { variant: v } = await res.json()
-      return {
-        ...base,
-        title: v.title || base.title,
-        description: v.description || base.description,
-        required_qualifications: v.required_qualifications || base.required_qualifications,
-        preferred_qualifications: v.preferred_qualifications || base.preferred_qualifications,
-        role_category: v.role_category || "",
-        experience_level: v.experience_level || "",
-        responsibilities: (v.responsibilities || []).join("\n"),
-        skills_required: (v.skills_required || []).join("\n"),
-        about_role: v.about_role || "",
-        who_apply: v.who_apply || "",
-        standout: v.standout || "",
-        meta_description: v.meta_description || "",
-        generated: true,
-      }
-    } catch {
-      return base
-    }
-  }
-
-  const generateDrafts = async () => {
-    const splits = splitIntoSubjectJobs(jobData.title, jobData.level_subjects)
-    const subjects = splits.map((x) => x.subject)
-    setSubmitError("")
-    setDraftProgress({ done: 0, total: splits.length })
-    const out: JobDraft[] = new Array(splits.length)
-    let done = 0
-    const CONCURRENCY = 2
-    let next = 0
-    const worker = async () => {
-      while (next < splits.length) {
-        const i = next++
-        out[i] = await generateDraft(splits[i], subjects)
-        done++
-        setDraftProgress({ done, total: splits.length })
-      }
-    }
-    await Promise.all(Array.from({ length: Math.min(CONCURRENCY, splits.length) }, worker))
-    setDrafts(out)
-    setOpenDraft(0)
-    setDraftProgress(null)
-    requestAnimationFrame(() => document.getElementById("draft-review")?.scrollIntoView({ behavior: "smooth" }))
-  }
-
-  const regenerateDraft = async (i: number) => {
-    if (!drafts) return
-    const splits = splitIntoSubjectJobs(jobData.title, jobData.level_subjects)
-    const fresh = await generateDraft(splits[i], splits.map((x) => x.subject))
-    setDrafts((d) => (d ? d.map((x, idx) => (idx === i ? fresh : x)) : d))
-  }
-
-  const updateDraft = (i: number, field: keyof JobDraft, value: string) =>
-    setDrafts((d) => (d ? d.map((x, idx) => (idx === i ? { ...x, [field]: value } : x)) : d))
-
   const handleSubmit = async () => {
     if (!validate()) return
-    const willSplit = splitIntoSubjectJobs(jobData.title, jobData.level_subjects).length > 1
-    if (willSplit && !drafts) {
-      // Several subject jobs: write and show each job's own copy first.
-      await generateDrafts()
-      return
-    }
     setSubmitting(true)
     setSubmitError("")
     try {
@@ -395,34 +267,40 @@ export default function AdminNewJobPage() {
 
       const jobSplits = splitIntoSubjectJobs(jobData.title, jobData.level_subjects)
       let posted = 0
+      const schoolForCopy = selectedSchool
+        ? { school_name: selectedSchool.school_name, school_type: "", state: selectedSchool.state, lga: selectedSchool.lga, is_anonymous: false }
+        : { ...schoolData, is_anonymous: schoolMode === "anonymous" }
       for (const split of jobSplits) {
-        // Use the reviewed draft for this subject (unique title, copy and
-        // search content). Without one (single job, or generation
-        // failed) the shared form text is used and search content is
-        // generated at approval.
-        const draft = drafts?.find((d) => d.subject === split.subject)
-        const unique: Record<string, unknown> = draft
-          ? {
-              title: draft.title.trim() || split.title,
-              description: draft.description,
-              required_qualifications: draft.required_qualifications,
-              preferred_qualifications: draft.preferred_qualifications || null,
-              ...(draft.generated && draft.about_role.trim()
-                ? {
-                    seo: {
-                      role_category: draft.role_category,
-                      experience_level: draft.experience_level,
-                      responsibilities: lines(draft.responsibilities),
-                      skills_required: lines(draft.skills_required),
-                      about_role: draft.about_role,
-                      who_apply: draft.who_apply,
-                      standout: draft.standout,
-                      meta_description: draft.meta_description,
-                    },
-                  }
-                : {}),
+        // A posting split into several subject jobs gets its own title,
+        // description, qualifications and search content per job, so no
+        // two job pages share text. Best-effort: if generation fails the
+        // job is still posted with the shared form text (and its search
+        // content is generated at approval as before).
+        let unique: Record<string, unknown> = {}
+        if (jobSplits.length > 1) {
+          try {
+            const vRes = await fetch("/api/admin/jobs/variant", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                ...jobData,
+                title: split.title,
+                subject: split.subject,
+                teaching_levels: split.teaching_levels,
+                sibling_subjects: jobSplits.map((s) => s.subject),
+                raw_post: aiInput,
+                school: schoolForCopy,
+              }),
+            })
+            if (vRes.ok) {
+              const { variant } = await vRes.json()
+              const { title, description, required_qualifications, preferred_qualifications, ...seo } = variant
+              unique = { title, description, required_qualifications, preferred_qualifications, seo }
             }
-          : {}
+          } catch {
+            /* fall back to shared text */
+          }
+        }
         const jobRes = await fetch(`/api/admin/schools/${schoolId}/jobs`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -463,7 +341,6 @@ export default function AdminNewJobPage() {
     setSelectedSchool(null)
     setSchoolSearch("")
     setSubmitted(false)
-    setDrafts(null)
   }
 
   if (submitted) {
@@ -911,136 +788,12 @@ export default function AdminNewJobPage() {
           )}
         </div>
 
-        {drafts && (
-          <div id="draft-review" className="space-y-3">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <h2 className="text-sm font-semibold text-gray-900">Review {drafts.length} jobs</h2>
-                <p className="text-xs text-gray-500">
-                  Each job has its own title, description and search content. Edit anything, or regenerate a job.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setDrafts(null)}
-                className="text-xs text-gray-500 hover:text-gray-800 underline shrink-0"
-              >
-                Discard drafts
-              </button>
-            </div>
-
-            {drafts.map((d, i) => {
-              const open = openDraft === i
-              const wordCount = [d.description, d.about_role, d.who_apply, d.standout]
-                .join(" ").split(/\s+/).filter(Boolean).length
-              const area = "w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-              const label = "block text-xs font-medium text-gray-600 mb-1"
-              return (
-                <div key={d.subject} className="bg-white border border-gray-200 rounded-xl">
-                  <button
-                    type="button"
-                    onClick={() => setOpenDraft(open ? null : i)}
-                    className="w-full flex items-center justify-between gap-3 p-4 text-left"
-                  >
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate">{d.title || d.subject}</p>
-                      <p className="text-xs text-gray-500">
-                        {d.subject} · {d.teaching_levels.join(", ")} · ~{wordCount} words
-                        {!d.generated && <span className="text-amber-600"> · AI copy failed, using shared text</span>}
-                      </p>
-                    </div>
-                    <span className="text-xs text-gray-400 shrink-0">{open ? "Hide" : "Edit"}</span>
-                  </button>
-
-                  {open && (
-                    <div className="px-4 pb-4 space-y-3 border-t border-gray-100 pt-3">
-                      <div>
-                        <label className={label}>Title</label>
-                        <input value={d.title} onChange={(e) => updateDraft(i, "title", e.target.value)} className={area} />
-                      </div>
-                      <div>
-                        <label className={label}>Description</label>
-                        <textarea rows={4} value={d.description} onChange={(e) => updateDraft(i, "description", e.target.value)} className={area} />
-                      </div>
-                      <div>
-                        <label className={label}>Required qualifications</label>
-                        <textarea rows={4} value={d.required_qualifications} onChange={(e) => updateDraft(i, "required_qualifications", e.target.value)} className={area} />
-                      </div>
-                      <div>
-                        <label className={label}>Preferred qualifications</label>
-                        <textarea rows={2} value={d.preferred_qualifications} onChange={(e) => updateDraft(i, "preferred_qualifications", e.target.value)} className={area} />
-                      </div>
-                      {d.generated && (
-                        <>
-                          <div>
-                            <label className={label}>About the role</label>
-                            <textarea rows={5} value={d.about_role} onChange={(e) => updateDraft(i, "about_role", e.target.value)} className={area} />
-                          </div>
-                          <div>
-                            <label className={label}>Who should apply</label>
-                            <textarea rows={5} value={d.who_apply} onChange={(e) => updateDraft(i, "who_apply", e.target.value)} className={area} />
-                          </div>
-                          <div>
-                            <label className={label}>How to stand out</label>
-                            <textarea rows={5} value={d.standout} onChange={(e) => updateDraft(i, "standout", e.target.value)} className={area} />
-                          </div>
-                          <div className="grid grid-cols-2 gap-3">
-                            <div>
-                              <label className={label}>Responsibilities (one per line)</label>
-                              <textarea rows={6} value={d.responsibilities} onChange={(e) => updateDraft(i, "responsibilities", e.target.value)} className={area} />
-                            </div>
-                            <div>
-                              <label className={label}>Skills (one per line)</label>
-                              <textarea rows={6} value={d.skills_required} onChange={(e) => updateDraft(i, "skills_required", e.target.value)} className={area} />
-                            </div>
-                          </div>
-                          <div>
-                            <label className={label}>Meta description ({d.meta_description.length}/160)</label>
-                            <input value={d.meta_description} maxLength={160} onChange={(e) => updateDraft(i, "meta_description", e.target.value)} className={area} />
-                          </div>
-                        </>
-                      )}
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        disabled={submitting || draftProgress !== null}
-                        onClick={async () => {
-                          setDraftProgress({ done: 0, total: 1 })
-                          await regenerateDraft(i)
-                          setDraftProgress(null)
-                        }}
-                        className="flex items-center gap-1.5"
-                      >
-                        <Sparkles className="h-3.5 w-3.5" />Regenerate this job
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              )
-            })}
-          </div>
-        )}
-
         <Button
           onClick={handleSubmit}
-          disabled={submitting || draftProgress !== null}
+          disabled={submitting}
           className="w-full bg-ink-600 hover:bg-ink-700 text-white py-3"
         >
-          {submitting || draftProgress ? (
-            <span className="flex items-center justify-center gap-2">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              {draftProgress
-                ? `Writing job ${Math.min(draftProgress.done + 1, draftProgress.total)} of ${draftProgress.total}…`
-                : "Posting…"}
-            </span>
-          ) : drafts ? (
-            `Post ${drafts.length} Jobs`
-          ) : splitIntoSubjectJobs(jobData.title, jobData.level_subjects).length > 1 ? (
-            "Generate & Review Jobs"
-          ) : (
-            "Post Job"
-          )}
+          {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Post Job"}
         </Button>
       </div>
     </AdminShell>
