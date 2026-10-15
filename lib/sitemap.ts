@@ -4,7 +4,8 @@
 // content type, so Search Console shows indexing per section and no
 // single file nears the 50,000-URL limit.
 //
-//   /sitemaps/static.xml     home, listing pages, legal, location pages
+//   /sitemaps/static.xml     home, listing pages, legal
+//   /sitemaps/locations.xml  state landing pages (/jobs/in/[state])
 //   /sitemaps/jobs.xml       live job pages
 //   /sitemaps/blog.xml       blog posts
 //   /sitemaps/resources.xml  resource posts
@@ -24,7 +25,7 @@ interface Entry {
   priority: number
 }
 
-export const SITEMAP_NAMES = ["static", "jobs", "blog", "resources", "schools"] as const
+export const SITEMAP_NAMES = ["static", "locations", "jobs", "blog", "resources", "schools"] as const
 export type SitemapName = (typeof SITEMAP_NAMES)[number]
 
 const esc = (s: string) =>
@@ -75,13 +76,15 @@ export async function buildEntries(name: SitemapName): Promise<Entry[]> {
         changefreq: path === "" || path === "/jobs" ? "daily" : "weekly",
         priority: path === "" ? 1 : 0.7,
       }))
-      // Location pages: live (enough jobs) AND with written copy — the same
-      // rule the page uses to decide whether it is indexable.
+      return base
+    }
+    case "locations": {
+      // Live (enough jobs) AND with written copy — the same rule the page
+      // uses to decide whether it is indexable.
       const [stateCounts, statesWithCopy] = await Promise.all([getStateJobCounts(), getLandingKeysWithContent()])
-      const landing: Entry[] = statesWithCopy
+      return statesWithCopy
         .filter((state) => (stateCounts[state] ?? 0) >= MIN_JOBS_FOR_LANDING)
         .map((state) => ({ path: landingPath(state), changefreq: "daily", priority: 0.8 }))
-      return [...base, ...landing]
     }
     case "jobs": {
       const { data } = await supabase
