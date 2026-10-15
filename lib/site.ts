@@ -4,7 +4,9 @@
 // and default share image aren't hardcoded across pages.
 // ============================================================
 
-export const SITE_URL = (process.env.NEXT_PUBLIC_APP_URL || "https://classhire.jobmeter.app").replace(/\/$/, "")
+// Canonical origin is the www host. Deliberately not env-driven so canonicals,
+// JSON-LD, sitemap and robots can never drift to another host.
+export const SITE_URL = "https://www.classhire.com.ng"
 export const SITE_NAME = "ClassHire"
 
 // File-based metadata images (app/opengraph-image.png) are served here.

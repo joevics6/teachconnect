@@ -16,8 +16,8 @@ import { Button } from "@/components/ui/button"
 import { createClient } from "@/lib/supabase/server"
 import { getPublicSchoolProfile, getSchoolContactInfo } from "@/lib/cache/schools"
 import { formatSalaryRange, formatCurrency, getInitials } from "@/lib/utils"
+import { SITE_URL } from "@/lib/site"
 
-const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://classhire.jobmeter.app"
 
 // ─── Helpers ─────────────────────────────────────────────────
 

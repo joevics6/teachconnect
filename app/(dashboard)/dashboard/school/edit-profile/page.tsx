@@ -391,7 +391,7 @@ export default function EditSchoolProfilePage() {
               <div>
                 <p className="text-sm font-semibold text-gray-900">Public School Page Content</p>
                 <p className="text-xs text-gray-500">
-                  Powers your public page at classhire.jobmeter.app/schools/{form.slug || "..."} — helps you show up in search and gives teachers more reason to apply.
+                  Powers your public page at www.classhire.com.ng/schools/{form.slug || "..."} — helps you show up in search and gives teachers more reason to apply.
                 </p>
               </div>
               <Button
