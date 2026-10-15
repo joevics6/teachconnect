@@ -5,11 +5,10 @@
 // single file nears the 50,000-URL limit.
 //
 //   /sitemaps/static.xml     home, listing pages, legal
-//   /sitemaps/locations.xml  state landing pages (/jobs/in/[state])
-//   /sitemaps/categories.xml category landing pages (/jobs/category/[slug])
+//   /sitemaps/landing.xml    state + category landing pages
+//                            (/jobs/in/[state], /jobs/category/[slug])
 //   /sitemaps/jobs.xml       live job pages
-//   /sitemaps/blog.xml       blog posts
-//   /sitemaps/resources.xml  resource posts
+//   /sitemaps/content.xml    blog posts + resource posts
 //   /sitemaps/schools.xml    verified school profiles with real content
 // ============================================================
 
@@ -26,7 +25,7 @@ interface Entry {
   priority: number
 }
 
-export const SITEMAP_NAMES = ["static", "locations", "categories", "jobs", "blog", "resources", "schools"] as const
+export const SITEMAP_NAMES = ["static", "landing", "jobs", "content", "schools"] as const
 export type SitemapName = (typeof SITEMAP_NAMES)[number]
 
 const esc = (s: string) =>
@@ -79,19 +78,22 @@ export async function buildEntries(name: SitemapName): Promise<Entry[]> {
       }))
       return base
     }
-    case "locations": {
-      // Live (enough jobs) AND with written copy — the same rule the page
-      // uses to decide whether it is indexable.
-      const [stateCounts, statesWithCopy] = await Promise.all([getStateJobCounts(), getLandingKeysWithContent()])
-      return statesWithCopy
+    case "landing": {
+      // Locations + categories. Live (enough jobs) AND with written copy —
+      // the same rule the pages use to decide whether they are indexable.
+      const [stateCounts, statesWithCopy, index, slugsWithCopy] = await Promise.all([
+        getStateJobCounts(),
+        getLandingKeysWithContent(),
+        getCategoryIndex(),
+        getLandingKeysWithContent("category"),
+      ])
+      const locations: Entry[] = statesWithCopy
         .filter((state) => (stateCounts[state] ?? 0) >= MIN_JOBS_FOR_LANDING)
         .map((state) => ({ path: landingPath(state), changefreq: "daily", priority: 0.8 }))
-    }
-    case "categories": {
-      const [index, slugsWithCopy] = await Promise.all([getCategoryIndex(), getLandingKeysWithContent("category")])
-      return slugsWithCopy
+      const categories: Entry[] = slugsWithCopy
         .filter((slug) => (index[slug]?.count ?? 0) >= MIN_JOBS_FOR_LANDING)
         .map((slug) => ({ path: categoryPath(slug), changefreq: "daily", priority: 0.8 }))
+      return [...locations, ...categories]
     }
     case "jobs": {
       const { data } = await supabase
@@ -101,13 +103,25 @@ export async function buildEntries(name: SitemapName): Promise<Entry[]> {
         .gte("deadline", new Date().toISOString().split("T")[0])
       return (data || []).map((j) => ({ path: `/jobs/${j.id}`, lastmod: j.updated_at, changefreq: "daily", priority: 0.8 }))
     }
-    case "blog": {
-      const { data } = await supabase.from("blog_posts").select("slug, updated_at").eq("is_published", true)
-      return (data || []).map((p) => ({ path: `/blog/${p.slug}`, lastmod: p.updated_at, changefreq: "monthly", priority: 0.6 }))
-    }
-    case "resources": {
-      const { data } = await supabase.from("resource_posts").select("slug, updated_at").eq("is_published", true)
-      return (data || []).map((r) => ({ path: `/resources/${r.slug}`, lastmod: r.updated_at, changefreq: "monthly", priority: 0.6 }))
+    case "content": {
+      // Blog posts + resource posts.
+      const [blog, resources] = await Promise.all([
+        supabase.from("blog_posts").select("slug, updated_at").eq("is_published", true),
+        supabase.from("resource_posts").select("slug, updated_at").eq("is_published", true),
+      ])
+      const posts: Entry[] = (blog.data || []).map((p) => ({
+        path: `/blog/${p.slug}`,
+        lastmod: p.updated_at,
+        changefreq: "monthly",
+        priority: 0.6,
+      }))
+      const res: Entry[] = (resources.data || []).map((r) => ({
+        path: `/resources/${r.slug}`,
+        lastmod: r.updated_at,
+        changefreq: "monthly",
+        priority: 0.6,
+      }))
+      return [...posts, ...res]
     }
     case "schools": {
       // Verified AND has real long-form content — thin/placeholder pages
