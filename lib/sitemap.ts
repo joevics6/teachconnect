@@ -124,13 +124,16 @@ export async function buildEntries(name: SitemapName): Promise<Entry[]> {
       return [...posts, ...res]
     }
     case "schools": {
-      // Verified AND has real long-form content — thin/placeholder pages
-      // shouldn't be submitted for indexing (the page also sets noindex).
+      // Has real long-form content — thin/placeholder pages shouldn't be
+      // submitted for indexing. This mirrors the page's own noindex rule
+      // (app/(public)/schools/[slug]/page.tsx: long_description only).
+      // is_verified is just a badge now, not a visibility gate.
       const { data } = await supabase
         .from("school_profiles")
         .select("slug, updated_at")
-        .eq("is_verified", true)
         .not("long_description", "is", null)
+        .neq("long_description", "")
+        .not("slug", "is", null)
       return (data || []).map((s) => ({ path: `/schools/${s.slug}`, lastmod: s.updated_at, changefreq: "monthly", priority: 0.5 }))
     }
   }
