@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 
 interface Location {
   state: string
+  name?: string
   count: number
   live: boolean
   path: string
@@ -21,6 +22,7 @@ interface Location {
 const wordCount = (s: string) => (s.trim() ? s.trim().split(/\s+/).length : 0)
 
 export default function AdminSeoPagesPage() {
+  const [kind, setKind] = useState<"state" | "category">("state")
   const [locations, setLocations] = useState<Location[]>([])
   const [minJobs, setMinJobs] = useState(6)
   const [isLoading, setIsLoading] = useState(true)
@@ -29,8 +31,8 @@ export default function AdminSeoPagesPage() {
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState("")
 
-  const load = () =>
-    fetch("/api/admin/seo-pages")
+  const load = (k: "state" | "category" = kind) =>
+    fetch(`/api/admin/seo-pages${k === "category" ? "?kind=category" : ""}`)
       .then(async (res) => {
         if (!res.ok) return
         const data = await res.json()
@@ -41,8 +43,16 @@ export default function AdminSeoPagesPage() {
       .finally(() => setIsLoading(false))
 
   useEffect(() => {
-    load()
-  }, [])
+    setIsLoading(true)
+    setSelected(null)
+    setMessage("")
+    load(kind)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [kind])
+
+  const isCat = kind === "category"
+  const nameOf = (l: Location) => (isCat ? l.name || l.state : l.state)
+  const heading = (l: Location) => (isCat ? `${nameOf(l)} Jobs in Nigeria` : `Teaching Jobs in ${l.state}`)
 
   const open = (l: Location) => {
     setSelected(l.state)
@@ -58,7 +68,7 @@ export default function AdminSeoPagesPage() {
       const res = await fetch("/api/admin/seo-pages", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ state: selected, ...form }),
+        body: JSON.stringify({ state: selected, kind, ...form }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || "Save failed")
@@ -78,9 +88,24 @@ export default function AdminSeoPagesPage() {
   return (
     <AdminShell>
       <div className="max-w-5xl mx-auto px-4 py-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-1">Location pages</h1>
+        <h1 className="text-2xl font-bold text-gray-900 mb-4">Landing pages</h1>
+        <div className="inline-flex rounded-lg border border-gray-200 bg-white p-1 mb-4">
+          {(["state", "category"] as const).map((k) => (
+            <button
+              key={k}
+              onClick={() => setKind(k)}
+              className={`px-4 py-1.5 text-sm rounded-md ${kind === k ? "bg-ink-600 text-white" : "text-gray-600 hover:text-gray-900"}`}
+            >
+              {k === "state" ? "Locations" : "Categories"}
+            </button>
+          ))}
+        </div>
         <p className="text-sm text-gray-500 mb-6">
-          A page like <span className="font-mono">/jobs/in/lagos</span> goes live once a location has {minJobs}+ live jobs.
+          {isCat ? (
+            <>A page like <span className="font-mono">/jobs/category/mathematics-teacher</span> goes live once a job category has {minJobs}+ live jobs. Categories come from each job&apos;s role category, so they appear here automatically.</>
+          ) : (
+            <>A page like <span className="font-mono">/jobs/in/lagos</span> goes live once a location has {minJobs}+ live jobs.</>
+          )}{" "}
           It is only indexed by search engines (and listed in the sitemap) after you write copy for it here. Copy is Markdown.
         </p>
 
@@ -96,7 +121,7 @@ export default function AdminSeoPagesPage() {
                   className={`w-full text-left bg-white border rounded-xl px-4 py-3 hover:border-ink-300 ${selected === l.state ? "border-ink-500" : "border-gray-200"}`}
                 >
                   <div className="flex items-center justify-between gap-2">
-                    <span className="font-semibold text-gray-900 text-sm">{l.state}</span>
+                    <span className="font-semibold text-gray-900 text-sm">{nameOf(l)}</span>
                     <span className="text-xs text-gray-500">{l.count} jobs</span>
                   </div>
                   <p className="text-xs mt-1">
@@ -114,11 +139,11 @@ export default function AdminSeoPagesPage() {
 
             <div>
               {!current ? (
-                <p className="text-sm text-gray-500">Choose a location to write its copy.</p>
+                <p className="text-sm text-gray-500">Choose a {isCat ? "category" : "location"} to write its copy.</p>
               ) : (
                 <div className="bg-white border border-gray-200 rounded-xl p-5 space-y-4">
                   <div className="flex items-center justify-between gap-3">
-                    <h2 className="font-bold text-gray-900">Teaching Jobs in {current.state}</h2>
+                    <h2 className="font-bold text-gray-900">{heading(current)}</h2>
                     {current.live && (
                       <Link href={current.path} target="_blank" className="text-xs text-ink-600 hover:underline flex items-center gap-1">
                         View page <ExternalLink className="h-3 w-3" />
@@ -127,7 +152,7 @@ export default function AdminSeoPagesPage() {
                   </div>
                   <div>
                     <label className={label}>Page title ({form.title.length}/60) — leave empty for the automatic one</label>
-                    <input className={field} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder={`Teaching Jobs in ${current.state} – ${current.count} Open Vacancies`} />
+                    <input className={field} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder={isCat ? `${nameOf(current)} Jobs in Nigeria – ${current.count} Open Vacancies` : `Teaching Jobs in ${current.state} – ${current.count} Open Vacancies`} />
                   </div>
                   <div>
                     <label className={label}>Meta description ({form.meta_description.length}/155)</label>

@@ -6,6 +6,7 @@
 //
 //   /sitemaps/static.xml     home, listing pages, legal
 //   /sitemaps/locations.xml  state landing pages (/jobs/in/[state])
+//   /sitemaps/categories.xml category landing pages (/jobs/category/[slug])
 //   /sitemaps/jobs.xml       live job pages
 //   /sitemaps/blog.xml       blog posts
 //   /sitemaps/resources.xml  resource posts
@@ -14,8 +15,8 @@
 
 import { createClient } from "@/lib/supabase/server"
 import { SITE_URL } from "@/lib/site"
-import { getLandingKeysWithContent, getStateJobCounts } from "@/lib/cache/landing"
-import { landingPath, MIN_JOBS_FOR_LANDING } from "@/lib/landing"
+import { getCategoryIndex, getLandingKeysWithContent, getStateJobCounts } from "@/lib/cache/landing"
+import { categoryPath, landingPath, MIN_JOBS_FOR_LANDING } from "@/lib/landing"
 
 type Freq = "daily" | "weekly" | "monthly"
 interface Entry {
@@ -25,7 +26,7 @@ interface Entry {
   priority: number
 }
 
-export const SITEMAP_NAMES = ["static", "locations", "jobs", "blog", "resources", "schools"] as const
+export const SITEMAP_NAMES = ["static", "locations", "categories", "jobs", "blog", "resources", "schools"] as const
 export type SitemapName = (typeof SITEMAP_NAMES)[number]
 
 const esc = (s: string) =>
@@ -85,6 +86,12 @@ export async function buildEntries(name: SitemapName): Promise<Entry[]> {
       return statesWithCopy
         .filter((state) => (stateCounts[state] ?? 0) >= MIN_JOBS_FOR_LANDING)
         .map((state) => ({ path: landingPath(state), changefreq: "daily", priority: 0.8 }))
+    }
+    case "categories": {
+      const [index, slugsWithCopy] = await Promise.all([getCategoryIndex(), getLandingKeysWithContent("category")])
+      return slugsWithCopy
+        .filter((slug) => (index[slug]?.count ?? 0) >= MIN_JOBS_FOR_LANDING)
+        .map((slug) => ({ path: categoryPath(slug), changefreq: "daily", priority: 0.8 }))
     }
     case "jobs": {
       const { data } = await supabase

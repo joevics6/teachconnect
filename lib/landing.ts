@@ -1,6 +1,8 @@
 // ============================================================
 // lib/landing.ts
-// Location landing pages (/jobs/in/[state], e.g. /jobs/in/lagos).
+// Location landing pages (/jobs/in/[state], e.g. /jobs/in/lagos) and
+// category landing pages (/jobs/category/[slug], e.g.
+// /jobs/category/mathematics-teacher).
 // A location only gets a page once it has MORE than 5 live jobs —
 // below that the page would be thin and just compete with /jobs.
 // ============================================================
@@ -20,3 +22,9 @@ export const stateDisplayName = (state: string) => DISPLAY_OVERRIDES[state] ?? s
 export const stateFromSlug = (slug: string) =>
   (NIGERIAN_STATES as readonly string[]).find((s) => stateSlug(s) === slug) ?? null
 export const landingPath = (state: string) => `/jobs/in/${stateSlug(state)}`
+
+// ---- Category pages -------------------------------------------------
+// A category is a job's normalized role_category ("Mathematics Teacher").
+// Its page exists once more than 5 live jobs share it, same as locations.
+export const categorySlug = (name: string) => slugify(name.replace(/\s+jobs?$/i, ""))
+export const categoryPath = (slug: string) => `/jobs/category/${slug}`

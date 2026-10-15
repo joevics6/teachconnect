@@ -13,7 +13,7 @@ const ADMIN_NAV = [
   { href: "/admin/claims",      label: "Claims",       icon: ClipboardCheck },
   { href: "/admin/resources",   label: "Resources",    icon: BookOpen },
   { href: "/admin/blog",        label: "Blog",         icon: Newspaper },
-  { href: "/admin/seo-pages",   label: "Location pages", icon: MapPin },
+  { href: "/admin/seo-pages",   label: "Landing pages", icon: MapPin },
   { href: "/admin/quiz-bank",   label: "Quiz Bank",    icon: HelpCircle },
   { href: "/admin/branding",    label: "Branding",     icon: Palette },
   { href: "/admin/newsletter",  label: "Newsletter",   icon: Send },
