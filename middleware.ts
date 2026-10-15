@@ -120,6 +120,6 @@ export const config = {
   matcher: [
     // sitemap.xml, robots.txt and the web manifest must be reachable by
     // crawlers without a session, so they bypass the auth middleware.
-    "/((?!_next/static|_next/image|favicon.ico|sitemap\\.xml|sitemap-.*\\.xml|robots\\.txt|manifest\\.webmanifest|ads\\.txt|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|sitemap\\.xml|sitemaps/.*\\.xml|robots\\.txt|manifest\\.webmanifest|ads\\.txt|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 }
