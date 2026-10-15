@@ -267,44 +267,11 @@ export default function AdminNewJobPage() {
 
       const jobSplits = splitIntoSubjectJobs(jobData.title, jobData.level_subjects)
       let posted = 0
-      const schoolForCopy = selectedSchool
-        ? { school_name: selectedSchool.school_name, school_type: "", state: selectedSchool.state, lga: selectedSchool.lga, is_anonymous: false }
-        : { ...schoolData, is_anonymous: schoolMode === "anonymous" }
       for (const split of jobSplits) {
-        // A posting split into several subject jobs gets its own title,
-        // description, qualifications and search content per job, so no
-        // two job pages share text. Best-effort: if generation fails the
-        // job is still posted with the shared form text (and its search
-        // content is generated at approval as before).
-        let unique: Record<string, unknown> = {}
-        if (jobSplits.length > 1) {
-          try {
-            const vRes = await fetch("/api/admin/jobs/variant", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                ...jobData,
-                title: split.title,
-                subject: split.subject,
-                teaching_levels: split.teaching_levels,
-                sibling_subjects: jobSplits.map((s) => s.subject),
-                raw_post: aiInput,
-                school: schoolForCopy,
-              }),
-            })
-            if (vRes.ok) {
-              const { variant } = await vRes.json()
-              const { title, description, required_qualifications, preferred_qualifications, ...seo } = variant
-              unique = { title, description, required_qualifications, preferred_qualifications, seo }
-            }
-          } catch {
-            /* fall back to shared text */
-          }
-        }
         const jobRes = await fetch(`/api/admin/schools/${schoolId}/jobs`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ...jobData, title: split.title, subject: split.subject, teaching_levels: split.teaching_levels, ...unique }),
+          body: JSON.stringify({ ...jobData, title: split.title, subject: split.subject, teaching_levels: split.teaching_levels }),
         })
         const jobResult = await jobRes.json()
         if (!jobRes.ok) {
