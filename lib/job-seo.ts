@@ -54,6 +54,27 @@ export interface JobSeoInput {
   is_anonymous: boolean
 }
 
+/** Rules for the three prose fields — shared with the admin job parser (lib/job-parser.ts). */
+export const SEO_PROSE_RULES = `RULES FOR THE THREE PROSE FIELDS (plain text, no HTML, no markdown, no bullet characters, one paragraph each):
+about_role:
+- Open with ONE sentence on the state of private/primary/secondary education in the job's state or area of Nigeria.
+- Work in 4-5 role-specific keywords naturally (e.g. lesson planning, scheme of work, continuous assessment, WAEC/NECO preparation, classroom management, UBE curriculum, Cambridge IGCSE, Montessori, differentiated instruction - choose only what fits the role).
+- Describe the role's impact on pupil outcomes, school reputation and academic results.
+- No filler like "exciting opportunity" or "great school". Every sentence must carry searchable meaning.
+who_apply:
+- Describe the ideal candidate with professional labels (e.g. "Qualified Mathematics Educator", "Early Years Specialist").
+- Name 2-3 real, relevant certifications or qualifications (e.g. TRCN registration, PGDE, B.Ed, NCE, TEFL/CELTA, Montessori diploma, Cambridge teaching certificates; for non-teaching roles use ICAN, ANAN, CIPM and the like).
+- State the experience level precisely, consistent with the qualifications given.
+- List 3-4 must-have tools or hard skills (e.g. Google Classroom, Microsoft Teams, smartboards, lesson-plan software, ERP/accounting packages for non-teaching roles).
+standout:
+- Every sentence starts with an action verb: Showcase, Quantify, Demonstrate, Highlight, Complete.
+- Tell candidates to quantify impact with realistic examples (e.g. raising class WAEC credit pass rates, improving average scores, running successful extracurricular clubs).
+- Recommend 1-2 upskilling paths (e.g. TRCN professional development, Google Certified Educator, Cambridge professional qualifications, Montessori training).
+- Mention an ATS-friendly CV, a teaching portfolio or a professional LinkedIn profile.
+
+GENERAL: Never invent facts about the school, its fees, results or facilities. Never state a salary that was not given. Write in clear professional Nigerian English.
+`
+
 const PROMPT = (j: JobSeoInput) => `
 You are an expert Nigerian education recruiter and SEO copywriter. Using ONLY the job details below, write search-optimised content for the public job page.
 Return ONLY a valid JSON object. No explanation, no markdown, no backticks.
@@ -85,24 +106,7 @@ Return exactly this JSON:
   "meta_description": "max 155 characters: role, school (unless confidential), location and a reason to click. No emojis, no quotes."
 }
 
-RULES FOR THE THREE PROSE FIELDS (plain text, no HTML, no markdown, no bullet characters, one paragraph each):
-about_role:
-- Open with ONE sentence on the state of private/primary/secondary education in the job's state or area of Nigeria.
-- Work in 4-5 role-specific keywords naturally (e.g. lesson planning, scheme of work, continuous assessment, WAEC/NECO preparation, classroom management, UBE curriculum, Cambridge IGCSE, Montessori, differentiated instruction - choose only what fits the role).
-- Describe the role's impact on pupil outcomes, school reputation and academic results.
-- No filler like "exciting opportunity" or "great school". Every sentence must carry searchable meaning.
-who_apply:
-- Describe the ideal candidate with professional labels (e.g. "Qualified Mathematics Educator", "Early Years Specialist").
-- Name 2-3 real, relevant certifications or qualifications (e.g. TRCN registration, PGDE, B.Ed, NCE, TEFL/CELTA, Montessori diploma, Cambridge teaching certificates; for non-teaching roles use ICAN, ANAN, CIPM and the like).
-- State the experience level precisely, consistent with the qualifications given.
-- List 3-4 must-have tools or hard skills (e.g. Google Classroom, Microsoft Teams, smartboards, lesson-plan software, ERP/accounting packages for non-teaching roles).
-standout:
-- Every sentence starts with an action verb: Showcase, Quantify, Demonstrate, Highlight, Complete.
-- Tell candidates to quantify impact with realistic examples (e.g. raising class WAEC credit pass rates, improving average scores, running successful extracurricular clubs).
-- Recommend 1-2 upskilling paths (e.g. TRCN professional development, Google Certified Educator, Cambridge professional qualifications, Montessori training).
-- Mention an ATS-friendly CV, a teaching portfolio or a professional LinkedIn profile.
-
-GENERAL: Never invent facts about the school, its fees, results or facilities. Never state a salary that was not given. Write in clear professional Nigerian English.
+${SEO_PROSE_RULES}
 `
 
 function clean(text: unknown, maxChars: number): string | null {
