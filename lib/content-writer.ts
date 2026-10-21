@@ -8,13 +8,11 @@
 // Only the "Return JSON with these fields" list is adapted to ClassHire's
 // blog_posts / resource_posts columns. Do not edit the wording below.
 //
-// Server-only (reads Gemini keys from env). Uses the Gemini 3.5 models.
+// Server-only. Models and up-to-3 API keys come from lib/gemini.ts.
 // ============================================================
 
 import { z } from "zod"
-
-/** Tried in order: primary first, then each fallback. */
-export const WRITER_MODELS = ["gemini-3.5-flash", "gemini-3.5-flash-lite"] as const
+import { GEMINI_MODELS, getGeminiKeys } from "@/lib/gemini"
 
 export const WRITER_MAX_OUTPUT_TOKENS = 20000
 
@@ -28,17 +26,6 @@ export const RESOURCE_CATEGORIES = [
 
 export type ContentKind = "blog" | "resource"
 
-/** Every Gemini key found in env (GEMINI_API_KEY, GEMINI_API_KEY_2, ...). */
-function getGeminiKeys(): string[] {
-  const keys = Object.entries(process.env)
-    .filter(([name, v]) => /^GEMINI_API/i.test(name) && typeof v === "string" && v.trim())
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([, v]) => (v as string).trim())
-  const unique = Array.from(new Set(keys))
-  if (unique.length === 0) throw new Error("No Gemini API key configured")
-  return unique
-}
-
 let rotation = 0
 
 async function withGeminiFallback<T>(
@@ -46,10 +33,11 @@ async function withGeminiFallback<T>(
   fn: (model: string, apiKey: string) => Promise<T>
 ): Promise<T> {
   const keys = getGeminiKeys()
+  if (keys.length === 0) throw new Error("No Gemini API key configured")
   const start = rotation++ % keys.length
   const orderedKeys = keys.map((_, i) => keys[(start + i) % keys.length])
   let lastErr: unknown
-  for (const model of WRITER_MODELS) {
+  for (const model of GEMINI_MODELS) {
     for (const key of orderedKeys) {
       try {
         return await fn(model, key)

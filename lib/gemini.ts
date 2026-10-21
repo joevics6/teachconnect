@@ -7,26 +7,28 @@
 // hitting Gemini's free-tier rate/quota limit — rotating across
 // several keys (each with its own quota) fixes that directly.
 //
-// Expects up to 5 Gemini API keys in env vars:
-//   GEMINI_API_KEY, GEMINI_API_KEY_2, GEMINI_API_KEY_3,
-//   GEMINI_API_KEY_4, GEMINI_API_KEY_5
-// Only GEMINI_API_KEY is required; the rest are used if set.
-// If your Vercel project already has multiple Gemini keys under
-// different names, rename them to match (or tell me the actual names
-// and I'll adjust this list) — this file is the only place that needs
-// to change.
+// Models: same tiering as the JobPilot parser (lite -> flash -> third
+// fallback), moved to the live Gemini 3.x line because the 2.5 models
+// JobPilot lists (gemini-2.5-flash, -flash-lite, -flash-lite-preview-09-2025)
+// are shut down / returning 404.
+//
+// Keys: up to 3, read from these env var names (only the first is required):
+//   GEMINI_API_KEY, GEMINI_API_KEY_2, GEMINI_API_KEY_3
+// Used by the job parsers/creator, and by the blog + resource AI writer
+// (lib/content-writer.ts imports GEMINI_MODELS / getGeminiKeys from here).
 // ============================================================
 
-const API_KEYS = [
-  process.env.GEMINI_API_KEY,
-  process.env.GEMINI_API_KEY_2,
-  process.env.GEMINI_API_KEY_3,
-  process.env.GEMINI_API_KEY_4,
-  process.env.GEMINI_API_KEY_5,
-].filter((k): k is string => Boolean(k && k.trim()))
+export const GEMINI_KEY_NAMES = ["GEMINI_API_KEY", "GEMINI_API_KEY_2", "GEMINI_API_KEY_3"] as const
 
-// gemini-2.5-* was retired — using the 3.x line instead.
-const MODELS = ["gemini-3.1-flash-lite", "gemini-3-flash-preview"]
+/** Models tried in order; each is tried against every configured key. */
+export const GEMINI_MODELS = ["gemini-3.1-flash-lite", "gemini-3.5-flash", "gemini-3-flash-preview"] as const
+
+/** The configured keys (max 3), in order, skipping any that are unset. */
+export function getGeminiKeys(): string[] {
+  return GEMINI_KEY_NAMES.map((name) => process.env[name]).filter((k): k is string =>
+    Boolean(k && k.trim())
+  )
+}
 
 export class GeminiError extends Error {}
 
@@ -44,6 +46,7 @@ export async function generateWithGemini(
     inlineData?: { mimeType: string; data: string }
   }
 ): Promise<string> {
+  const API_KEYS = getGeminiKeys()
   if (API_KEYS.length === 0) {
     throw new GeminiError("No Gemini API key configured")
   }
@@ -54,7 +57,7 @@ export async function generateWithGemini(
 
   let lastErr: unknown = null
 
-  for (const model of MODELS) {
+  for (const model of GEMINI_MODELS) {
     for (const key of API_KEYS) {
       try {
         const res = await fetch(
