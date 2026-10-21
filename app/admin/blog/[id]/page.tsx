@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation"
 import Link from "next/link"
 import { ArrowLeft, Loader2, Save } from "lucide-react"
 import { AdminShell } from "@/components/admin/AdminShell"
+import { AiFillPanel, type AiFillResult } from "@/components/admin/AiFillPanel"
 
 interface FormState {
   title: string
@@ -69,6 +70,21 @@ export default function AdminBlogFormPage() {
     if (!slugTouched) set("slug", slugify(title))
   }
 
+  const handleAiResult = (out: AiFillResult) => {
+    setForm((f) => ({
+      ...f,
+      slug: f.slug || out.slug,
+      title: f.title || out.title,
+      tags: f.tags || (out.tags ?? []).join(", "),
+      excerpt: out.excerpt,
+      seo_title: out.seo_title,
+      seo_description: out.seo_description,
+      read_time_minutes: String(out.reading_time_minutes),
+      body: out.cleaned_content || f.body,
+    }))
+    setSlugTouched(true)
+  }
+
   const handleSave = async () => {
     setError("")
     if (!form.title || !form.slug || !form.excerpt) {
@@ -130,9 +146,10 @@ export default function AdminBlogFormPage() {
           <Field label="Excerpt *">
             <textarea rows={2} className={inputClass} value={form.excerpt} onChange={(e) => set("excerpt", e.target.value)} />
           </Field>
-          <Field label="Body">
-            <textarea rows={12} className={inputClass} value={form.body} onChange={(e) => set("body", e.target.value)} />
+          <Field label="Body (markdown)">
+            <textarea rows={14} className={inputClass + " font-mono text-xs"} value={form.body} onChange={(e) => set("body", e.target.value)} />
           </Field>
+          <AiFillPanel kind="blog" title={form.title} content={form.body} onResult={handleAiResult} />
 
           <div className="grid grid-cols-2 gap-4">
             <Field label="Author">
