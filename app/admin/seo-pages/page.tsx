@@ -5,7 +5,6 @@ import Link from "next/link"
 import { Loader2, Check, ExternalLink } from "lucide-react"
 import { AdminShell } from "@/components/admin/AdminShell"
 import { Button } from "@/components/ui/button"
-import { CleanWithAiButton } from "@/components/admin/CleanWithAiButton"
 
 interface Location {
   state: string
@@ -166,7 +165,6 @@ export default function AdminSeoPagesPage() {
                   <div>
                     <label className={label}>Main content, shown below the jobs ({wordCount(form.body)} words) — use ## headings</label>
                     <textarea className={`${field} font-mono`} rows={16} value={form.body} onChange={(e) => setForm({ ...form, body: e.target.value })} />
-                    <CleanWithAiButton value={form.body} onChange={(v) => setForm({ ...form, body: v })} />
                   </div>
                   <div className="flex items-center gap-3">
                     <Button onClick={save} disabled={saving} className="bg-ink-600 hover:bg-ink-700 text-white">
