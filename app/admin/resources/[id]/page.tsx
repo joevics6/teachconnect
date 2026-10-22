@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation"
 import Link from "next/link"
 import { ArrowLeft, Loader2, Save } from "lucide-react"
 import { AdminShell } from "@/components/admin/AdminShell"
+import { CleanWithAiButton } from "@/components/admin/CleanWithAiButton"
 import { AiFillPanel, type AiFillResult } from "@/components/admin/AiFillPanel"
 
 const CATEGORIES = ["Career Advice", "School Management", "TRCN Guide", "Salary Insights"]
@@ -161,6 +162,7 @@ export default function AdminResourceFormPage() {
           </Field>
           <Field label="Body (Markdown/HTML)">
             <textarea rows={14} className={inputClass + " font-mono text-xs"} value={form.body} onChange={(e) => set("body", e.target.value)} />
+            <CleanWithAiButton value={form.body} onChange={(v) => set("body", v)} />
           </Field>
           <AiFillPanel kind="resource" title={form.title} content={form.body} onResult={handleAiResult} />
 
