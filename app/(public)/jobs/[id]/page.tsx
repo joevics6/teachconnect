@@ -22,6 +22,7 @@ import { SITE_URL } from "@/lib/site"
 import JobDetailClient, { type JobWithSchool, type RelatedJob } from "./JobDetailClient"
 
 export const revalidate = 300
+import { hideExpiredContact, isJobExpired as isExpired } from "@/lib/job-expiry"
 
 const UNAPPROVED = ["pending_approval", "rejected", "draft"]
 
@@ -32,10 +33,6 @@ const location = (j: { school_lga?: string | null; school_state?: string | null 
 
 const trim = (s: string, max: number) => (s.length <= max ? s : `${s.slice(0, max - 1).trimEnd()}…`)
 
-function isExpired(deadline: string | null | undefined) {
-  if (!deadline) return false
-  return deadline.slice(0, 10) < new Date().toISOString().slice(0, 10)
-}
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params
@@ -61,7 +58,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     160
   )
   const url = `${SITE_URL}/jobs/${job.id}`
-  const indexable = job.status === "active" && !isExpired(job.deadline)
+  // Expired jobs stay indexed (the page itself says the job has expired).
+  const indexable = job.status === "active" || job.status === "closed"
 
   return {
     title,
@@ -105,7 +103,7 @@ export default async function JobPage({ params }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: toJsonLdString(crumbLd) }}
       />
-      <JobDetailClient jobId={id} initialJob={job as unknown as JobWithSchool} initialRelated={related} />
+      <JobDetailClient jobId={id} initialJob={hideExpiredContact(job) as unknown as JobWithSchool} initialRelated={related} />
     </>
   )
 }

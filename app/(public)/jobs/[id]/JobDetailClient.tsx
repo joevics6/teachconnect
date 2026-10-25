@@ -510,10 +510,15 @@ export default function JobDetailClient({
                   </p>
                 </div>
               ) : daysLeft <= 0 ? (
-                <div className="flex items-center justify-center gap-2 p-3 bg-red-50 border border-red-200 rounded-xl mb-4">
-                  <AlertCircle className="h-5 w-5 text-red-500" />
-                  <p className="text-sm font-medium text-red-600">
-                    This job has closed
+                <div className="p-3 bg-red-50 border border-red-200 rounded-xl mb-4 text-center">
+                  <div className="flex items-center justify-center gap-2">
+                    <AlertCircle className="h-5 w-5 text-red-500" />
+                    <p className="text-sm font-medium text-red-600">
+                      This job has expired
+                    </p>
+                  </div>
+                  <p className="text-xs text-red-500 mt-1">
+                    Applications are closed and the contact details have been removed.
                   </p>
                 </div>
               ) : job.external_apply_enabled && job.external_apply_value && !job.quiz_enabled ? (

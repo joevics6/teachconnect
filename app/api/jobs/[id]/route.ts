@@ -6,6 +6,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { getJobById, getRelatedJobs } from "@/lib/cache/jobs"
+import { hideExpiredContact } from "@/lib/job-expiry"
 
 export async function GET(
   request: NextRequest,
@@ -97,8 +98,9 @@ export async function GET(
     // chose to publish. In-app applications still require an account
     // (see /apply/[jobId] and the quiz gate) — this only affects the
     // "here's an email/phone/website, go apply directly" case.
+    // Expired jobs stay viewable but lose their contact details.
     return NextResponse.json({
-      job,
+      job: hideExpiredContact(job),
       related,
       is_saved,
       has_applied,

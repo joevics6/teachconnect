@@ -99,8 +99,10 @@ export async function buildEntries(name: SitemapName): Promise<Entry[]> {
       const { data } = await supabase
         .from("jobs")
         .select("id, updated_at")
-        .eq("status", "active")
-        .gte("deadline", new Date().toISOString().split("T")[0])
+        // Expired jobs stay in the sitemap on purpose: they remain indexed
+        // (contact hidden, "this job has expired" shown). Only unapproved
+        // jobs are left out.
+        .in("status", ["active", "closed"])
       return (data || []).map((j) => ({ path: `/jobs/${j.id}`, lastmod: j.updated_at, changefreq: "daily", priority: 0.8 }))
     }
     case "content": {

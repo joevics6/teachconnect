@@ -15,6 +15,8 @@
 
 import { createAdminClient } from "@/lib/supabase/admin"
 import { ALL_SUBJECTS, BENEFITS, NIGERIAN_STATES } from "@/lib/constants"
+import { NIGERIAN_LGAS } from "@/lib/nigerian-locations"
+import { findDuplicateJob } from "@/lib/job-duplicates"
 import { generateWithGemini, parseGeminiJson } from "@/lib/gemini"
 import { generateUniqueSchoolSlug } from "@/lib/slug"
 import { SEO_PROSE_RULES, sanitizeJobSeoContent } from "@/lib/job-seo"
@@ -41,7 +43,15 @@ SEPARATE JOBS
 
 REWRITE, DO NOT COPY
 - Rewrite the description in professional, clear Nigerian English from the school's perspective, 3-5 sentences, as plain paragraphs separated by a blank line. No HTML, no emojis, no contact details in the text.
-- Use only facts present in the text. Never invent fees, salary, results, facilities or school history.
+- Facts about the SCHOOL, pay and benefits (name, fees, salary, results, facilities, school history) must come only from the text. Never invent them.
+- The text may be very short (for example just a location, a list of subjects and a contact). Still write EVERY field in full for each role. Write the role's own content from your knowledge of that role in Nigerian schools: the description, realistic standard required_qualifications (e.g. a relevant degree, NCE or B.Ed in the subject, TRCN registration, classroom experience), preferred_qualifications, responsibilities, skills and the three prose fields. Never return a job just because the text is thin.
+
+LOCATION, LEVELS, SUBJECT AND CONTACT
+- Always fill school.state and school.lga whenever any city, town or area is named, using your knowledge of Nigerian geography (e.g. Asaba -> Delta, Oshimili South; Ikeja -> Lagos, Ikeja; Garki -> FCT, Municipal Area Council). state must come from the list. Never leave state or lga null when a place is named. If only a state is named, give the LGA of its capital.
+- If teaching levels are not stated, infer them from the school type: secondary school -> [\"jss\", \"sss\"]; primary school -> [\"primary\"]; nursery -> [\"nursery\"]; nursery and primary -> both.
+- If the text says "a secondary school in Asaba" without a name, the school is not named: school_name null, is_confidential true.
+- If a subject is not an exact name in the list, choose the closest one (e.g. ICT -> Computer Studies, Garment Making / Fashion Design / Clothing and Textiles -> Home Economics, Data Processing -> Data Processing).
+- When one contact (phone, WhatsApp, email or website) is given for the whole advert, put the SAME contact in apply_contact on EVERY object.
 
 Each object must have exactly these fields (null / empty when not stated):
 {
@@ -95,6 +105,67 @@ const pick = (v: unknown, allowed: readonly string[]): Str => {
   return s ? allowed.find((a) => a.toLowerCase() === s) ?? null : null
 }
 const bool = (v: unknown) => v === true || v === "true"
+
+/**
+ * The AI sometimes names a town or LGA but leaves the state empty (or the
+ * reverse). Fills the gaps from the Nigerian state/LGA list: a state given
+ * directly wins, otherwise the state that owns the named LGA or town, and a
+ * missing LGA falls back to the town.
+ */
+// Well-known towns that are not themselves an LGA name. Safety net for when
+// the AI returns a place but no state/LGA.
+const TOWN_LOCATIONS: Record<string, [string, string]> = {
+  asaba: ["Delta", "Oshimili South"],
+  warri: ["Delta", "Warri South"],
+  lekki: ["Lagos", "Eti-Osa"],
+  ajah: ["Lagos", "Eti-Osa"],
+  "victoria island": ["Lagos", "Eti-Osa"],
+  ikoyi: ["Lagos", "Eti-Osa"],
+  yaba: ["Lagos", "Lagos Mainland"],
+  maitama: ["FCT", "Municipal Area Council"],
+  garki: ["FCT", "Municipal Area Council"],
+  wuse: ["FCT", "Municipal Area Council"],
+  abuja: ["FCT", "Municipal Area Council"],
+  ibadan: ["Oyo", "Ibadan North"],
+  "benin city": ["Edo", "Oredo"],
+  abeokuta: ["Ogun", "Abeokuta South"],
+  kano: ["Kano", "Kano Municipal"],
+  owerri: ["Imo", "Owerri Municipal"],
+  jos: ["Plateau", "Jos North"],
+  ilorin: ["Kwara", "Ilorin West"],
+  akure: ["Ondo", "Akure South"],
+  kaduna: ["Kaduna", "Kaduna North"],
+}
+
+export function resolveLocation(stateIn: Str, lgaIn: Str, townIn: Str): { state: string | null; lga: string | null } {
+  let state = NIGERIAN_STATES.find((s) => s.toLowerCase() === stateIn?.toLowerCase()) ?? null
+  let lga = lgaIn
+  if (!state) {
+    for (const candidate of [lgaIn, townIn]) {
+      if (!candidate) continue
+      const c = candidate.toLowerCase()
+      const hit = Object.entries(NIGERIAN_LGAS).find(([, lgas]) => lgas.some((l) => l.toLowerCase() === c))
+      if (hit) {
+        state = hit[0]
+        if (!lga) lga = hit[1].find((l) => l.toLowerCase() === c) ?? candidate
+        break
+      }
+    }
+  }
+  if (!state || !lga) {
+    for (const candidate of [townIn, lgaIn]) {
+      const hit = candidate ? TOWN_LOCATIONS[candidate.trim().toLowerCase()] : null
+      if (hit) {
+        state = state ?? hit[0]
+        const valid = state && lga && (NIGERIAN_LGAS[state] ?? []).some((l) => l.toLowerCase() === lga!.toLowerCase())
+        lga = valid ? lga : hit[1]
+        break
+      }
+    }
+  }
+  if (!lga && townIn) lga = townIn
+  return { state, lga }
+}
 
 export interface ParseBatchResult {
   success: boolean
@@ -187,6 +258,10 @@ export async function parseJobBatch(jobText: string): Promise<ParseBatchResult> 
   total = parsed.length
   if (total === 0) return finish("No jobs were found in the text")
 
+  // One contact is often given for the whole advert; jobs the AI left
+  // without one share it.
+  const sharedContact = parsed.map((r) => str(r.apply_contact)).find((c): c is string => !!c) ?? null
+
   // Schools are reused within a run (several jobs from one advert).
   const schoolCache = new Map<string, { id: string; name: string }>()
   const today = new Date().toISOString().split("T")[0]
@@ -208,16 +283,21 @@ export async function parseJobBatch(jobText: string): Promise<ParseBatchResult> 
       if (!levels.length) throw new Error("No teaching level found")
       if (!description || !required) throw new Error("Description or required qualifications missing")
 
-      const contact = str(raw.apply_contact)
+      const contact = str(raw.apply_contact) ?? sharedContact
+
+      // ---- duplicate guard: same title + same contact already in the jobs table ----
+      if (await findDuplicateJob(db, title, contact)) {
+        skipped++
+        continue
+      }
       const sc = (raw.school && typeof raw.school === "object" ? raw.school : {}) as Raw
       const schoolName = str(sc.school_name)
       const anonymous = bool(sc.is_confidential) || !schoolName
-      const state = NIGERIAN_STATES.find((s) => s.toLowerCase() === str(sc.state)?.toLowerCase()) ?? null
-      const lga = str(sc.lga)
+      const { state, lga } = resolveLocation(str(sc.state), str(sc.lga), str(sc.town))
 
       // ---- find or create the school ----
       const cacheKey = anonymous
-        ? `anon|${state}|${lga?.toLowerCase()}|${str(sc.school_type)}`
+        ? `anon|${state}|${lga?.toLowerCase()}`
         : `${schoolName.toLowerCase()}|${state ?? ""}`
       let school = schoolCache.get(cacheKey) ?? null
 
