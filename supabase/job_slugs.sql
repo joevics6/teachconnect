@@ -116,9 +116,9 @@ $$;
 create unique index if not exists jobs_slug_key on jobs (slug);
 
 -- Expose slug through the view the public job list / related jobs read.
--- CREATE OR REPLACE VIEW can only append columns, so slug goes last. If the
--- live view differs from this definition Postgres refuses (it never drops
--- anything) — then add `, j.slug` to the end of the live view's select.
+-- CREATE OR REPLACE VIEW can only append columns, so slug goes last. This is
+-- the live definition (including the later quiz_*, school_* columns) plus
+-- j.slug; Postgres refuses, and changes nothing, if the view has drifted.
 create or replace view public.jobs_with_school as
  select j.id,
     j.school_id,
@@ -155,6 +155,18 @@ create or replace view public.jobs_with_school as
     sp.is_verified as school_is_verified,
     j.external_apply_enabled,
     j.external_apply_value,
+    j.quiz_mode,
+    j.quiz_duration,
+    j.quiz_question_count,
+    j.quiz_subjects,
+    j.quiz_subject_levels,
+    sp.town as school_town,
+    j.country as job_country,
+    sp.country as school_country,
+    sp.slug as school_slug,
+    sp.long_description as school_long_description,
+    sp.about as school_about,
+    sp.website as school_website,
     j.slug
    from jobs j
      join school_profiles sp on j.school_id = sp.id;
