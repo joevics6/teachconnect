@@ -5,6 +5,7 @@ import { getFeaturedJobs, getJobsSearch } from "@/lib/cache/jobs"
 import { getStateJobCounts } from "@/lib/cache/landing"
 import { MIN_JOBS_FOR_LANDING, landingPath, stateDisplayName } from "@/lib/landing"
 import { absoluteUrl, toJsonLdString } from "@/lib/site"
+import { jobPath } from "@/lib/job-slug"
 import JobsClient, { type InitialJobs, type JobWithSchool } from "./JobsClient"
 
 export const revalidate = 300
@@ -75,7 +76,7 @@ export default async function JobsPage({ searchParams }: Props) {
     itemListElement: listed.map((j, i) => ({
       "@type": "ListItem",
       position: (page - 1) * JOBS_PER_PAGE + i + 1,
-      url: absoluteUrl(`/jobs/${j.id}`),
+      url: absoluteUrl(jobPath(j)),
       name: j.title,
     })),
   }

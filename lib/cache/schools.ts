@@ -21,7 +21,7 @@ const SCHOOL_FIELDS = `id, user_id, school_name, slug, school_type, school_level
   salary_range_min, salary_range_max, benefits,
   school_category`
 
-const JOB_FIELDS = `id, title, subject, teaching_levels, employment_type,
+const JOB_FIELDS = `id, slug, title, subject, teaching_levels, employment_type,
   salary_min, salary_max, accommodation_offered, quiz_enabled,
   deadline, created_at`
 

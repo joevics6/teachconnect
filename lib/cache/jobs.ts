@@ -118,6 +118,17 @@ export const getFeaturedJobs = unstable_cache(
  * the moment a job's status actually changes rather than lagging
  * behind it.
  */
+/** Job id for a public slug (null if there is none). Reads the jobs table directly. */
+export const getJobIdBySlug = unstable_cache(
+  async (slug: string) => {
+    const supabase = createPublicClient()
+    const { data } = await supabase.from("jobs").select("id").eq("slug", slug).maybeSingle()
+    return (data?.id as string | undefined) ?? null
+  },
+  ["job-id-by-slug"],
+  { tags: TAGS, revalidate: REVALIDATE_SECONDS }
+)
+
 export const getJobById = unstable_cache(
   async (jobId: string) => {
     const supabase = createPublicClient()
@@ -134,7 +145,7 @@ export const getJobById = unstable_cache(
     const { data: seo } = await supabase
       .from("jobs")
       .select(
-        "role_category, experience_level, responsibilities, skills_required, about_role, who_apply, standout, meta_description"
+        "slug, role_category, experience_level, responsibilities, skills_required, about_role, who_apply, standout, meta_description"
       )
       .eq("id", jobId)
       .maybeSingle()
@@ -145,20 +156,43 @@ export const getJobById = unstable_cache(
   { tags: TAGS, revalidate: REVALIDATE_SECONDS }
 )
 
+export interface RelatedJobRow {
+  id: string
+  slug?: string | null
+  title: string
+  subject: string
+  teaching_levels: string[]
+  employment_type: string
+  salary_min: number
+  salary_max: number
+  accommodation_offered: boolean
+  deadline: string
+  school_name: string
+  school_state: string
+  school_lga: string
+  school_logo_url: string | null
+  school_is_verified: boolean
+}
+
 export const getRelatedJobs = unstable_cache(
   async (subject: string, excludeId: string) => {
     const supabase = createPublicClient()
-    const { data } = await supabase
-      .from("jobs_with_school")
-      .select("id, title, subject, teaching_levels, employment_type, salary_min, salary_max, accommodation_offered, deadline, school_name, school_state, school_lga, school_logo_url, school_is_verified")
-      .eq("subject", subject)
-      .eq("status", "active")
-      .eq("is_private", false)
-      .neq("id", excludeId)
-      .gte("deadline", new Date().toISOString().split("T")[0])
-      .order("created_at", { ascending: false })
-      .limit(4)
-    return data || []
+    const base = "id, title, subject, teaching_levels, employment_type, salary_min, salary_max, accommodation_offered, deadline, school_name, school_state, school_lga, school_logo_url, school_is_verified"
+    const run = (columns: string) =>
+      supabase
+        .from("jobs_with_school")
+        .select(columns)
+        .eq("subject", subject)
+        .eq("status", "active")
+        .eq("is_private", false)
+        .neq("id", excludeId)
+        .gte("deadline", new Date().toISOString().split("T")[0])
+        .order("created_at", { ascending: false })
+        .limit(4)
+    const withSlug = await run(`${base}, slug`)
+    // Before supabase/job_slugs.sql has been run the view has no slug column.
+    const result = withSlug.error ? await run(base) : withSlug
+    return (result.data || []) as unknown as RelatedJobRow[]
   },
   ["jobs-related"],
   { tags: TAGS, revalidate: REVALIDATE_SECONDS }

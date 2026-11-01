@@ -27,6 +27,7 @@
 import { SITE_URL } from "@/lib/site"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { generateWithGemini, parseGeminiJson } from "@/lib/gemini"
+import { jobPath } from "@/lib/job-slug"
 
 
 const BULLETS_PROMPT = (requiredQualifications: string, preferredQualifications: string | null) => `
@@ -82,7 +83,7 @@ export async function generateAndSaveSocialPost(jobId: string): Promise<string |
   const { data: job, error } = await adminDb
     .from("jobs")
     .select(`
-      id, title, required_qualifications, preferred_qualifications,
+      id, slug, title, required_qualifications, preferred_qualifications,
       school_profiles ( lga, state )
     `)
     .eq("id", jobId)
@@ -103,7 +104,7 @@ export async function generateAndSaveSocialPost(jobId: string): Promise<string |
     "Requirements:",
     ...bullets.map((b) => `• ${b}`),
     "",
-    `Apply: ${SITE_URL}/jobs/${job.id}`,
+    `Apply: ${SITE_URL}${jobPath(job)}`,
   ].join("\n")
 
   const { error: updateError } = await adminDb.from("jobs").update({ social: post }).eq("id", jobId)

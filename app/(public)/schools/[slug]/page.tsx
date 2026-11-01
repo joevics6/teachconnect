@@ -17,6 +17,7 @@ import { createClient } from "@/lib/supabase/server"
 import { getPublicSchoolProfile, getSchoolContactInfo } from "@/lib/cache/schools"
 import { formatSalaryRange, formatCurrency, getInitials } from "@/lib/utils"
 import { SITE_URL } from "@/lib/site"
+import { jobPath } from "@/lib/job-slug"
 
 
 // ─── Helpers ─────────────────────────────────────────────────
@@ -177,10 +178,10 @@ function Breadcrumbs({ schoolName }: { schoolName: string }) {
 
 // ─── Job Card ─────────────────────────────────────────────────
 
-function JobCard({ job }: { job: { id: string; title: string; subject: string; teaching_levels: string[]; employment_type: string; salary_min: number; salary_max: number; accommodation_offered: boolean; quiz_enabled: boolean; deadline: string } }) {
+function JobCard({ job }: { job: { id: string; slug?: string | null; title: string; subject: string; teaching_levels: string[]; employment_type: string; salary_min: number; salary_max: number; accommodation_offered: boolean; quiz_enabled: boolean; deadline: string } }) {
   const daysLeft = getDaysLeft(job.deadline)
   return (
-    <Link href={`/jobs/${job.id}`}>
+    <Link href={jobPath(job)}>
       <div className="p-4 border border-gray-100 rounded-xl hover:border-ink-200 hover:bg-ink-50/30 transition group">
         <div className="flex items-start justify-between gap-3 mb-2">
           <div>

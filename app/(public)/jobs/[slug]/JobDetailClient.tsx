@@ -28,6 +28,7 @@ import { getFetchErrorMessage } from "@/lib/network-error"
 import { ExternalApplyPanel } from "@/components/jobs/ExternalApplyPanel"
 import { JobSeoSections } from "@/components/jobs/JobSeoSections"
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs"
+import { jobPath } from "@/lib/job-slug"
 import type { Job } from "@/types"
 
 export interface JobWithSchool extends Job {
@@ -42,6 +43,7 @@ export interface JobWithSchool extends Job {
 
 export interface RelatedJob {
   id: string
+  slug?: string | null
   title: string
   subject: string
   teaching_levels: string[]
@@ -116,7 +118,7 @@ export default function JobDetailClient({
         body: JSON.stringify({ job_id: jobId }),
       })
       if (response.status === 401) {
-        router.push(`/login?next=/jobs/${jobId}`)
+        router.push(`/login?next=${jobPath({ id: jobId, slug: job?.slug })}`)
         return
       }
       if (!response.ok) throw new Error("Failed to save job")
@@ -653,7 +655,7 @@ export default function JobDetailClient({
                 return (
                   <Link
                     key={related.id}
-                    href={`/jobs/${related.id}`}
+                    href={jobPath(related)}
                     className="bg-white rounded-xl border border-gray-200 p-5 hover:border-ink-300 hover:shadow-md transition group flex flex-col"
                   >
                     <div className="flex items-start gap-3 mb-3">

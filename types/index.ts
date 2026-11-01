@@ -101,6 +101,7 @@ export interface SchoolProfile {
 
 export interface Job {
   id: string
+  slug?: string | null
   school_id: string
   school?: SchoolProfile
   title: string

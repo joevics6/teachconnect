@@ -7,6 +7,7 @@
 
 export interface JobLdInput {
   id: string
+  slug?: string | null
   title: string
   subject: string | null
   description: string
@@ -26,12 +27,46 @@ export interface JobLdInput {
   responsibilities?: string[] | null
   skills_required?: string[] | null
   experience_level?: string | null
+  about_role?: string | null
 }
 
 const EMPLOYMENT_TYPES: Record<string, string> = {
   "full-time": "FULL_TIME",
   "part-time": "PART_TIME",
   contract: "CONTRACTOR",
+  temporary: "TEMPORARY",
+  internship: "INTERN",
+  intern: "INTERN",
+  volunteer: "VOLUNTEER",
+}
+
+// Months of experience, for experienceRequirements. Unknown levels are
+// left out rather than guessed.
+const EXPERIENCE_MONTHS: Record<string, number> = {
+  entry: 0,
+  "entry-level": 0,
+  junior: 12,
+  mid: 36,
+  "mid-level": 36,
+  senior: 60,
+  lead: 84,
+}
+
+const normalise = (v: string) => v.toLowerCase().trim().replace(/[\s_]+/g, "-")
+
+/** A job's own public URL path: the slug when it has one, the id otherwise. */
+const jobUrlPath = (job: { id: string; slug?: string | null }) => `/jobs/${job.slug || job.id}`
+
+// Google needs a validThrough date for the posting to count as open. Jobs
+// without a deadline get 30 days from the day they were posted.
+function validThrough(job: JobLdInput): string {
+  if (job.deadline) {
+    return job.deadline.length === 10 ? `${job.deadline}T23:59:59+01:00` : job.deadline
+  }
+  const base = new Date(job.created_at)
+  if (Number.isNaN(base.getTime())) base.setTime(Date.now())
+  base.setDate(base.getDate() + 30)
+  return `${base.toISOString().slice(0, 10)}T23:59:59+01:00`
 }
 
 const esc = (s: string) =>
@@ -56,6 +91,11 @@ function toHtml(job: JobLdInput): string {
     const lines = job.required_qualifications.split("\n").map((x) => x.replace(/^[\s•\-*]+/, "").trim()).filter(Boolean)
     if (lines.length) parts.push(`<p><strong>Qualifications</strong></p><ul>${lines.map((l) => `<li>${esc(l)}</li>`).join("")}</ul>`)
   }
+  if (job.about_role) {
+    for (const p of job.about_role.split(/\n\s*\n|\n/).map((x) => x.trim()).filter(Boolean)) parts.push(`<p>${esc(p)}</p>`)
+  }
+  // Google rejects an empty description, so never emit one.
+  if (parts.length === 0) parts.push(`<p>${esc(job.title)}</p>`)
   return parts.join("")
 }
 
@@ -68,7 +108,7 @@ export function buildJobPostingJsonLd(job: JobLdInput, siteUrl: string) {
     description: toHtml(job),
     datePosted: job.created_at.slice(0, 10),
     identifier: { "@type": "PropertyValue", name: "ClassHire", value: job.id },
-    url: `${siteUrl}/jobs/${job.id}`,
+    url: `${siteUrl}${jobUrlPath(job)}`,
     industry: "Education",
     directApply: !job.external_apply_enabled,
     hiringOrganization: {
@@ -80,19 +120,22 @@ export function buildJobPostingJsonLd(job: JobLdInput, siteUrl: string) {
       "@type": "Place",
       address: {
         "@type": "PostalAddress",
-        ...(job.school_lga ? { addressLocality: job.school_lga } : {}),
+        // addressLocality is what Google reads as the town/city; fall back to
+        // the state, then the country, so a job with no LGA still has one.
+        addressLocality: job.school_lga || job.school_state || "Nigeria",
         ...(job.school_state ? { addressRegion: job.school_state } : {}),
         addressCountry: "NG",
       },
     },
   }
 
-  if (job.deadline) {
-    const d = job.deadline.length === 10 ? `${job.deadline}T23:59:59+01:00` : job.deadline
-    ld.validThrough = d
-  }
-  const type = job.employment_type ? EMPLOYMENT_TYPES[job.employment_type] : undefined
+  ld.validThrough = validThrough(job)
+  const type = job.employment_type ? EMPLOYMENT_TYPES[normalise(job.employment_type)] : undefined
   if (type) ld.employmentType = type
+  const months = job.experience_level ? EXPERIENCE_MONTHS[normalise(job.experience_level)] : undefined
+  if (months !== undefined) {
+    ld.experienceRequirements = { "@type": "OccupationalExperienceRequirements", monthsOfExperience: months }
+  }
   if (job.role_category) ld.occupationalCategory = job.role_category
   if (job.skills_required?.length) ld.skills = job.skills_required.join(", ")
   if (job.responsibilities?.length) ld.responsibilities = job.responsibilities.join(" ")
@@ -111,14 +154,14 @@ export function buildJobPostingJsonLd(job: JobLdInput, siteUrl: string) {
   return ld
 }
 
-export function buildBreadcrumbJsonLd(job: { id: string; title: string }, siteUrl: string) {
+export function buildBreadcrumbJsonLd(job: { id: string; slug?: string | null; title: string }, siteUrl: string) {
   return {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
       { "@type": "ListItem", position: 1, name: "Home", item: siteUrl },
       { "@type": "ListItem", position: 2, name: "Jobs", item: `${siteUrl}/jobs` },
-      { "@type": "ListItem", position: 3, name: job.title, item: `${siteUrl}/jobs/${job.id}` },
+      { "@type": "ListItem", position: 3, name: job.title, item: `${siteUrl}${jobUrlPath(job)}` },
     ],
   }
 }

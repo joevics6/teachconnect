@@ -15,6 +15,8 @@
 
 import { createSign } from "crypto"
 import { SITE_URL } from "@/lib/site"
+import { createAdminClient } from "@/lib/supabase/admin"
+import { jobPath } from "@/lib/job-slug"
 
 interface ServiceAccount {
   client_email: string
@@ -81,10 +83,22 @@ async function notifyIndexNow(urls: string[]) {
   if (!res.ok) console.error("IndexNow:", res.status)
 }
 
+/** Public URLs for job ids (slug URL when the job has one, id URL otherwise). */
+async function jobUrls(jobIds: string[]): Promise<string[]> {
+  const bySlug = new Map<string, string | null>()
+  try {
+    const { data } = await createAdminClient().from("jobs").select("id, slug").in("id", jobIds)
+    for (const row of data ?? []) bySlug.set(row.id, row.slug)
+  } catch (err) {
+    console.error("Index notify: slug lookup failed, using id URLs:", err)
+  }
+  return jobIds.map((id) => `${SITE_URL}${jobPath({ id, slug: bySlug.get(id) })}`)
+}
+
 /** Call after a job goes live (and its search content exists). Never throws. */
 export async function notifyJobsPublished(jobIds: string[]) {
   if (jobIds.length === 0) return
-  const urls = jobIds.map((id) => `${SITE_URL}/jobs/${id}`)
+  const urls = await jobUrls(jobIds)
   await Promise.allSettled([
     notifyGoogle(urls, "URL_UPDATED").catch((e) => console.error("Google index notify failed:", e)),
     notifyIndexNow(urls).catch((e) => console.error("IndexNow notify failed:", e)),
@@ -94,7 +108,7 @@ export async function notifyJobsPublished(jobIds: string[]) {
 /** Call after a job is closed/removed so Google drops the listing. Never throws. */
 export async function notifyJobsRemoved(jobIds: string[]) {
   if (jobIds.length === 0) return
-  await notifyGoogle(jobIds.map((id) => `${SITE_URL}/jobs/${id}`), "URL_DELETED").catch((e) =>
+  await notifyGoogle(await jobUrls(jobIds), "URL_DELETED").catch((e) =>
     console.error("Google index removal notify failed:", e)
   )
 }

@@ -1,5 +1,5 @@
 // ============================================================
-// app/(public)/jobs/[id]/page.tsx
+// app/(public)/jobs/[slug]/page.tsx
 // Server-rendered job page. The job (including the search content
 // from lib/job-seo.ts) is fetched on the server so it's in the first
 // HTML response, with per-job <title>/description/canonical, and
@@ -9,8 +9,9 @@
 // ============================================================
 
 import type { Metadata } from "next"
-import { notFound } from "next/navigation"
-import { getJobById, getRelatedJobs } from "@/lib/cache/jobs"
+import { notFound, permanentRedirect } from "next/navigation"
+import { getJobById, getJobIdBySlug, getRelatedJobs } from "@/lib/cache/jobs"
+import { isUuid, jobPath } from "@/lib/job-slug"
 import {
   buildBreadcrumbJsonLd,
   buildJobPostingJsonLd,
@@ -26,7 +27,14 @@ import { hideExpiredContact, isJobExpired as isExpired } from "@/lib/job-expiry"
 
 const UNAPPROVED = ["pending_approval", "rejected", "draft"]
 
-type Props = { params: Promise<{ id: string }> }
+// The URL segment is a slug. Old links used the job id, so a uuid is still
+// accepted and (once the job has a slug) redirected to the slug URL.
+type Props = { params: Promise<{ slug: string }> }
+
+async function loadJob(param: string) {
+  const id = isUuid(param) ? param : await getJobIdBySlug(param)
+  return id ? getJobById(id) : null
+}
 
 const location = (j: { school_lga?: string | null; school_state?: string | null }) =>
   [j.school_lga, j.school_state].filter(Boolean).join(", ") || "Nigeria"
@@ -35,8 +43,8 @@ const trim = (s: string, max: number) => (s.length <= max ? s : `${s.slice(0, ma
 
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { id } = await params
-  const job = await getJobById(id)
+  const { slug } = await params
+  const job = await loadJob(slug)
 
   // Unknown or not-yet-approved jobs: nothing to describe, nothing to index.
   if (!job || UNAPPROVED.includes(job.status)) {
@@ -57,7 +65,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         .replace(/\s+/g, " "),
     160
   )
-  const url = `${SITE_URL}/jobs/${job.id}`
+  const url = `${SITE_URL}${jobPath(job)}`
   // Expired jobs stay indexed (the page itself says the job has expired).
   const indexable = job.status === "active" || job.status === "closed"
 
@@ -72,18 +80,24 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function JobPage({ params }: Props) {
-  const { id } = await params
-  const job = await getJobById(id)
+  const { slug } = await params
+  const job = await loadJob(slug)
   if (!job) notFound()
+
+  // One URL per job: id links (and any other spelling) go to the slug URL.
+  // Not for unapproved jobs, which must not reveal anything publicly.
+  if (!UNAPPROVED.includes(job.status) && job.slug && slug !== job.slug) {
+    permanentRedirect(jobPath(job))
+  }
 
   // Unapproved jobs are only visible to the owning school (checked, with
   // the visitor's session, by /api/jobs/[id]). Let the client component
   // do that fetch and render nothing job-specific from the server.
   if (UNAPPROVED.includes(job.status)) {
-    return <JobDetailClient jobId={id} />
+    return <JobDetailClient jobId={job.id} />
   }
 
-  const related = (await getRelatedJobs(job.subject, id)) as RelatedJob[]
+  const related = (await getRelatedJobs(job.subject, job.id)) as RelatedJob[]
 
   const jobLd = buildJobPostingJsonLd(job as unknown as JobLdInput, SITE_URL)
   const crumbLd = buildBreadcrumbJsonLd(job, SITE_URL)
@@ -103,7 +117,7 @@ export default async function JobPage({ params }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: toJsonLdString(crumbLd) }}
       />
-      <JobDetailClient jobId={id} initialJob={hideExpiredContact(job) as unknown as JobWithSchool} initialRelated={related} />
+      <JobDetailClient jobId={job.id} initialJob={hideExpiredContact(job) as unknown as JobWithSchool} initialRelated={related} />
     </>
   )
 }

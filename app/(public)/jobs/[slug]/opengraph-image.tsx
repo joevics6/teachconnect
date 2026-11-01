@@ -1,4 +1,5 @@
-import { getJobById } from "@/lib/cache/jobs"
+import { getJobById, getJobIdBySlug } from "@/lib/cache/jobs"
+import { isUuid } from "@/lib/job-slug"
 import { isConfidentialSchool } from "@/lib/job-jsonld"
 import { ogCard, OG_SIZE } from "@/lib/og-card"
 
@@ -15,9 +16,10 @@ function salaryPill(min: number | null, max: number | null) {
   return `NGN ${range} / month`
 }
 
-export default async function Image({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params
-  const job = await getJobById(id)
+export default async function Image({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params
+  const id = isUuid(slug) ? slug : await getJobIdBySlug(slug)
+  const job = id ? await getJobById(id) : null
   if (!job) return ogCard({ kicker: "Teaching job", title: "Teaching jobs in Nigeria" })
 
   const confidential = isConfidentialSchool(job.school_name)

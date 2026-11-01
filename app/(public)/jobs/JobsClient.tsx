@@ -24,6 +24,7 @@ import { formatSalaryRange } from "@/lib/utils"
 import type { Job } from "@/types"
 import { useAuth } from "@/hooks/useAuth"
 import { getFetchErrorMessage } from "@/lib/network-error"
+import { jobPath } from "@/lib/job-slug"
 
 const EMPLOYMENT_TYPES = [
   { value: "full-time", label: "Full Time" },
@@ -68,7 +69,7 @@ function JobCard({ job }: { job: JobWithSchool }) {
   const isClosed = daysLeft <= 0
 
   return (
-    <Link href={`/jobs/${job.id}`} className="block">
+    <Link href={jobPath(job)} className="block">
       <div className="bg-white border border-gray-200 rounded-2xl p-6 hover:border-ink-300 hover:shadow-lg transition-all group cursor-pointer">
         <div className="flex items-start justify-between gap-4 mb-4">
           <div className="flex items-center gap-4 min-w-0">
