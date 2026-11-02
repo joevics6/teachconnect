@@ -71,10 +71,21 @@ async function jobSitemapPageCount(): Promise<number> {
 export async function renderIndex(): Promise<string> {
   const now = new Date().toISOString()
   const pages = await jobSitemapPageCount().catch(() => 1)
+  // Search Console reports an empty sitemap as an error, and the landing
+  // sitemap is legitimately empty until a location or category has enough
+  // jobs AND written copy. List a section only when it has something in it.
+  const optional = await Promise.all(
+    (["landing", "content", "schools"] as const).map(async (n) => ({
+      n,
+      count: (await buildEntries(n).catch(() => [])).length,
+    }))
+  )
+  const live = new Set(optional.filter((o) => o.count > 0).map((o) => o.n))
   const names = [
-    ...SITEMAP_NAMES.slice(0, 2).map((n) => `${SITE_URL}/sitemaps/${n}.xml`),
+    `${SITE_URL}/sitemaps/static.xml`,
+    ...(live.has("landing") ? [`${SITE_URL}/sitemaps/landing.xml`] : []),
     ...Array.from({ length: pages }, (_, i) => `${SITE_URL}/sitemaps/jobs/${i + 1}`),
-    ...SITEMAP_NAMES.slice(2).map((n) => `${SITE_URL}/sitemaps/${n}.xml`),
+    ...(["content", "schools"] as const).filter((n) => live.has(n)).map((n) => `${SITE_URL}/sitemaps/${n}.xml`),
   ]
   const body = names.map((loc) => `<sitemap><loc>${loc}</loc><lastmod>${now}</lastmod></sitemap>`).join("")
   return `<?xml version="1.0" encoding="UTF-8"?><sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${body}</sitemapindex>`

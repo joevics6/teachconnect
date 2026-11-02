@@ -121,6 +121,8 @@ export const config = {
   matcher: [
     // sitemap.xml, robots.txt and the web manifest must be reachable by
     // crawlers without a session, so they bypass the auth middleware.
-    "/((?!_next/static|_next/image|favicon.ico|sitemap\\.xml|sitemaps/.*\\.xml|robots\\.txt|manifest\\.webmanifest|ads\\.txt|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    // sitemaps/.* covers both /sitemaps/landing.xml and the numbered job
+    // sitemaps (/sitemaps/jobs/1) which have no .xml extension.
+    "/((?!_next/static|_next/image|favicon.ico|sitemap\\.xml|sitemaps/.*|robots\\.txt|manifest\\.webmanifest|ads\\.txt|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 }
