@@ -49,6 +49,7 @@ export async function middleware(request: NextRequest) {
     "/jobs",
     "/talent", // guest preview (first 5 unlocked) — api/talent + the page itself already gate the rest
     "/resources",
+    "/tools", // free tools (lesson notes, calculators, ...)
     "/blog",
     "/pricing",
     "/contact",

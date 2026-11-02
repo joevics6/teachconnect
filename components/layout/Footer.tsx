@@ -89,6 +89,14 @@ export default function Footer() {
                   Career Resources
                 </Link>
               </li>
+              <li>
+                <Link
+                  href="/tools"
+                  className="hover:text-white transition"
+                >
+                  Free Teacher Tools
+                </Link>
+              </li>
             </ul>
           </div>
 

@@ -15,6 +15,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { SITE_URL } from "@/lib/site"
 import { jobPath } from "@/lib/job-slug"
+import { TOOLS } from "@/lib/tools/registry"
 import { getCategoryIndex, getLandingKeysWithContent, getStateJobCounts } from "@/lib/cache/landing"
 import { categoryPath, landingPath, MIN_JOBS_FOR_LANDING } from "@/lib/landing"
 
@@ -96,7 +97,13 @@ export async function buildEntries(name: SitemapName): Promise<Entry[]> {
         changefreq: path === "" || path === "/jobs" ? "daily" : "weekly",
         priority: path === "" ? 1 : 0.7,
       }))
-      return base
+      // /tools is only indexable once there are enough tools to be a useful
+      // index (see app/(public)/tools/page.tsx); each tool page always is.
+      const tools: Entry[] = [
+        ...(TOOLS.length >= 3 ? [{ path: "/tools", changefreq: "weekly" as const, priority: 0.7 }] : []),
+        ...TOOLS.map((t) => ({ path: `/tools/${t.slug}`, changefreq: "monthly" as const, priority: 0.8 })),
+      ]
+      return [...base, ...tools]
     }
     case "landing": {
       // Locations + categories. Live (enough jobs) AND with written copy —
