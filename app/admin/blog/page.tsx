@@ -84,14 +84,14 @@ export default function AdminBlogPage() {
             No blog posts yet. Write your first one.
           </div>
         ) : (
-          <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+          <div className="bg-white border border-gray-200 rounded-xl overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-100 text-left text-gray-500 text-xs uppercase tracking-wide">
                   <th className="px-4 py-3 font-medium">Title</th>
-                  <th className="px-4 py-3 font-medium">Author</th>
+                  <th className="px-4 py-3 font-medium hidden md:table-cell">Author</th>
                   <th className="px-4 py-3 font-medium">Status</th>
-                  <th className="px-4 py-3 font-medium">Created</th>
+                  <th className="px-4 py-3 font-medium hidden md:table-cell">Created</th>
                   <th className="px-4 py-3 font-medium text-right">Actions</th>
                 </tr>
               </thead>
@@ -101,7 +101,7 @@ export default function AdminBlogPage() {
                     <td className="px-4 py-3 font-medium text-gray-900">
                       <Link href={`/admin/blog/${post.id}`} className="hover:text-ink-600 hover:underline">{post.title}</Link>
                     </td>
-                    <td className="px-4 py-3 text-gray-600">{post.author || "—"}</td>
+                    <td className="px-4 py-3 text-gray-600 hidden md:table-cell">{post.author || "—"}</td>
                     <td className="px-4 py-3">
                       <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
                         post.is_published ? "bg-ink-50 text-ink-700" : "bg-gray-100 text-gray-500"
@@ -109,9 +109,9 @@ export default function AdminBlogPage() {
                         {post.is_published ? "Published" : "Draft"}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-gray-500">{formatDate(post.created_at)}</td>
+                    <td className="px-4 py-3 text-gray-500 hidden md:table-cell">{formatDate(post.created_at)}</td>
                     <td className="px-4 py-3">
-                      <div className="flex items-center justify-end gap-2">
+                      <div className="flex flex-wrap items-center justify-end gap-2">
                         <Link
                           href={`/admin/blog/${post.id}`}
                           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 text-gray-700 text-xs font-medium"
