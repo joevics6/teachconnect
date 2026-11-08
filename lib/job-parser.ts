@@ -47,6 +47,7 @@ REWRITE, DO NOT COPY
 - The text may be very short (for example just a location, a list of subjects and a contact). Still write EVERY field in full for each role. Write the role's own content from your knowledge of that role in Nigerian schools: the description, realistic standard required_qualifications (e.g. a relevant degree, NCE or B.Ed in the subject, TRCN registration, classroom experience), preferred_qualifications, responsibilities, skills and the three prose fields. Never return a job just because the text is thin.
 
 LOCATION, LEVELS, SUBJECT AND CONTACT
+- REMOTE JOBS: if the post says the job is remote, work from home, online or virtual, set is_remote true. A remote job needs no location: leave school.state, school.lga and school.town null unless the post names them. Otherwise is_remote is false.
 - Always fill school.state and school.lga whenever any city, town or area is named, using your knowledge of Nigerian geography (e.g. Asaba -> Delta, Oshimili South; Ikeja -> Lagos, Ikeja; Garki -> FCT, Municipal Area Council). state must come from the list. Never leave state or lga null when a place is named. If only a state is named, give the LGA of its capital.
 - If teaching levels are not stated, infer them from the school type: secondary school -> [\"jss\", \"sss\"]; primary school -> [\"primary\"]; nursery -> [\"nursery\"]; nursery and primary -> both.
 - If the text says "a secondary school in Asaba" without a name, the school is not named: school_name null, is_confidential true.
@@ -59,6 +60,7 @@ Each object must have exactly these fields (null / empty when not stated):
   "subject": "exactly one of: ${ALL_SUBJECTS.join(", ")} — never null",
   "teaching_levels": ["one or more of: ${LEVELS.join(", ")}"],
   "employment_type": "${EMPLOYMENT.join(" | ")} (default full-time)",
+  "is_remote": "true if the job is remote / work from home / online, else false",
   "positions": 1,
   "salary_min": 0,
   "salary_max": 0,
@@ -293,11 +295,12 @@ export async function parseJobBatch(jobText: string): Promise<ParseBatchResult> 
       const sc = (raw.school && typeof raw.school === "object" ? raw.school : {}) as Raw
       const schoolName = str(sc.school_name)
       const anonymous = bool(sc.is_confidential) || !schoolName
+      const isRemote = bool(raw.is_remote)
       const { state, lga } = resolveLocation(str(sc.state), str(sc.lga), str(sc.town))
 
       // ---- find or create the school ----
       const cacheKey = anonymous
-        ? `anon|${state}|${lga?.toLowerCase()}`
+        ? `anon|${isRemote ? "remote" : `${state}|${lga?.toLowerCase()}`}`
         : `${schoolName.toLowerCase()}|${state ?? ""}`
       let school = schoolCache.get(cacheKey) ?? null
 
@@ -326,7 +329,8 @@ export async function parseJobBatch(jobText: string): Promise<ParseBatchResult> 
       if (anonymous && !contact) throw new Error("Confidential posting has no contact to apply with")
 
       if (!school) {
-        if (!state || !lga) throw new Error("School state/LGA not found in the text")
+        // A remote job has no place of work, so state/LGA are only required for on-site jobs.
+        if (!isRemote && (!state || !lga)) throw new Error("School state/LGA not found in the text")
         const finalName = anonymous ? "Confidential School" : schoolName
         const { data: made, error: schoolErr } = await db
           .from("school_profiles")
@@ -392,6 +396,7 @@ export async function parseJobBatch(jobText: string): Promise<ParseBatchResult> 
           benefits,
           is_private: false,
           is_featured: false,
+          is_remote: isRemote,
           external_apply_enabled: !!contact,
           external_apply_value: contact,
           quiz_enabled: false,

@@ -34,6 +34,7 @@ interface JobFormData {
   deadline: string
   external_apply_enabled: boolean
   external_apply_value: string
+  is_remote: boolean
 }
 
 const EMPTY_JOB: JobFormData = {
@@ -41,7 +42,7 @@ const EMPTY_JOB: JobFormData = {
   positions: "1", salary_min: "", salary_max: "", accommodation_offered: false,
   accommodation_type: "", benefits: [], description: "", required_qualifications: "",
   preferred_qualifications: "", deadline: "", external_apply_enabled: false,
-  external_apply_value: "",
+  external_apply_value: "", is_remote: false,
 }
 
 interface SchoolFormData {
@@ -169,6 +170,7 @@ export default function AdminNewJobPage() {
             })
           )
         }
+        if (job.is_remote === true) updateJob("is_remote", true)
         if (job.employment_type) updateJob("employment_type", job.employment_type)
         if (job.positions) updateJob("positions", String(job.positions))
         if (job.salary_min) updateJob("salary_min", String(job.salary_min))
@@ -229,8 +231,11 @@ export default function AdminNewJobPage() {
       // "new" and "anonymous" both need type + location; only "new" needs a name.
       if (schoolMode === "new" && !schoolData.school_name.trim()) newErrors.school_name = "Required"
       if (!schoolData.school_type) newErrors.school_type = "Required"
-      if (!schoolData.state) newErrors.state = "Required"
-      if (!schoolData.lga) newErrors.lga = "Required"
+      // Remote jobs have no place of work, so no state/LGA is asked for.
+      if (!jobData.is_remote) {
+        if (!schoolData.state) newErrors.state = "Required"
+        if (!schoolData.lga) newErrors.lga = "Required"
+      }
     }
 
     setErrors(newErrors)
@@ -258,7 +263,7 @@ export default function AdminNewJobPage() {
         const schoolRes = await fetch("/api/admin/schools", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ...schoolData, is_anonymous: schoolMode === "anonymous" }),
+          body: JSON.stringify({ ...schoolData, is_anonymous: schoolMode === "anonymous", is_remote: jobData.is_remote }),
         })
         const schoolResult = await schoolRes.json()
         if (!schoolRes.ok) throw new Error(schoolResult.error || "Failed to create school")
@@ -456,6 +461,20 @@ export default function AdminNewJobPage() {
               onChange={(e) => updateJob("deadline", e.target.value)}
               className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm"
             />
+          </div>
+
+          <div>
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={jobData.is_remote}
+                onChange={(e) => updateJob("is_remote", e.target.checked)}
+              />
+              <span className="text-sm font-medium text-gray-700">Remote job</span>
+            </label>
+            {jobData.is_remote && (
+              <p className="text-xs text-gray-500 mt-1">No country, state or LGA is needed for a remote job.</p>
+            )}
           </div>
 
           <div>
@@ -702,6 +721,7 @@ export default function AdminNewJobPage() {
                 {errors.school_type && <p className="text-red-500 text-xs mt-1">{errors.school_type}</p>}
               </div>
 
+              {!jobData.is_remote && (
               <div id="field-state">
                 <StateLgaSelect
                   state={schoolData.state}
@@ -714,6 +734,7 @@ export default function AdminNewJobPage() {
                   onTownChange={(t) => updateSchool("town", t)}
                 />
               </div>
+              )}
 
               {!isAnonymousMode && (
                 <>

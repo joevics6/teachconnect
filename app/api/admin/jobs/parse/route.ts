@@ -29,6 +29,7 @@ Return exactly this JSON structure (use null for fields not mentioned, do not ad
     "subject": "must be one of exactly: ${ALL_SUBJECTS.join(", ")} — or null if not mentioned",
     "teaching_levels": ["array of applicable values from: nursery, primary, jss, sss, tertiary, non_teaching — empty array if not mentioned"],
     "employment_type": "full-time or part-time or contract or null",
+    "is_remote": "true only if the post says the job is remote / work from home / online / virtual teaching, otherwise false",
     "positions": 1,
     "salary_min": 0,
     "salary_max": 0,

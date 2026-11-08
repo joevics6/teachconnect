@@ -22,6 +22,7 @@ export interface JobLdInput {
   school_logo_url: string | null
   school_lga: string | null
   school_state: string | null
+  is_remote?: boolean | null
   external_apply_enabled?: boolean | null
   role_category?: string | null
   responsibilities?: string[] | null
@@ -116,17 +117,26 @@ export function buildJobPostingJsonLd(job: JobLdInput, siteUrl: string) {
       name: confidential ? "Confidential School" : job.school_name,
       ...(!confidential && job.school_logo_url ? { logo: job.school_logo_url } : {}),
     },
-    jobLocation: {
-      "@type": "Place",
-      address: {
-        "@type": "PostalAddress",
-        // addressLocality is what Google reads as the town/city; fall back to
-        // the state, then the country, so a job with no LGA still has one.
-        addressLocality: job.school_lga || job.school_state || "Nigeria",
-        ...(job.school_state ? { addressRegion: job.school_state } : {}),
-        addressCountry: "NG",
-      },
-    },
+    // Remote jobs have no place of work: Google wants TELECOMMUTE plus the
+    // countries applicants may live in, and no jobLocation.
+    ...(job.is_remote
+      ? {
+          jobLocationType: "TELECOMMUTE",
+          applicantLocationRequirements: { "@type": "Country", name: "Nigeria" },
+        }
+      : {
+          jobLocation: {
+            "@type": "Place",
+            address: {
+              "@type": "PostalAddress",
+              // addressLocality is what Google reads as the town/city; fall back to
+              // the state, then the country, so a job with no LGA still has one.
+              addressLocality: job.school_lga || job.school_state || "Nigeria",
+              ...(job.school_state ? { addressRegion: job.school_state } : {}),
+              addressCountry: "NG",
+            },
+          },
+        }),
   }
 
   ld.validThrough = validThrough(job)

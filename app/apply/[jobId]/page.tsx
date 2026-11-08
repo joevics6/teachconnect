@@ -39,6 +39,7 @@ interface JobDetails {
   school_logo_url: string | null
   school_state: string
   school_lga: string
+  is_remote?: boolean
   description: string
   required_qualifications: string
 }
@@ -247,7 +248,7 @@ export default function ApplyPage() {
                   <h1 className="text-xl font-bold text-gray-900">{job?.title}</h1>
                   <p className="text-ink-600 text-sm">{job?.school_name}</p>
                   <div className="flex items-center gap-3 mt-1 text-xs text-gray-500 flex-wrap">
-                    <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{job?.school_lga}, {job?.school_state}</span>
+                    <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{job?.is_remote ? "Remote" : `${job?.school_lga}, ${job?.school_state}`}</span>
                     <span className="flex items-center gap-1"><Briefcase className="h-3 w-3" />{job?.employment_type}</span>
                     <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{daysLeft > 0 ? `${daysLeft} days left` : "Closed"}</span>
                   </div>

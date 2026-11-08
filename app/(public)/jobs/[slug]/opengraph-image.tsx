@@ -1,5 +1,6 @@
 import { getJobById, getJobIdBySlug } from "@/lib/cache/jobs"
 import { isUuid } from "@/lib/job-slug"
+import { jobLocationText } from "@/lib/job-location"
 import { isConfidentialSchool } from "@/lib/job-jsonld"
 import { ogCard, OG_SIZE } from "@/lib/og-card"
 
@@ -20,10 +21,10 @@ export default async function Image({ params }: { params: Promise<{ slug: string
   const { slug } = await params
   const id = isUuid(slug) ? slug : await getJobIdBySlug(slug)
   const job = id ? await getJobById(id) : null
-  if (!job) return ogCard({ kicker: "Teaching job", title: "Teaching jobs in Nigeria" })
+  if (!job || ["pending_approval", "rejected", "draft"].includes(job.status)) return ogCard({ kicker: "Teaching job", title: "Teaching jobs in Nigeria" })
 
   const confidential = isConfidentialSchool(job.school_name)
-  const where = [job.school_lga, job.school_state].filter(Boolean).join(", ")
+  const where = jobLocationText(job)
   return ogCard({
     kicker: "Teaching job",
     title: job.title,

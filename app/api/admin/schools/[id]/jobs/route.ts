@@ -102,6 +102,7 @@ export async function POST(
       benefits:                 body.benefits ?? [],
       is_private:               false,
       is_featured:              body.is_featured ?? false,
+      is_remote:                body.is_remote === true,
       external_apply_enabled:   body.external_apply_enabled ?? false,
       external_apply_value:     body.external_apply_enabled ? String(body.external_apply_value || "").trim() : null,
       quiz_enabled:             body.quiz_enabled ?? false,

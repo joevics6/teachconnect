@@ -12,6 +12,7 @@ import type { Metadata } from "next"
 import { notFound, permanentRedirect } from "next/navigation"
 import { getJobById, getJobIdBySlug, getRelatedJobs } from "@/lib/cache/jobs"
 import { isUuid, jobPath } from "@/lib/job-slug"
+import { jobLocationText } from "@/lib/job-location"
 import {
   buildBreadcrumbJsonLd,
   buildJobPostingJsonLd,
@@ -36,8 +37,8 @@ async function loadJob(param: string) {
   return id ? getJobById(id) : null
 }
 
-const location = (j: { school_lga?: string | null; school_state?: string | null }) =>
-  [j.school_lga, j.school_state].filter(Boolean).join(", ") || "Nigeria"
+const location = (j: { is_remote?: boolean | null; school_lga?: string | null; school_state?: string | null }) =>
+  jobLocationText(j, "Nigeria")
 
 const trim = (s: string, max: number) => (s.length <= max ? s : `${s.slice(0, max - 1).trimEnd()}…`)
 

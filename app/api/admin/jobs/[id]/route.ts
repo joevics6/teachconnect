@@ -48,7 +48,7 @@ const EDITABLE_FIELDS = [
   "employment_type", "positions", "salary_min", "salary_max",
   "accommodation_offered", "accommodation_type", "benefits",
   "required_qualifications", "preferred_qualifications",
-  "is_featured", "is_private",
+  "is_featured", "is_private", "is_remote",
   "external_apply_enabled", "external_apply_value",
   "quiz_enabled", "quiz_pass_mark", "quiz_mode", "quiz_duration", "quiz_question_count",
   // Search-oriented content (see lib/job-seo.ts) — editable by admin only

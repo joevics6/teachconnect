@@ -13,6 +13,7 @@
 // ============================================================
 
 import { createClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { SITE_URL } from "@/lib/site"
 import { jobPath } from "@/lib/job-slug"
 import { TOOLS } from "@/lib/tools/registry"
@@ -60,7 +61,9 @@ export const JOBS_PER_SITEMAP = 1000
 const JOB_STATUSES = ["active", "closed"]
 
 async function jobSitemapPageCount(): Promise<number> {
-  const supabase = await createClient()
+  // Service role: RLS hides closed and past-deadline jobs from anon, but
+  // those pages stay live and indexed, so they must be counted and listed.
+  const supabase = createAdminClient()
   const { count } = await supabase
     .from("jobs")
     .select("id", { count: "exact", head: true })
@@ -188,7 +191,7 @@ export async function jobSitemapResponse(pageParam: string): Promise<Response> {
   if (!Number.isInteger(page) || page < 1) return new Response("Invalid page", { status: 400 })
 
   try {
-    const supabase = await createClient()
+    const supabase = createAdminClient()
     const from = (page - 1) * JOBS_PER_SITEMAP
     const to = from + JOBS_PER_SITEMAP - 1
     // Stable order (created_at, then id) so rows never move between pages.

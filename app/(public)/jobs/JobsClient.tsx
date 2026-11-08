@@ -142,7 +142,7 @@ function JobCard({ job }: { job: JobWithSchool }) {
         <div className="flex items-center gap-4 text-sm text-gray-500 mb-5 flex-wrap">
           <span className="flex items-center gap-1.5">
             <MapPin className="h-4 w-4" />
-            {job.school_state}
+            {job.is_remote ? "Remote" : job.school_state}
           </span>
           {job.accommodation_offered && (
             <span className="flex items-center gap-1.5 text-ink-600">

@@ -16,6 +16,7 @@
 
 import { unstable_cache } from "next/cache"
 import { createPublicClient } from "@/lib/supabase/public"
+import { createAdminClient } from "@/lib/supabase/admin"
 
 const TAGS = ["jobs"]
 const REVALIDATE_SECONDS = 300
@@ -121,7 +122,11 @@ export const getFeaturedJobs = unstable_cache(
 /** Job id for a public slug (null if there is none). Reads the jobs table directly. */
 export const getJobIdBySlug = unstable_cache(
   async (slug: string) => {
-    const supabase = createPublicClient()
+    // Service role on purpose: the jobs RLS policies only let anon read jobs
+    // that are active AND not past their deadline, so with the public client
+    // every expired/closed job page returned 404 — even though those pages
+    // are meant to stay indexed. Callers decide what to show per status.
+    const supabase = createAdminClient()
     const { data } = await supabase.from("jobs").select("id").eq("slug", slug).maybeSingle()
     return (data?.id as string | undefined) ?? null
   },
@@ -131,7 +136,9 @@ export const getJobIdBySlug = unstable_cache(
 
 export const getJobById = unstable_cache(
   async (jobId: string) => {
-    const supabase = createPublicClient()
+    // Service role (see getJobIdBySlug): returns jobs of every status. Callers
+    // MUST check job.status before showing anything for unapproved jobs.
+    const supabase = createAdminClient()
     const { data } = await supabase
       .from("jobs_with_school")
       .select("*")

@@ -29,6 +29,7 @@ import { ExternalApplyPanel } from "@/components/jobs/ExternalApplyPanel"
 import { JobSeoSections } from "@/components/jobs/JobSeoSections"
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs"
 import { jobPath } from "@/lib/job-slug"
+import { jobLocationText } from "@/lib/job-location"
 import type { Job } from "@/types"
 
 export interface JobWithSchool extends Job {
@@ -44,6 +45,7 @@ export interface JobWithSchool extends Job {
 export interface RelatedJob {
   id: string
   slug?: string | null
+  is_remote?: boolean
   title: string
   subject: string
   teaching_levels: string[]
@@ -340,7 +342,7 @@ export default function JobDetailClient({
                   <p className="text-xs text-gray-500 mb-1">Location</p>
                   <p className="text-sm font-semibold text-gray-900 flex items-center gap-1">
                     <MapPin className="h-3.5 w-3.5 text-gray-400" />
-                    {job.school_lga}, {job.school_state}
+                    {jobLocationText(job)}
                   </p>
                 </div>
                 {job.experience_level ? (
@@ -569,7 +571,7 @@ export default function JobDetailClient({
                 <div className="flex items-center gap-2 text-sm text-gray-600">
                   <MapPin className="h-4 w-4 text-gray-400 flex-shrink-0" />
                   <span>
-                    {job.school_lga}, {job.school_state}
+                    {jobLocationText(job)}
                   </span>
                 </div>
                 {job.accommodation_offered && (
@@ -630,7 +632,7 @@ export default function JobDetailClient({
               </div>
               <div className="flex items-center gap-1.5 text-xs text-gray-500 mb-4">
                 <MapPin className="h-3.5 w-3.5" />
-                {job.school_lga}, {job.school_state}
+                {jobLocationText(job)}
               </div>
               <Link href={`/schools/${job.school_id}`}>
                 <Button variant="outline" size="sm" className="w-full text-xs">
@@ -708,7 +710,7 @@ export default function JobDetailClient({
 
                     <div className="flex items-center gap-1.5 text-xs text-gray-500 mb-4">
                       <MapPin className="h-3.5 w-3.5" />
-                      {related.school_lga}, {related.school_state}
+                      {jobLocationText(related)}
                     </div>
 
                     <div className="mt-auto flex items-center justify-between pt-3 border-t border-gray-100">

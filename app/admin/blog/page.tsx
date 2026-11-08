@@ -98,7 +98,9 @@ export default function AdminBlogPage() {
               <tbody className="divide-y divide-gray-100">
                 {posts.map((post) => (
                   <tr key={post.id}>
-                    <td className="px-4 py-3 font-medium text-gray-900">{post.title}</td>
+                    <td className="px-4 py-3 font-medium text-gray-900">
+                      <Link href={`/admin/blog/${post.id}`} className="hover:text-ink-600 hover:underline">{post.title}</Link>
+                    </td>
                     <td className="px-4 py-3 text-gray-600">{post.author || "—"}</td>
                     <td className="px-4 py-3">
                       <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
@@ -110,23 +112,30 @@ export default function AdminBlogPage() {
                     <td className="px-4 py-3 text-gray-500">{formatDate(post.created_at)}</td>
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-end gap-2">
-                        <button
-                          disabled={busyId === post.id}
-                          onClick={() => togglePublish(post)}
-                          title={post.is_published ? "Unpublish" : "Publish"}
-                          className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 disabled:opacity-50"
+                        <Link
+                          href={`/admin/blog/${post.id}`}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 text-gray-700 text-xs font-medium"
                         >
-                          {post.is_published ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4 text-ink-600" />}
-                        </button>
-                        <Link href={`/admin/blog/${post.id}`} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 inline-block">
-                          <Pencil className="h-4 w-4" />
+                          <Pencil className="h-3.5 w-3.5" />Edit
                         </Link>
                         <button
                           disabled={busyId === post.id}
-                          onClick={() => handleDelete(post)}
-                          className="p-1.5 rounded-lg hover:bg-gray-100 text-red-500 disabled:opacity-50"
+                          onClick={() => togglePublish(post)}
+                          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium disabled:opacity-50 ${
+                            post.is_published
+                              ? "border-gray-200 hover:bg-gray-50 text-gray-700"
+                              : "border-ink-600 bg-ink-600 hover:bg-ink-700 text-white"
+                          }`}
                         >
-                          <Trash2 className="h-4 w-4" />
+                          {post.is_published ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                          {post.is_published ? "Unpublish" : "Publish"}
+                        </button>
+                        <button
+                          disabled={busyId === post.id}
+                          onClick={() => handleDelete(post)}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-red-200 hover:bg-red-50 text-red-600 text-xs font-medium disabled:opacity-50"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />Delete
                         </button>
                       </div>
                     </td>

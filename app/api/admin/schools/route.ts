@@ -70,7 +70,10 @@ export async function POST(request: Request) {
     // Anonymous stubs skip the name — it's always the same literal
     // placeholder, never something the admin types — but still need
     // a real type/location, since those came from the source post.
-    const required = isAnonymous ? ["school_type", "state", "lga"] : ["school_name", "school_type", "state", "lga"]
+    // A remote-only employer has no place of work, so no state/LGA is needed.
+    const isRemote = body.is_remote === true
+    const location = isRemote ? [] : ["state", "lga"]
+    const required = isAnonymous ? ["school_type", ...location] : ["school_name", "school_type", ...location]
     for (const field of required) {
       if (!body[field]) return NextResponse.json({ error: `${field.replace("_", " ")} is required` }, { status: 400 })
     }
@@ -86,8 +89,8 @@ export async function POST(request: Request) {
         slug,
         school_type: body.school_type,
         school_levels: body.school_levels ?? [],
-        state: body.state,
-        lga: body.lga,
+        state: isRemote ? (body.state || null) : body.state,
+        lga: isRemote ? (body.lga || null) : body.lga,
         town: body.town || null,
         address: isAnonymous ? null : (body.address || null),
         website: isAnonymous ? null : (body.website || null),
