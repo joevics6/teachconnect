@@ -3,7 +3,7 @@
 // The admin "Job Parser" (/admin/parse-jobs) — modelled on the JobMeter
 // parse-jobs function. One pasted text can hold any number of
 // postings. A single Gemini call reads it and returns a JSON ARRAY with
-// one fully written job per role/subject: its own title, rewritten
+// one fully written job per role (a one-line role such as "Maths/Further Maths" stays ONE job): its own title, rewritten
 // description, qualifications and search content (about/who-should-apply/
 // stand-out accordions, responsibilities, skills, meta description).
 // Each entry is then saved as its own job — no shared copy — against the
@@ -37,7 +37,10 @@ ${text}
 """
 
 SEPARATE JOBS
-- Return ONE object per distinct role or subject. If one advert asks for Mathematics, English and Physics teachers, return three objects, each written only about its own subject.
+- Return ONE object per distinct role, where a role is one line, bullet or numbered item of the advert that names a vacancy. Never split a single line into several jobs.
+- A line that combines subjects with "/", "&", "and", "or" or commas is ONE role. "Mathematics/Further Mathematics Teacher" is one job, "Physics / Chemistry Teacher" is one job, "English and Literature Teacher" is one job. Keep the combined wording in the title, set "subject" to the first or main subject listed, and mention the other subject(s) in the description.
+- If the whole advert is one role, return exactly ONE object, however many subjects it mentions.
+- Only when the advert lists several roles on separate lines, bullets or numbered items (for example one line for a Mathematics teacher, another for an English teacher, another for a Physics teacher) return one object per line, each written only about its own role.
 - Every object is a complete job and must be written independently. NEVER reuse sentences between jobs, even when the school and the requirements are the same — original wording per job is essential.
 - Shared details (school, salary, benefits, how to apply) are repeated on each object.
 
