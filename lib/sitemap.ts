@@ -17,6 +17,7 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import { SITE_URL } from "@/lib/site"
 import { jobPath } from "@/lib/job-slug"
 import { TOOLS } from "@/lib/tools/registry"
+import { getExamsWithQuestions, getLivePairs } from "@/lib/cache/cbt"
 import { getCategoryIndex, getLandingKeysWithContent, getStateJobCounts } from "@/lib/cache/landing"
 import { categoryPath, landingPath, MIN_JOBS_FOR_LANDING } from "@/lib/landing"
 
@@ -137,7 +138,7 @@ export async function buildEntries(name: SitemapName): Promise<Entry[]> {
       return [...locations, ...categories]
     }
     case "content": {
-      // Blog posts + resource posts.
+      // Blog posts + resource posts + CBT practice pages.
       const [blog, resources] = await Promise.all([
         supabase.from("blog_posts").select("slug, updated_at").eq("is_published", true),
         supabase.from("resource_posts").select("slug, updated_at").eq("is_published", true),
@@ -154,7 +155,14 @@ export async function buildEntries(name: SitemapName): Promise<Entry[]> {
         changefreq: "monthly",
         priority: 0.6,
       }))
-      return [...posts, ...res]
+      // CBT practice pages: only exams/subjects that have published questions.
+      const [cbtExams, cbtPairs] = await Promise.all([getExamsWithQuestions(), getLivePairs()])
+      const cbt: Entry[] = [
+        ...(cbtExams.length > 0 ? [{ path: "/cbt", changefreq: "weekly" as const, priority: 0.7 }] : []),
+        ...cbtExams.map((e) => ({ path: `/cbt/${e.slug}`, changefreq: "weekly" as const, priority: 0.7 })),
+        ...cbtPairs.map((p) => ({ path: `/cbt/${p.exam}/${p.subject}`, changefreq: "weekly" as const, priority: 0.7 })),
+      ]
+      return [...posts, ...res, ...cbt]
     }
     case "schools": {
       // Has real long-form content — thin/placeholder pages shouldn't be
