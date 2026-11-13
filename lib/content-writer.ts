@@ -81,7 +81,9 @@ const PROMPT_CLEANED_CONTENT_AND_INPUT = `"cleaned_content" — the SAME markdow
       - Preambles/sign-offs: "Here is the article:", "Below is the rewritten piece:", "Let me know if you want ...", "I hope this helps ..."
       - Stray HTML tags that don't belong, duplicated headings, leftover prompt fragments
 
-   c. Do NOT change any other wording. If a paragraph has no defects, return it verbatim.
+   c. REMOVE THE TITLE — do not put the article's title or H1 heading at the top of cleaned_content; the title is already stored in the "title" field.
+
+   d. Do NOT change any other wording. If a paragraph has no defects, return it verbatim.
 
 TITLE (may be empty):
 {{TITLE}}
