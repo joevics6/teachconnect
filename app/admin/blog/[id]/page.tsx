@@ -6,6 +6,7 @@ import Link from "next/link"
 import { ArrowLeft, Loader2, Save } from "lucide-react"
 import { AdminShell } from "@/components/admin/AdminShell"
 import { AiFillPanel, type AiFillResult } from "@/components/admin/AiFillPanel"
+import { BlogQueuePanel } from "@/components/admin/BlogQueuePanel"
 
 interface FormState {
   title: string
@@ -150,6 +151,7 @@ export default function AdminBlogFormPage() {
             <textarea rows={14} className={inputClass + " font-mono text-xs"} value={form.body} onChange={(e) => set("body", e.target.value)} />
           </Field>
           <AiFillPanel kind="blog" title={form.title} content={form.body} onResult={handleAiResult} />
+          {isNew && <BlogQueuePanel onPaste={(content) => set("body", content)} />}
 
           <div className="grid grid-cols-2 gap-4">
             <Field label="Author">
