@@ -63,7 +63,6 @@ export default async function CbtSubjectPage({ params }: Props) {
           examName={exam.name}
           subjectName={subject.name}
           total={subject.question_count}
-          years={subject.years}
           defaultCount={exam.default_question_count}
         />
 

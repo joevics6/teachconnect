@@ -62,10 +62,9 @@ export const getExamBySlug = unstable_cache(
 
 export interface SubjectWithCount extends CbtSubject {
   question_count: number
-  years: number[]
 }
 
-/** Subjects of one exam that have published questions, with question counts and years. */
+/** Subjects of one exam that have published questions, with question counts. */
 export const getExamSubjects = unstable_cache(
   async (examId: string): Promise<SubjectWithCount[]> => {
     const db = createPublicClient()
@@ -77,7 +76,6 @@ export const getExamSubjects = unstable_cache(
         return {
           ...s,
           question_count: mine.reduce((sum, r) => sum + r.n, 0),
-          years: Array.from(new Set(mine.map((r) => r.year).filter((y): y is number => y != null))).sort((a, b) => b - a),
         }
       })
       .filter((s) => s.question_count > 0)

@@ -57,7 +57,7 @@ export default async function CbtExamPage({ params }: Props) {
                 <div>
                   <h2 className="font-semibold text-gray-900">{s.name}</h2>
                   <p className="text-xs text-gray-400 mt-1">
-                    {s.question_count} questions{s.years.length > 0 ? ` · ${s.years[s.years.length - 1]}–${s.years[0]}` : ""}
+                    {s.question_count} questions
                   </p>
                 </div>
                 <ChevronRight className="h-5 w-5 text-gray-300 group-hover:text-ink-500 flex-shrink-0" />

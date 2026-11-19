@@ -41,7 +41,6 @@ export default function AdminCbtPage() {
   // import form
   const [impExam, setImpExam] = useState("")
   const [impSubject, setImpSubject] = useState("")
-  const [impYear, setImpYear] = useState("")
   const [impRegion, setImpRegion] = useState("")
   const [impFrom, setImpFrom] = useState("1")
   const [impCount, setImpCount] = useState("40")
@@ -54,7 +53,6 @@ export default function AdminCbtPage() {
   const [fExam, setFExam] = useState("")
   const [fSubject, setFSubject] = useState("")
   const [fStatus, setFStatus] = useState("draft")
-  const [fYear, setFYear] = useState("")
   const [fBatch, setFBatch] = useState("")
   const [fNeedsImage, setFNeedsImage] = useState(false)
   const [page, setPage] = useState(1)
@@ -68,7 +66,7 @@ export default function AdminCbtPage() {
   const [reloadTick, setReloadTick] = useState(0)
   const [loadedKey, setLoadedKey] = useState("")
 
-  const listKey = [page, fExam, fSubject, fStatus, fYear, fBatch, fNeedsImage, reloadTick].join("|")
+  const listKey = [page, fExam, fSubject, fStatus, fBatch, fNeedsImage, reloadTick].join("|")
   const loading = loadedKey !== listKey
 
   useEffect(() => {
@@ -90,7 +88,6 @@ export default function AdminCbtPage() {
     if (fExam) qs.set("exam_id", fExam)
     if (fSubject) qs.set("subject_id", fSubject)
     if (fStatus) qs.set("status", fStatus)
-    if (fYear) qs.set("year", fYear)
     if (fBatch) qs.set("import_batch", fBatch)
     if (fNeedsImage) qs.set("needs_image", "1")
     fetch(`/api/admin/cbt/questions?${qs.toString()}`)
@@ -106,7 +103,7 @@ export default function AdminCbtPage() {
       })
       .catch(() => { if (live) setLoadedKey(listKey) })
     return () => { live = false }
-  }, [page, fExam, fSubject, fStatus, fYear, fBatch, fNeedsImage, listKey])
+  }, [page, fExam, fSubject, fStatus, fBatch, fNeedsImage, listKey])
 
   async function addMeta(type: "exam" | "subject") {
     const name = prompt(type === "exam" ? "New exam name (e.g. NABTEB)" : "New subject name")?.trim()
@@ -130,7 +127,6 @@ export default function AdminCbtPage() {
       const fd = new FormData()
       fd.set("exam_id", impExam)
       fd.set("subject_id", impSubject)
-      fd.set("year", impYear)
       fd.set("region", impRegion)
       fd.set("from", impFrom)
       fd.set("count", impCount)
@@ -142,7 +138,7 @@ export default function AdminCbtPage() {
       setImpMsg(
         `Added ${data.inserted} draft question(s). ${data.duplicates} duplicate(s) skipped, ${data.invalid} invalid, ${data.skipped} unreadable. ${data.needs_image} need a diagram: use "Needs image" in the review list to attach them. Check each answer before publishing.`
       )
-      setFExam(impExam); setFSubject(impSubject); setFStatus("draft"); setFBatch(data.batch); setFYear(""); setPage(1)
+      setFExam(impExam); setFSubject(impSubject); setFStatus("draft"); setFBatch(data.batch); setPage(1)
       setImpFile(null)
     } catch (err) {
       setImpMsg(err instanceof Error ? err.message : "Import failed")
@@ -246,7 +242,6 @@ export default function AdminCbtPage() {
               <option value="">Subject…</option>
               {subjects.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
             </select>
-            <input className={inputCls} placeholder="Year (e.g. 2019)" value={impYear} onChange={(e) => setImpYear(e.target.value)} inputMode="numeric" />
             <input className={inputCls} placeholder="State (only for state exams, e.g. Lagos)" value={impRegion} onChange={(e) => setImpRegion(e.target.value)} />
             <input className={inputCls} placeholder="Start at question no." value={impFrom} onChange={(e) => setImpFrom(e.target.value)} inputMode="numeric" />
             <input className={inputCls} placeholder="How many (max 60)" value={impCount} onChange={(e) => setImpCount(e.target.value)} inputMode="numeric" />
@@ -277,7 +272,6 @@ export default function AdminCbtPage() {
               <option value="published">Published</option>
               <option value="">All</option>
             </select>
-            <input className={inputCls} placeholder="Year" value={fYear} onChange={(e) => { setFYear(e.target.value); setPage(1) }} inputMode="numeric" />
             {fBatch ? (
               <button onClick={() => { setFBatch(""); setPage(1) }} className="px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-700">Clear batch filter</button>
             ) : <span />}
@@ -320,7 +314,6 @@ export default function AdminCbtPage() {
                 >
                   <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500">
                     <span className={`px-2 py-0.5 rounded-full ${q.status === "published" ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"}`}>{q.status}</span>
-                    {q.year && <span>{q.year}</span>}
                     {q.region && <span>{q.region}</span>}
                     {q.needs_image && !q.image_url && (
                       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-50 text-blue-700"><ImagePlus className="h-3 w-3" />Needs image</span>

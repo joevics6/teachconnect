@@ -16,7 +16,6 @@ interface Props {
   examName: string
   subjectName: string
   total: number
-  years: number[]
   defaultCount: number
 }
 
@@ -30,11 +29,10 @@ function fmt(seconds: number) {
   return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`
 }
 
-export function CbtRunner({ examSlug, subjectSlug, examName, subjectName, total, years, defaultCount }: Props) {
+export function CbtRunner({ examSlug, subjectSlug, examName, subjectName, total, defaultCount }: Props) {
   const [phase, setPhase] = useState<Phase>("setup")
   const [error, setError] = useState("")
   const [count, setCount] = useState(Math.min(defaultCount, total))
-  const [year, setYear] = useState<string>("all")
   const [timed, setTimed] = useState(true)
 
   const [questions, setQuestions] = useState<CbtRunnerQuestion[]>([])
@@ -61,7 +59,6 @@ export function CbtRunner({ examSlug, subjectSlug, examName, subjectName, total,
     setPhase("loading")
     try {
       const qs = new URLSearchParams({ exam: examSlug, subject: subjectSlug, count: String(count) })
-      if (year !== "all") qs.set("year", year)
       const res = await fetch(`/api/cbt/questions?${qs.toString()}`)
       const data = await res.json()
       if (!res.ok || !Array.isArray(data.questions) || data.questions.length === 0) {
@@ -133,18 +130,6 @@ export function CbtRunner({ examSlug, subjectSlug, examName, subjectName, total,
             ))}
           </div>
         </div>
-
-        {years.length > 0 && (
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Year</label>
-            <select value={year} onChange={(e) => setYear(e.target.value)} className="w-full sm:w-60 border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white">
-              <option value="all">All years</option>
-              {years.map((y) => (
-                <option key={y} value={y}>{y}</option>
-              ))}
-            </select>
-          </div>
-        )}
 
         <label className="flex items-center gap-2 text-sm text-gray-700">
           <input type="checkbox" checked={timed} onChange={(e) => setTimed(e.target.checked)} />
@@ -233,7 +218,7 @@ export function CbtRunner({ examSlug, subjectSlug, examName, subjectName, total,
                   </ul>
                   {!mine && <p className="text-xs text-gray-400 mt-2">Not answered</p>}
                   {x.explanation && <p className="text-sm text-gray-600 mt-3"><span className="font-medium">Explanation: </span>{x.explanation}</p>}
-                  <p className="text-xs text-gray-400 mt-3">{right ? "Correct" : "Incorrect"}{x.year ? ` · ${x.year}` : ""}</p>
+                  <p className="text-xs text-gray-400 mt-3">{right ? "Correct" : "Incorrect"}</p>
                 </div>
               )
             })}
