@@ -164,14 +164,20 @@ export function buildJobPostingJsonLd(job: JobLdInput, siteUrl: string) {
   return ld
 }
 
-export function buildBreadcrumbJsonLd(job: { id: string; slug?: string | null; title: string }, siteUrl: string) {
+export function buildBreadcrumbJsonLd(
+  job: { id: string; slug?: string | null; title: string },
+  siteUrl: string,
+  state?: { name: string; path: string } | null
+) {
+  const trail = [
+    { name: "Home", item: siteUrl },
+    { name: "Jobs", item: `${siteUrl}/jobs` },
+    ...(state ? [{ name: state.name, item: `${siteUrl}${state.path}` }] : []),
+    { name: job.title, item: `${siteUrl}${jobUrlPath(job)}` },
+  ]
   return {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
-    itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Home", item: siteUrl },
-      { "@type": "ListItem", position: 2, name: "Jobs", item: `${siteUrl}/jobs` },
-      { "@type": "ListItem", position: 3, name: job.title, item: `${siteUrl}${jobUrlPath(job)}` },
-    ],
+    itemListElement: trail.map((t, i) => ({ "@type": "ListItem", position: i + 1, name: t.name, item: t.item })),
   }
 }

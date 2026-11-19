@@ -12,9 +12,10 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { Briefcase, Clock, MapPin } from "lucide-react"
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs"
+import { jobPath } from "@/lib/job-slug"
 import { Markdown } from "@/components/ui/Markdown"
-import { getLandingContent, getStateJobCounts, getStateLandingJobs } from "@/lib/cache/landing"
-import { landingPath, MIN_JOBS_FOR_LANDING, stateDisplayName, stateFromSlug, stateSlug } from "@/lib/landing"
+import { getCategoryIndex, getLandingContent, getStateJobCounts, getStateLandingJobs } from "@/lib/cache/landing"
+import { categoryPath, landingPath, MIN_JOBS_FOR_LANDING, stateDisplayName, stateFromSlug, stateSlug } from "@/lib/landing"
 import { absoluteUrl, oneLine, SITE_NAME, toJsonLdString, trimText } from "@/lib/site"
 import { formatSalaryRange } from "@/lib/utils"
 
@@ -80,6 +81,12 @@ export default async function StateJobsPage({ params }: Props) {
     .filter(([s, n]) => s !== state && n >= MIN_JOBS_FOR_LANDING)
     .sort((a, b) => b[1] - a[1])
 
+  // Role pages that exist (6+ live jobs), so state pages link across to them.
+  const roleLinks = Object.entries(await getCategoryIndex())
+    .filter(([, c]) => c.count >= MIN_JOBS_FOR_LANDING)
+    .sort((a, b) => b[1].count - a[1].count)
+    .slice(0, 8)
+
   const crumbs = [
     { name: "Home", href: "/" },
     { name: "Jobs", href: "/jobs" },
@@ -105,7 +112,7 @@ export default async function StateJobsPage({ params }: Props) {
       itemListElement: jobs.map((j, i) => ({
         "@type": "ListItem",
         position: i + 1,
-        url: absoluteUrl(`/jobs/${j.id}`),
+        url: absoluteUrl(jobPath(j)),
         name: j.title,
       })),
     },
@@ -145,13 +152,26 @@ export default async function StateJobsPage({ params }: Props) {
           </div>
         )}
 
+        {roleLinks.length > 0 && (
+          <div>
+            <h2 className="text-sm font-semibold text-gray-700 mb-2">Browse teaching jobs by role</h2>
+            <div className="flex flex-wrap gap-2">
+              {roleLinks.map(([slug, c]) => (
+                <Link key={slug} href={categoryPath(slug)} className="px-3 py-1.5 bg-white border border-gray-200 hover:border-ink-300 text-gray-700 text-sm rounded-lg">
+                  {c.name} jobs
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className="grid gap-4">
           {jobs.map((job) => {
             const daysLeft = Math.ceil((new Date(job.deadline).getTime() - now) / 86_400_000)
             return (
               <Link
                 key={job.id}
-                href={`/jobs/${job.id}`}
+                href={jobPath(job)}
                 className="block bg-white border border-gray-200 rounded-2xl p-5 hover:border-ink-300 hover:shadow-md transition-all"
               >
                 <div className="flex items-start justify-between gap-3">

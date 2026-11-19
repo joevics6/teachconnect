@@ -13,6 +13,7 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { Briefcase, Clock, MapPin } from "lucide-react"
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs"
+import { jobPath } from "@/lib/job-slug"
 import { Markdown } from "@/components/ui/Markdown"
 import { getCategoryIndex, getCategoryLandingJobs, getLandingContent } from "@/lib/cache/landing"
 import { categoryPath, MIN_JOBS_FOR_LANDING, stateDisplayName } from "@/lib/landing"
@@ -102,7 +103,7 @@ export default async function CategoryJobsPage({ params }: Props) {
       itemListElement: jobs.map((j, i) => ({
         "@type": "ListItem",
         position: i + 1,
-        url: absoluteUrl(`/jobs/${j.id}`),
+        url: absoluteUrl(jobPath(j)),
         name: j.title,
       })),
     },
@@ -148,7 +149,7 @@ export default async function CategoryJobsPage({ params }: Props) {
             return (
               <Link
                 key={job.id}
-                href={`/jobs/${job.id}`}
+                href={jobPath(job)}
                 className="block bg-white border border-gray-200 rounded-2xl p-5 hover:border-ink-300 hover:shadow-md transition-all"
               >
                 <div className="flex items-start justify-between gap-3">

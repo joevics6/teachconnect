@@ -3,6 +3,7 @@ import { Inter, Fraunces } from "next/font/google"
 import "./globals.css"
 import Navbar from "@/components/layout/Navbar"
 import Footer from "@/components/layout/Footer"
+import FooterBrowse from "@/components/layout/FooterBrowse"
 import { AuthProvider } from "@/lib/auth-context"
 import { organizationJsonLd, SITE_NAME, SITE_URL, toJsonLdString } from "@/lib/site"
 
@@ -59,7 +60,7 @@ export default function RootLayout({
         <AuthProvider>
           <Navbar />
           <main className="flex-1">{children}</main>
-          <Footer />
+          <Footer browse={<FooterBrowse />} />
         </AuthProvider>
       </body>
     </html>

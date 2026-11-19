@@ -1,11 +1,12 @@
 "use client"
 
+import type { ReactNode } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useAuth } from "@/lib/auth-context"
 import { Logo } from "@/components/ui/Logo"
 
-export default function Footer() {
+export default function Footer({ browse }: { browse?: ReactNode }) {
   const { user, dashboardLink } = useAuth()
   const pathname = usePathname()
 
@@ -97,6 +98,22 @@ export default function Footer() {
                   Free Teacher Tools
                 </Link>
               </li>
+              <li>
+                <Link
+                  href="/blog"
+                  className="hover:text-white transition"
+                >
+                  Teacher Career Blog
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/schools"
+                  className="hover:text-white transition"
+                >
+                  Browse Schools
+                </Link>
+              </li>
             </ul>
           </div>
 
@@ -175,6 +192,8 @@ export default function Footer() {
             </ul>
           </div>
         </div>
+
+        {browse}
 
         <div className="border-t border-ink-800 mt-10 pt-6 flex flex-col md:flex-row justify-between items-center gap-4 text-xs">
           <p>

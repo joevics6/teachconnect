@@ -38,6 +38,7 @@ export interface JobWithSchool extends Job {
   school_state: string
   school_lga: string
   school_town?: string | null
+  school_slug?: string | null
   school_logo_url: string | null
   school_is_verified: boolean
 }
@@ -70,10 +71,14 @@ export default function JobDetailClient({
   jobId,
   initialJob = null,
   initialRelated = [],
+  stateLink = null,
+  categoryLink = null,
 }: {
   jobId: string
   initialJob?: JobWithSchool | null
   initialRelated?: RelatedJob[]
+  stateLink?: { name: string; href: string } | null
+  categoryLink?: { name: string; href: string } | null
 }) {
   const router = useRouter()
 
@@ -210,6 +215,7 @@ export default function JobDetailClient({
           items={[
             { name: "Home", href: "/" },
             { name: "Jobs", href: "/jobs" },
+            ...(stateLink ? [{ name: stateLink.name, href: stateLink.href }] : []),
             { name: job.title },
           ]}
         />
@@ -240,7 +246,7 @@ export default function JobDetailClient({
                         {job.title}
                       </h1>
                       <Link
-                        href={`/schools/${job.school_id}`}
+                        href={`/schools/${job.school_slug ?? job.school_id}`}
                         className="text-sm text-ink-600 hover:underline flex items-center gap-1"
                       >
                         {job.school_name}
@@ -634,7 +640,7 @@ export default function JobDetailClient({
                 <MapPin className="h-3.5 w-3.5" />
                 {jobLocationText(job)}
               </div>
-              <Link href={`/schools/${job.school_id}`}>
+              <Link href={`/schools/${job.school_slug ?? job.school_id}`}>
                 <Button variant="outline" size="sm" className="w-full text-xs">
                   View School Profile
                   <ChevronRight className="h-3.5 w-3.5 ml-1" />
@@ -739,6 +745,27 @@ export default function JobDetailClient({
             </div>
           </div>
         )}
+
+        {/* Explore more — plain links up to this job's state and role pages, and out to the guides.
+            Also gives expired jobs a way into live ones. */}
+        <nav aria-label="Explore more" className="mt-8 flex flex-wrap gap-2 text-sm">
+          {stateLink && (
+            <Link href={stateLink.href} className="px-3 py-1.5 bg-white border border-gray-200 hover:border-ink-300 text-gray-700 rounded-lg">
+              Teaching jobs in {stateLink.name}
+            </Link>
+          )}
+          {categoryLink && (
+            <Link href={categoryLink.href} className="px-3 py-1.5 bg-white border border-gray-200 hover:border-ink-300 text-gray-700 rounded-lg">
+              More {categoryLink.name} jobs
+            </Link>
+          )}
+          <Link href="/jobs" className="px-3 py-1.5 bg-white border border-gray-200 hover:border-ink-300 text-gray-700 rounded-lg">
+            All teaching jobs
+          </Link>
+          <Link href="/blog" className="px-3 py-1.5 bg-white border border-gray-200 hover:border-ink-300 text-gray-700 rounded-lg">
+            Teacher career guides
+          </Link>
+        </nav>
       </div>
     </div>
   )

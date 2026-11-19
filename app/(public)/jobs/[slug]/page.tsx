@@ -13,6 +13,8 @@ import { notFound, permanentRedirect } from "next/navigation"
 import { getJobById, getJobIdBySlug, getRelatedJobs } from "@/lib/cache/jobs"
 import { isUuid, jobPath } from "@/lib/job-slug"
 import { jobLocationText } from "@/lib/job-location"
+import { getCategoryIndex, getStateJobCounts } from "@/lib/cache/landing"
+import { categoryPath, categorySlug, landingPath, MIN_JOBS_FOR_LANDING, stateDisplayName } from "@/lib/landing"
 import {
   buildBreadcrumbJsonLd,
   buildJobPostingJsonLd,
@@ -101,7 +103,18 @@ export default async function JobPage({ params }: Props) {
   const related = (await getRelatedJobs(job.subject, job.id)) as RelatedJob[]
 
   const jobLd = buildJobPostingJsonLd(job as unknown as JobLdInput, SITE_URL)
-  const crumbLd = buildBreadcrumbJsonLd(job, SITE_URL)
+
+  // Upward links to this job's state and role pages — only when those pages
+  // exist (6+ live jobs), so we never link to a 404. Remote jobs have no state.
+  const [stateCounts, categoryIndex] = await Promise.all([getStateJobCounts(), getCategoryIndex()])
+  const stateName = job.is_remote ? null : job.school_state || null
+  const stateOk = !!stateName && (stateCounts[stateName] ?? 0) >= MIN_JOBS_FOR_LANDING
+  const stateLink = stateOk && stateName ? { name: stateDisplayName(stateName), href: landingPath(stateName) } : null
+  const roleCategory = (job as unknown as { role_category?: string | null }).role_category
+  const cat = roleCategory ? categoryIndex[categorySlug(roleCategory)] : undefined
+  const categoryLink = cat && cat.count >= MIN_JOBS_FOR_LANDING ? { name: cat.name, href: categoryPath(categorySlug(roleCategory!)) } : null
+
+  const crumbLd = buildBreadcrumbJsonLd(job, SITE_URL, stateLink ? { name: stateLink.name, path: stateLink.href } : null)
   // A job that's closed or past its deadline shouldn't be offered to
   // Google for Jobs as an open posting.
   const showJobLd = job.status === "active" && !isExpired(job.deadline)
@@ -118,7 +131,7 @@ export default async function JobPage({ params }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: toJsonLdString(crumbLd) }}
       />
-      <JobDetailClient jobId={job.id} initialJob={hideExpiredContact(job) as unknown as JobWithSchool} initialRelated={related} />
+      <JobDetailClient jobId={job.id} initialJob={hideExpiredContact(job) as unknown as JobWithSchool} initialRelated={related} stateLink={stateLink} categoryLink={categoryLink} />
     </>
   )
 }
