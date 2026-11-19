@@ -17,6 +17,7 @@ interface Row {
   year: number | null
   topic: string | null
   passage_id: string | null
+  image_url: string | null
   question_text: string
   option_a: string
   option_b: string
@@ -57,7 +58,7 @@ export async function GET(request: Request) {
     const chosen = sampleIds(ids, count)
     const { data: rows, error } = await db
       .from("cbt_questions")
-      .select("id, year, topic, passage_id, question_text, option_a, option_b, option_c, option_d, option_e, correct_option, explanation")
+      .select("id, year, topic, passage_id, image_url, question_text, option_a, option_b, option_c, option_d, option_e, correct_option, explanation")
       .in("id", chosen)
     if (error) throw error
 
@@ -81,6 +82,7 @@ export async function GET(request: Request) {
       year: r.year,
       topic: r.topic,
       passage: r.passage_id ? passages.get(r.passage_id) ?? null : null,
+      image_url: r.image_url,
       question_text: r.question_text,
       options: CBT_OPTION_KEYS.map((key) => ({ key, text: (r[`option_${key}` as keyof Row] as string | null) ?? "" })).filter((o) => o.text.trim() !== ""),
       correct_option: r.correct_option,

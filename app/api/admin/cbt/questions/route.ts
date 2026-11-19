@@ -24,6 +24,7 @@ export async function GET(request: Request) {
       const v = url.searchParams.get(key)
       if (v) q = q.eq(key, v)
     }
+    if (url.searchParams.get("needs_image") === "1") q = q.eq("needs_image", true).is("image_url", null)
     const year = parseInt(url.searchParams.get("year") || "", 10)
     if (!Number.isNaN(year)) q = q.eq("year", year)
 

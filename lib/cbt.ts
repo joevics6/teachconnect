@@ -31,6 +31,8 @@ export interface CbtRunnerQuestion {
   year: number | null
   topic: string | null
   passage: string | null
+  /** Small diagram/graph shown above the question (storage URL or /cbt/... site path). */
+  image_url: string | null
   question_text: string
   options: { key: CbtOptionKey; text: string }[]
   correct_option: CbtOptionKey

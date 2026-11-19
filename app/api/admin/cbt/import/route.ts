@@ -35,6 +35,7 @@ interface RawQuestion {
   answer_source?: string
   topic?: string | null
   explanation?: string | null
+  needs_image?: boolean
 }
 
 function buildPrompt(examName: string, subjectName: string, from: number, count: number, text: string | null) {
@@ -47,14 +48,14 @@ Extract up to ${count} questions, starting from question number ${from} of the d
 Rules:
 - Copy each question and its options exactly as printed (fix only obvious typos from scanning).
 - Write maths and science notation in plain text (x^2, sqrt(x), H2O, 3/4). Never use LaTeX.
-- If a question needs a diagram, graph, table image or picture to be answerable, SKIP it and put its number in "skipped".
+- If a question needs a diagram, graph, table image or picture to be answerable, STILL include it: copy whatever text is printed, set "needs_image" to true, and for any option that is only a letter or picture use the label (for example "Option A"). A person will attach the picture later. Only put a number in "skipped" if the question text itself is unreadable.
 - If several questions share a passage or instruction block, repeat the full passage text in "passage" for each of them. Otherwise "passage" is null.
 - "options" has keys a, b, c, d (and e only if the document has five options).
 - "correct_option": if the document prints an answer key or marks the answer, use it and set "answer_source" to "document". If no answer is given, work out the correct answer yourself and set "answer_source" to "ai".
 - "topic": a short syllabus topic name for the question (for example "Algebra", "Comprehension", "Cell biology").
 - "explanation": write a brief, ORIGINAL explanation in your own words (1 to 2 sentences) of why the answer is correct. Never copy solution text from the document.
 - Return ONLY valid JSON, no markdown, no backticks, in this shape:
-{"questions":[{"number":1,"passage":null,"question_text":"...","options":{"a":"...","b":"...","c":"...","d":"..."},"correct_option":"a","answer_source":"document","topic":"...","explanation":"..."}],"skipped":[7,12]}
+{"questions":[{"number":1,"passage":null,"question_text":"...","options":{"a":"...","b":"...","c":"...","d":"..."},"correct_option":"a","answer_source":"document","topic":"...","explanation":"...","needs_image":false}],"skipped":[7,12]}
 ${text ? `\nTEXT:\n"""\n${text}\n"""` : "\nThe questions are in the attached file."}`
 }
 
@@ -120,6 +121,7 @@ export async function POST(request: Request) {
     let inserted = 0
     let duplicates = 0
     let invalid = 0
+    let needsImage = 0
 
     for (const raw of questions) {
       const text = str(raw.question_text)
@@ -162,6 +164,7 @@ export async function POST(request: Request) {
         option_e: e,
         correct_option: answer,
         explanation: str(raw.explanation),
+        needs_image: raw.needs_image === true,
         answer_source: raw.answer_source === "ai" ? "ai" : "document",
         status: "draft",
         import_batch: batch,
@@ -175,10 +178,11 @@ export async function POST(request: Request) {
         continue
       }
       inserted++
+      if (raw.needs_image === true) needsImage++
     }
 
     revalidateTag("cbt", "max")
-    return NextResponse.json({ inserted, duplicates, invalid, skipped: skipped.length, found: questions.length, batch })
+    return NextResponse.json({ inserted, duplicates, invalid, skipped: skipped.length, found: questions.length, needs_image: needsImage, batch })
   } catch (err) {
     console.error("POST admin cbt import error:", err)
     return NextResponse.json({ error: err instanceof Error ? err.message : "Import failed" }, { status: 500 })

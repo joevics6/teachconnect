@@ -4,9 +4,10 @@
 // then publish. Nothing reaches the public CBT pages until it is published.
 
 import { useEffect, useState } from "react"
-import { Loader2, Upload, Trash2, Eye, EyeOff, Save, AlertTriangle, Plus } from "lucide-react"
+import { Loader2, Upload, Trash2, Eye, EyeOff, Save, AlertTriangle, Plus, ImagePlus, X } from "lucide-react"
 import { AdminShell } from "@/components/admin/AdminShell"
 import type { CbtExam, CbtSubject } from "@/lib/cbt"
+import { compressImage } from "@/lib/image-compress"
 
 interface Question {
   id: string
@@ -26,6 +27,8 @@ interface Question {
   answer_source: "document" | "ai" | "manual"
   status: "draft" | "published"
   import_batch: string | null
+  image_url: string | null
+  needs_image: boolean
   passage: { body: string } | null
 }
 
@@ -53,6 +56,7 @@ export default function AdminCbtPage() {
   const [fStatus, setFStatus] = useState("draft")
   const [fYear, setFYear] = useState("")
   const [fBatch, setFBatch] = useState("")
+  const [fNeedsImage, setFNeedsImage] = useState(false)
   const [page, setPage] = useState(1)
   const [list, setList] = useState<Question[]>([])
   const [total, setTotal] = useState(0)
@@ -64,7 +68,7 @@ export default function AdminCbtPage() {
   const [reloadTick, setReloadTick] = useState(0)
   const [loadedKey, setLoadedKey] = useState("")
 
-  const listKey = [page, fExam, fSubject, fStatus, fYear, fBatch, reloadTick].join("|")
+  const listKey = [page, fExam, fSubject, fStatus, fYear, fBatch, fNeedsImage, reloadTick].join("|")
   const loading = loadedKey !== listKey
 
   useEffect(() => {
@@ -88,6 +92,7 @@ export default function AdminCbtPage() {
     if (fStatus) qs.set("status", fStatus)
     if (fYear) qs.set("year", fYear)
     if (fBatch) qs.set("import_batch", fBatch)
+    if (fNeedsImage) qs.set("needs_image", "1")
     fetch(`/api/admin/cbt/questions?${qs.toString()}`)
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
@@ -101,7 +106,7 @@ export default function AdminCbtPage() {
       })
       .catch(() => { if (live) setLoadedKey(listKey) })
     return () => { live = false }
-  }, [page, fExam, fSubject, fStatus, fYear, fBatch, listKey])
+  }, [page, fExam, fSubject, fStatus, fYear, fBatch, fNeedsImage, listKey])
 
   async function addMeta(type: "exam" | "subject") {
     const name = prompt(type === "exam" ? "New exam name (e.g. NABTEB)" : "New subject name")?.trim()
@@ -135,7 +140,7 @@ export default function AdminCbtPage() {
       const data = await res.json().catch(() => ({}))
       if (!res.ok) throw new Error(data.error || `Import failed (${res.status})`)
       setImpMsg(
-        `Added ${data.inserted} draft question(s). ${data.duplicates} duplicate(s) skipped, ${data.invalid} invalid, ${data.skipped} skipped (need a diagram). Open the review list below and check each answer before publishing.`
+        `Added ${data.inserted} draft question(s). ${data.duplicates} duplicate(s) skipped, ${data.invalid} invalid, ${data.skipped} unreadable. ${data.needs_image} need a diagram: use "Needs image" in the review list to attach them. Check each answer before publishing.`
       )
       setFExam(impExam); setFSubject(impSubject); setFStatus("draft"); setFBatch(data.batch); setFYear(""); setPage(1)
       setImpFile(null)
@@ -162,6 +167,30 @@ export default function AdminCbtPage() {
     } finally {
       setBusy(null)
     }
+  }
+
+  /** Shrink a screenshot, upload it to storage, then save its URL on the question. */
+  async function attachImage(q: Question, file: File | null | undefined) {
+    if (!file) return
+    if (!file.type.startsWith("image/")) return alert("That is not an image.")
+    setBusy(q.id)
+    let url = ""
+    try {
+      const small = await compressImage(file, { maxDimension: 800, quality: 0.72, skipUnderBytes: 40 * 1024 })
+      const fd = new FormData()
+      fd.set("file", small)
+      const res = await fetch("/api/admin/cbt/images", { method: "POST", body: fd })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) return alert(data.error || "Upload failed")
+      url = data.url
+    } finally {
+      setBusy(null)
+    }
+    if (url) await save(q, { image_url: url })
+  }
+
+  async function removeImage(q: Question) {
+    await save(q, { image_url: null })
   }
 
   async function remove(q: Question) {
@@ -252,6 +281,10 @@ export default function AdminCbtPage() {
             {fBatch ? (
               <button onClick={() => { setFBatch(""); setPage(1) }} className="px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-700">Clear batch filter</button>
             ) : <span />}
+            <label className="flex items-center gap-2 text-sm text-gray-700 sm:col-span-5">
+              <input type="checkbox" checked={fNeedsImage} onChange={(e) => { setFNeedsImage(e.target.checked); setPage(1) }} />
+              Needs image only (questions waiting for a diagram)
+            </label>
           </div>
 
           <div className="flex flex-wrap items-center gap-2 text-sm">
@@ -273,16 +306,47 @@ export default function AdminCbtPage() {
           ) : (
             <div className="space-y-4">
               {list.map((q) => (
-                <div key={q.id} className="bg-white border border-gray-200 rounded-2xl p-4 space-y-3">
+                <div
+                  key={q.id}
+                  className="bg-white border border-gray-200 rounded-2xl p-4 space-y-3"
+                  onPaste={(e) => {
+                    // Paste a screenshot anywhere on the card to attach it.
+                    const img = Array.from(e.clipboardData.files).find((f) => f.type.startsWith("image/"))
+                    if (img) {
+                      e.preventDefault()
+                      attachImage(q, img)
+                    }
+                  }}
+                >
                   <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500">
                     <span className={`px-2 py-0.5 rounded-full ${q.status === "published" ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"}`}>{q.status}</span>
                     {q.year && <span>{q.year}</span>}
                     {q.region && <span>{q.region}</span>}
+                    {q.needs_image && !q.image_url && (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-50 text-blue-700"><ImagePlus className="h-3 w-3" />Needs image</span>
+                    )}
                     {q.answer_source === "ai" && (
                       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-50 text-red-700"><AlertTriangle className="h-3 w-3" />Answer worked out by AI — check it</span>
                     )}
                   </div>
                   {q.passage && <p className="text-xs text-gray-500 bg-gray-50 rounded-lg p-2 whitespace-pre-line max-h-28 overflow-y-auto">{q.passage.body}</p>}
+                  <div className="space-y-2">
+                    {q.image_url && (
+                      <div className="relative inline-block">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={q.image_url} alt="Question diagram" className="max-h-48 w-auto rounded-lg border border-gray-200" />
+                        <button onClick={() => removeImage(q)} disabled={busy === q.id} title="Remove image" className="absolute -top-2 -right-2 bg-white border border-gray-200 rounded-full p-1 text-gray-600 disabled:opacity-50"><X className="h-3.5 w-3.5" /></button>
+                      </div>
+                    )}
+                    <div className="flex flex-wrap items-center gap-2">
+                      <label className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-medium text-gray-700 cursor-pointer">
+                        <ImagePlus className="h-3.5 w-3.5" />{q.image_url ? "Replace image" : "Add image"}
+                        <input type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={(e) => { attachImage(q, e.target.files?.[0]); e.target.value = "" }} />
+                      </label>
+                      <span className="text-xs text-gray-400">or paste a screenshot here (Ctrl+V). Auto-shrunk to under 200 KB.</span>
+                    </div>
+                    <input className={`${inputCls} text-xs`} placeholder="…or a site image path, e.g. /cbt/jamb-bio-2015-q35.jpg" defaultValue={q.image_url?.startsWith("/") ? q.image_url : ""} key={`${q.id}-${q.image_url ?? ""}`} onBlur={(e) => { const v = e.target.value.trim(); if (v && v !== q.image_url) save(q, { image_url: v }) }} />
+                  </div>
                   <textarea className={`${inputCls} h-20`} value={q.question_text} onChange={(e) => setLocal(q.id, { question_text: e.target.value })} />
                   <div className="grid sm:grid-cols-2 gap-2">
                     {(["a", "b", "c", "d", "e"] as const).map((k) => {

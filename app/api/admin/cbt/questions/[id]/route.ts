@@ -8,7 +8,7 @@ import { requireAdmin } from "@/lib/admin"
 
 const ALLOWED = [
   "question_text", "option_a", "option_b", "option_c", "option_d", "option_e",
-  "correct_option", "topic", "explanation", "year", "region", "status", "source_note",
+  "correct_option", "topic", "explanation", "year", "region", "status", "source_note", "image_url",
 ] as const
 
 type Ctx = { params: Promise<{ id: string }> }
@@ -34,11 +34,30 @@ export async function PATCH(request: Request, { params }: Ctx) {
     for (const k of ["topic", "explanation", "region", "option_e", "source_note"]) {
       if (k in updates && (updates[k] === "" || updates[k] == null)) updates[k] = null
     }
+    if ("image_url" in updates) {
+      const raw = typeof updates.image_url === "string" ? updates.image_url.trim() : ""
+      if (!raw) updates.image_url = null
+      else if (raw.length > 500 || !(raw.startsWith("/") || raw.startsWith("https://"))) {
+        return NextResponse.json({ error: "Image must be an https:// URL or a site path like /cbt/name.jpg" }, { status: 400 })
+      } else {
+        updates.image_url = raw
+        updates.needs_image = false // the diagram has been supplied
+      }
+    }
     if ("year" in updates) updates.year = updates.year === "" || updates.year == null ? null : Number(updates.year)
     if (Object.keys(updates).length === 0) return NextResponse.json({ error: "Nothing to update" }, { status: 400 })
     updates.updated_at = new Date().toISOString()
 
-    const { data, error } = await createAdminClient().from("cbt_questions").update(updates).eq("id", id).select("*").single()
+    const db = createAdminClient()
+    // A question that cannot be answered without its diagram must not go live without one.
+    if (updates.status === "published") {
+      const { data: cur } = await db.from("cbt_questions").select("needs_image, image_url").eq("id", id).maybeSingle()
+      const url = "image_url" in updates ? updates.image_url : cur?.image_url
+      const needs = "needs_image" in updates ? updates.needs_image : cur?.needs_image
+      if (needs && !url) return NextResponse.json({ error: "This question needs its diagram. Attach an image before publishing." }, { status: 400 })
+    }
+
+    const { data, error } = await db.from("cbt_questions").update(updates).eq("id", id).select("*").single()
     if (error) {
       if (error.code === "23505") return NextResponse.json({ error: "Another question with the same text already exists" }, { status: 409 })
       throw error

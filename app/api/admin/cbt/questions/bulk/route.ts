@@ -36,7 +36,10 @@ export async function POST(request: Request) {
       affected = (data as unknown[] | null)?.length ?? 0
     } else {
       const patch = { status: action === "publish" ? "published" : "draft", updated_at: new Date().toISOString() }
-      const { data, error } = await apply(db.from("cbt_questions").update(patch)).select("id")
+      let upd = apply(db.from("cbt_questions").update(patch))
+      // Questions that still need their diagram stay as drafts.
+      if (action === "publish") upd = upd.or("needs_image.eq.false,image_url.not.is.null")
+      const { data, error } = await upd.select("id")
       if (error) throw error
       affected = (data as unknown[] | null)?.length ?? 0
     }

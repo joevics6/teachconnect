@@ -212,6 +212,10 @@ export function CbtRunner({ examSlug, subjectSlug, examName, subjectName, total,
               return (
                 <div key={x.id} className="bg-white border border-gray-200 rounded-2xl p-5">
                   {x.passage && <p className="text-sm text-gray-500 bg-gray-50 rounded-lg p-3 mb-3 whitespace-pre-line">{x.passage}</p>}
+                  {x.image_url && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={x.image_url} alt="Diagram for this question" loading="lazy" className="max-h-72 w-auto max-w-full rounded-lg border border-gray-100 mb-3" />
+                  )}
                   <p className="text-gray-900 font-medium whitespace-pre-line mb-3">{x.question_text}</p>
                   <ul className="space-y-1.5 text-sm">
                     {x.options.map((o) => {
@@ -253,6 +257,10 @@ export function CbtRunner({ examSlug, subjectSlug, examName, subjectName, total,
 
       <div className="bg-white border border-gray-200 rounded-2xl p-5 sm:p-6">
         {q.passage && <p className="text-sm text-gray-600 bg-gray-50 rounded-lg p-3 mb-4 whitespace-pre-line max-h-64 overflow-y-auto">{q.passage}</p>}
+        {q.image_url && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={q.image_url} alt="Diagram for this question" className="max-h-80 w-auto max-w-full rounded-lg border border-gray-100 mb-4" />
+        )}
         <p className="text-lg text-gray-900 whitespace-pre-line mb-4">{q.question_text}</p>
         <div className="space-y-2">
           {q.options.map((o) => {

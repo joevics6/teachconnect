@@ -15,15 +15,16 @@
 interface CompressOptions {
   maxDimension?: number // longest edge, px
   quality?: number      // 0-1, JPEG quality
+  skipUnderBytes?: number // files already smaller than this are returned untouched (default 300 KB)
 }
 
 export async function compressImage(
   file: File,
-  { maxDimension = 1000, quality = 0.82 }: CompressOptions = {}
+  { maxDimension = 1000, quality = 0.82, skipUnderBytes = 300 * 1024 }: CompressOptions = {}
 ): Promise<File> {
   // Nothing to do for already-small files — skip the round trip through
   // canvas entirely.
-  if (file.size <= 300 * 1024) return file
+  if (file.size <= skipUnderBytes) return file
 
   try {
     const bitmap = await createImageBitmap(file)
