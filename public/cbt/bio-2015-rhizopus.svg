@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 460 360" font-family="Arial, sans-serif" font-size="16" fill="none" stroke="#222" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="460" height="360" fill="#fff" stroke="none"/>
+<g stroke-width="6"><path d="M10 90 H88"/><path d="M215 90 H172"/></g>
+<ellipse cx="102" cy="90" rx="16" ry="14" fill="#eee"/><ellipse cx="158" cy="90" rx="16" ry="14" fill="#eee"/>
+<g stroke-width="6"><path d="M250 90 H312"/><path d="M450 90 H390"/></g>
+<ellipse cx="350" cy="90" rx="40" ry="17" fill="#eee"/><path d="M350 74 V106" stroke-width="1.5" stroke-dasharray="3 3"/>
+<path d="M222 90 H244" stroke-width="2"/><path d="M238 84 L244 90 L238 96"/>
+<g stroke-width="6"><path d="M20 335 Q110 335 150 295 Q178 265 182 250"/><path d="M440 335 Q350 335 310 295 Q282 265 278 250"/></g>
+<circle cx="230" cy="215" r="52" fill="#d4d4d4"/>
+<g stroke-width="1.5"><circle cx="205" cy="195" r="6"/><circle cx="235" cy="185" r="6"/><circle cx="255" cy="212" r="6"/><circle cx="212" cy="228" r="6"/><circle cx="240" cy="240" r="6"/><circle cx="230" cy="212" r="6"/></g>
+<path d="M350 112 V150 L300 190" stroke-width="1.5" stroke-dasharray="4 4"/><path d="M308 183 L300 190 L310 192"/>
+<g fill="#222" stroke="none" font-weight="bold"><text x="10" y="65">&#8722;</text><text x="195" y="65">+</text><text x="255" y="65">&#8722;</text><text x="435" y="65">+</text><text x="10" y="320">&#8722;</text><text x="438" y="320">+</text><text x="310" y="50" font-size="14" font-weight="normal">gametangia</text><text x="355" y="212" font-size="20">I</text></g>
+<path d="M285 214 L348 212" stroke-width="1.5"/>
+</svg>

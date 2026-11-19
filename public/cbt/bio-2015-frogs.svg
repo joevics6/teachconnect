@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 460 340" font-family="Arial, sans-serif" font-size="16" fill="none" stroke="#222" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="460" height="340" fill="#fff" stroke="none"/>
+<path d="M10 80 q30 -8 60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0" stroke-width="1.5"/>
+<ellipse cx="230" cy="105" rx="52" ry="30" fill="#e6f0e0"/><circle cx="270" cy="82" r="16" fill="#e6f0e0"/><circle cx="276" cy="78" r="3" fill="#222"/>
+<path d="M190 120 Q170 150 190 175 L225 170 L235 140" fill="#e6f0e0"/>
+<path d="M250 125 L278 168 L298 164" stroke-width="3"/>
+<ellipse cx="240" cy="190" rx="60" ry="34" fill="#dfe9d8"/><circle cx="288" cy="170" r="14" fill="#dfe9d8"/><circle cx="292" cy="166" r="3" fill="#222"/>
+<path d="M190 205 L120 255 L70 250 L96 232 L124 232" fill="#dfe9d8"/>
+<path d="M220 222 L240 280 L280 296 L255 300 L215 270" fill="#dfe9d8"/>
+<g stroke-width="1.5" fill="#f4f4c8"><circle cx="190" cy="218" r="6"/><circle cx="178" cy="226" r="6"/><circle cx="198" cy="232" r="6"/><circle cx="184" cy="240" r="6"/><circle cx="204" cy="246" r="6"/><circle cx="170" cy="242" r="6"/></g>
+<g fill="#222" stroke="none" font-weight="bold" font-size="17"><text x="340" y="60">I</text><text x="395" y="150">II</text><text x="395" y="280">III</text><text x="30" y="150">IV</text><text x="20" y="310" font-size="14" font-weight="normal">Eggs</text></g>
+<g stroke-width="1.5"><path d="M336 58 L282 76"/><path d="M392 146 L300 164"/><path d="M392 276 L275 292"/><path d="M45 146 L190 122"/><path d="M45 304 L168 246"/></g>
+</svg>

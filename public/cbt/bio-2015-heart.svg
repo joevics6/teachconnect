@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 360" font-family="Arial, sans-serif" font-size="16" fill="none" stroke="#222" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="420" height="360" fill="#fff" stroke="none"/>
+<path d="M150 120 Q130 130 130 190 Q130 300 205 340 Q215 300 215 200 L215 130 Z" fill="#e7eefc"/>
+<path d="M215 120 L215 340 Q330 310 340 200 Q345 120 300 118 Z" fill="#fbe9e9"/>
+<path d="M215 130 Q214 240 215 335"/><path d="M130 190 Q215 205 215 195 Q215 205 340 200" stroke-width="1.5"/>
+<path d="M150 120 Q170 100 215 120" /><path d="M215 120 Q255 105 300 118"/>
+<path d="M160 105 Q150 60 175 50 L195 50 Q205 60 205 105" fill="#e7eefc"/>
+<path d="M232 118 Q235 40 290 30 Q330 30 340 55 L322 60 Q300 50 265 70 Q258 90 258 118" fill="#fbe9e9"/>
+<path d="M250 105 Q252 80 275 78 Q300 80 312 100" fill="#e7eefc" stroke-width="1.5"/>
+<path d="M140 118 Q110 100 100 60 L120 60 Q130 90 150 105" fill="#e7eefc"/>
+<g fill="#222" stroke="none" font-weight="bold" font-size="17"><text x="380" y="140">I</text><text x="20" y="190">II</text><text x="20" y="262">III</text><text x="380" y="262">IV</text></g>
+<g stroke-width="1.5"><path d="M376 134 L290 140"/><path d="M42 186 L146 186"/><path d="M48 258 L150 258"/><path d="M374 258 L290 258"/></g>
+</svg>
