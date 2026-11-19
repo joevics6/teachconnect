@@ -8,6 +8,7 @@
 // ============================================================
 
 import { NextResponse } from "next/server"
+import { normalizeRoleCategory } from "@/lib/role-categories"
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { requireAdmin } from "@/lib/admin"
@@ -77,6 +78,8 @@ export async function PATCH(
 
       const updates: Record<string, unknown> = {}
       EDITABLE_FIELDS.forEach((f) => { if (body[f] !== undefined) updates[f] = body[f] })
+      // One standard name per role so role pages aren't split by spelling (lib/role-categories.ts).
+      if (typeof updates.role_category === "string") updates.role_category = normalizeRoleCategory(updates.role_category)
 
       // Same derivation as job creation and the school-facing edit route
       // — never trust a raw pass-through value for these.

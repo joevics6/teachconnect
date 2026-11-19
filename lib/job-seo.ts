@@ -20,6 +20,7 @@
 // ============================================================
 
 import { createAdminClient } from "@/lib/supabase/admin"
+import { normalizeRoleCategory, STANDARD_ROLES } from "@/lib/role-categories"
 import { generateWithGemini, parseGeminiJson } from "@/lib/gemini"
 
 export interface JobSeoContent {
@@ -96,7 +97,7 @@ Preferred qualifications: ${j.preferred_qualifications ?? ""}
 
 Return exactly this JSON:
 {
-  "role_category": "NORMALIZED standard title people actually search for, e.g. 'Mathematics Teacher', 'Primary School Teacher', 'Nursery Teacher', 'School Bursar', 'Principal'. No word 'jobs'. If the role is for NYSC corps members use 'NYSC Teacher'.",
+  "role_category": "Use EXACTLY one of these standard names when the role fits: ${STANDARD_ROLES.join(', ')}. Only if none fits, write a short standard title like 'Guidance Counsellor'. No word 'jobs'. If the role is for NYSC corps members use 'NYSC Teacher'.",
   "experience_level": "one of exactly: ${EXPERIENCE_LEVELS.join(", ")} — infer from the qualifications; heads of department, vice principals and principals are 'lead'",
   "responsibilities": ["5 to 8 short, specific duties for this exact role"],
   "skills_required": ["5 to 8 short keyword skills for this exact role"],
@@ -132,9 +133,9 @@ function cleanList(arr: unknown, max: number): string[] {
 export function sanitizeJobSeoContent(raw: Record<string, unknown>): JobSeoContent {
   const level = typeof raw.experience_level === "string" ? raw.experience_level.toLowerCase().trim() : ""
   const meta = typeof raw.meta_description === "string" ? raw.meta_description.replace(/\s+/g, " ").trim() : ""
-  const role = typeof raw.role_category === "string" ? raw.role_category.replace(/\s+jobs?$/i, "").trim() : ""
+  const role = typeof raw.role_category === "string" ? normalizeRoleCategory(raw.role_category) : null
   return {
-    role_category: role ? role.slice(0, 80) : null,
+    role_category: role,
     experience_level: EXPERIENCE_LEVELS.includes(level) ? level : null,
     responsibilities: cleanList(raw.responsibilities, 8),
     skills_required: cleanList(raw.skills_required, 8),

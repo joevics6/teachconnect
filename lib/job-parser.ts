@@ -20,6 +20,7 @@ import { findDuplicateJob } from "@/lib/job-duplicates"
 import { generateWithGemini, parseGeminiJson } from "@/lib/gemini"
 import { generateUniqueSchoolSlug } from "@/lib/slug"
 import { SEO_PROSE_RULES, sanitizeJobSeoContent } from "@/lib/job-seo"
+import { STANDARD_ROLES } from "@/lib/role-categories"
 
 export const MAX_PARSE_CHARS = 60000
 
@@ -85,7 +86,7 @@ Each object must have exactly these fields (null / empty when not stated):
     "website": "school website or null",
     "about": "one short sentence about the school only if the text gives context, else null"
   },
-  "role_category": "NORMALIZED standard title people search for, e.g. 'Mathematics Teacher', 'Primary School Teacher', 'Nursery Teacher', 'School Bursar', 'Principal'. No word 'jobs'. NYSC corps members: 'NYSC Teacher'.",
+  "role_category": "Use EXACTLY one of these standard names when the role fits: ${STANDARD_ROLES.join(', ')}. Only if none fits, write a short standard title like 'Guidance Counsellor'. No word 'jobs'. NYSC corps members: 'NYSC Teacher'.",
   "experience_level": "one of exactly: entry-level, junior, mid-level, senior, lead — infer from the qualifications; heads of department, vice principals and principals are lead",
   "responsibilities": ["5 to 8 short, specific duties for this exact role"],
   "skills_required": ["5 to 8 short keyword skills for this exact role"],
