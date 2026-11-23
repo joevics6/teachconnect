@@ -52,6 +52,10 @@ const CATEGORIES = [
   { value: "TRCN Guide", label: "TRCN Guide" },
   { value: "Salary Insights", label: "Salary Insights" },
   { value: "Curriculum Guide", label: "Curriculum Guide" },
+  { value: "Lesson Notes", label: "Lesson Notes" },
+  { value: "Teaching Guide", label: "Teaching Guide" },
+  { value: "Class Games", label: "Class Games" },
+  { value: "Schemes of Work", label: "Schemes of Work" },
 ]
 
 const CATEGORY_ICONS: Record<string, React.ElementType> = {
@@ -59,6 +63,11 @@ const CATEGORY_ICONS: Record<string, React.ElementType> = {
   "School Management": Building2,
   "TRCN Guide": GraduationCap,
   "Salary Insights": Star,
+  "Curriculum Guide": BookOpen,
+  "Lesson Notes": FileText,
+  "Teaching Guide": GraduationCap,
+  "Class Games": Star,
+  "Schemes of Work": FileText,
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -66,6 +75,11 @@ const CATEGORY_COLORS: Record<string, string> = {
   "School Management": "bg-ink-100 text-ink-700",
   "TRCN Guide": "bg-purple-100 text-purple-700",
   "Salary Insights": "bg-orange-100 text-orange-700",
+  "Curriculum Guide": "bg-green-100 text-green-700",
+  "Lesson Notes": "bg-blue-100 text-blue-700",
+  "Teaching Guide": "bg-teal-100 text-teal-700",
+  "Class Games": "bg-pink-100 text-pink-700",
+  "Schemes of Work": "bg-amber-100 text-amber-700",
 }
 
 // ─── Post Card ────────────────────────────────────────────────

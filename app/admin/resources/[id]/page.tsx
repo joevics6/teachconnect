@@ -7,7 +7,7 @@ import { ArrowLeft, Loader2, Save } from "lucide-react"
 import { AdminShell } from "@/components/admin/AdminShell"
 import { AiFillPanel, type AiFillResult } from "@/components/admin/AiFillPanel"
 
-const CATEGORIES = ["Career Advice", "School Management", "TRCN Guide", "Salary Insights"]
+const CATEGORIES = ["Career Advice", "School Management", "TRCN Guide", "Salary Insights", "Curriculum Guide", "Lesson Notes", "Teaching Guide", "Class Games", "Schemes of Work"]
 const TYPES = ["article", "pdf", "video", "link"]
 
 interface FormState {

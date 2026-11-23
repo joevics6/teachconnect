@@ -22,6 +22,11 @@ export const RESOURCE_CATEGORIES = [
   "School Management",
   "TRCN Guide",
   "Salary Insights",
+  "Curriculum Guide",
+  "Lesson Notes",
+  "Teaching Guide",
+  "Class Games",
+  "Schemes of Work",
 ] as const
 
 export type ContentKind = "blog" | "resource"
