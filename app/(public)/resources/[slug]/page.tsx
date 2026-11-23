@@ -27,6 +27,7 @@ interface Resource {
   download_count: number
   read_time_minutes: number | null
   tags: string[]
+  sources?: { label: string; url: string }[] | null
   author: string | null
   published_at: string
   seo_title: string | null
@@ -317,6 +318,22 @@ export default async function ResourceDetailPage({ params }: { params: Promise<{
                     prose-li:mb-1 prose-a:text-ink-600 prose-a:no-underline hover:prose-a:underline"
                   dangerouslySetInnerHTML={{ __html: resource.body }}
                 />
+              )}
+
+              {/* Sources */}
+              {Array.isArray(resource.sources) && resource.sources.filter((s) => /^https?:\/\//.test(s.url)).length > 0 && (
+                <div className="mb-8 rounded-xl border border-gray-200 bg-gray-50 p-4">
+                  <h2 className="text-sm font-bold text-gray-900 mb-2">Sources &amp; official documents</h2>
+                  <ul className="space-y-1.5">
+                    {resource.sources.filter((s) => /^https?:\/\//.test(s.url)).map((s) => (
+                      <li key={s.url}>
+                        <a href={s.url} target="_blank" rel="noopener noreferrer" className="text-sm text-ink-600 hover:underline break-words">
+                          {s.label}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               )}
 
               {/* Tags */}

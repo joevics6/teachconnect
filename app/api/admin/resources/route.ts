@@ -33,7 +33,7 @@ export async function GET() {
 const ALLOWED_FIELDS = [
   "title", "slug", "excerpt", "body", "category", "author", "resource_type",
   "cover_image_url", "file_url", "external_url", "youtube_id", "tags",
-  "read_time_minutes", "seo_title", "seo_description", "is_published", "published_at",
+  "read_time_minutes", "seo_title", "seo_description", "is_published", "published_at", "sources",
 ]
 
 export async function POST(request: Request) {

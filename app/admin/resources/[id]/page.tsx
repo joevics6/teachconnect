@@ -23,6 +23,7 @@ interface FormState {
   external_url: string
   youtube_id: string
   tags: string
+  sources: string
   read_time_minutes: string
   seo_title: string
   seo_description: string
@@ -32,7 +33,7 @@ interface FormState {
 const EMPTY: FormState = {
   title: "", slug: "", excerpt: "", body: "", category: CATEGORIES[0], author: "",
   resource_type: "article", cover_image_url: "", file_url: "", external_url: "",
-  youtube_id: "", tags: "", read_time_minutes: "", seo_title: "", seo_description: "",
+  youtube_id: "", tags: "", sources: "", read_time_minutes: "", seo_title: "", seo_description: "",
   is_published: false,
 }
 
@@ -64,7 +65,9 @@ export default function AdminResourceFormPage() {
           category: p.category || CATEGORIES[0], author: p.author || "",
           resource_type: p.resource_type || "article", cover_image_url: p.cover_image_url || "",
           file_url: p.file_url || "", external_url: p.external_url || "", youtube_id: p.youtube_id || "",
-          tags: (p.tags || []).join(", "), read_time_minutes: p.read_time_minutes?.toString() || "",
+          tags: (p.tags || []).join(", "),
+          sources: (Array.isArray(p.sources) ? p.sources : []).map((s: { label: string; url: string }) => `${s.label} | ${s.url}`).join("\n"),
+          read_time_minutes: p.read_time_minutes?.toString() || "",
           seo_title: p.seo_title || "", seo_description: p.seo_description || "",
           is_published: !!p.is_published,
         })
@@ -109,6 +112,10 @@ export default function AdminResourceFormPage() {
       const payload = {
         ...form,
         tags: form.tags.split(",").map((t) => t.trim()).filter(Boolean),
+        sources: form.sources.split("\n").map((l) => l.trim()).filter(Boolean).map((l) => {
+          const i = l.lastIndexOf("|")
+          return i === -1 ? { label: l, url: l } : { label: l.slice(0, i).trim(), url: l.slice(i + 1).trim() }
+        }).filter((s) => /^https?:\/\//.test(s.url)),
         read_time_minutes: form.read_time_minutes ? parseInt(form.read_time_minutes, 10) : null,
       }
       const res = await fetch(isNew ? "/api/admin/resources" : `/api/admin/resources/${id}`, {
@@ -208,6 +215,10 @@ export default function AdminResourceFormPage() {
 
           <Field label="Tags (comma-separated)">
             <input className={inputClass} value={form.tags} onChange={(e) => set("tags", e.target.value)} />
+          </Field>
+
+          <Field label="Sources (one per line: Label | https://url)">
+            <textarea className={inputClass} rows={5} value={form.sources} onChange={(e) => set("sources", e.target.value)} placeholder="TRCN PQE Guide | https://trcn.gov.ng/status/knowledge-base/pqe-exam-guide" />
           </Field>
 
           <Field label="SEO title">
